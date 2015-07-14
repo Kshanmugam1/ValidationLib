@@ -1,5 +1,3 @@
-from CsvTools.main import _saveDFCsv
-
 __author__ = 'Shashank Kapadia'
 __copyright__ = '2015 AIR Worldwide, Inc.. All rights reserved'
 __version__ = '1.0'
@@ -11,7 +9,7 @@ __status__ = 'Production'
 # Import internal packages
 from DbConn.main import *
 from Correlation.main import *
-from CsvTools.main import *
+from CsvTools.main import _saveDFCsv
 
 
 if __name__ == '__main__':
