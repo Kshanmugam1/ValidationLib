@@ -7,6 +7,11 @@ __email__ = 'skapadia@air-worldwide.com'
 __status__ = 'Complete'
 
 import getopt, sys
+# Import internal packages
+from DbConn.main import *
+from Correlation.main import *
+from CsvTools.main import _saveDFCsv
+
 optlist, args = getopt.getopt(sys.argv[1:], [''], ['outfile='])
 outfile = None
 for o, a in optlist:
@@ -15,13 +20,6 @@ for o, a in optlist:
         print ("Outfile: " + outfile)
 if outfile is None:
     raise Exception("outfile not passed into script")
-
-
-# Import internal packages
-from DbConn.main import *
-from Correlation.main import *
-from CsvTools.main import _saveDFCsv
-
 
 if __name__ == '__main__':
 
