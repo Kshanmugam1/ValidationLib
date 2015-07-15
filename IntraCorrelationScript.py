@@ -6,6 +6,17 @@ __maintainer__ = 'Shashank kapadia'
 __email__ = 'skapadia@air-worldwide.com'
 __status__ = 'Complete'
 
+import getopt, sys
+optlist, args = getopt.getopt(sys.argv[1:], [''], ['outfile='])
+outfile = None
+for o, a in optlist:
+    if o == "--outfile":
+        outfile = a
+        print ("Outfile: " + outfile)
+if outfile is None:
+    raise Exception("outfile not passed into script")
+
+
 # Import internal packages
 from DbConn.main import *
 from Correlation.main import *
@@ -62,8 +73,8 @@ if __name__ == '__main__':
 
     print('**********************************************************************************')
     print('Ste 4. Saving the results')
-    _saveDFCsv(resultDF_detailed, result_path, 'Detailed-Intra')
-    _saveDFCsv(resultDF_summary, result_path, 'Summary-Intra')
+    _saveDFCsv(resultDF_detailed, outfile)
+    _saveDFCsv(resultDF_summary, outfile)
     print('**********************************************************************************')
 
     print('----------------------------------------------------------------------------------')

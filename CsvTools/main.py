@@ -9,6 +9,6 @@ __status__ = 'Production'
 # Import external Python libraries
 import pandas as pd
 
-def _saveDFCsv(Df, resultPath, filename):
+def _saveDFCsv(Df, outfile):
 
-    Df.to_csv(resultPath + '/' + filename + '.csv', index=False)
+    Df.to_csv(outfile, index=False)
