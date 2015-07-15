@@ -36,11 +36,10 @@ if __name__ == '__main__':
     4. Arg(4) - Contract Analysis SID
     5. Arg(5) - Location AnalysisSID
     '''
-    server = 'QAWUDB2\SQL2012' #'QAWUDB2\SQL2012'  # QA-TS-TPZ-DB1\SQL2014 #sys.argv[1]
-    result_Db = 'SKResCorr' #sys.argv[2]
-    result_path = r'C:\Users\i56228\Documents\Python\Git\ValidationLib' #sys.argv[3]
-    contract_analysisSID = 424 #sys.argv[4]
-    location_analysisSID = 399 #sys.argv[5]
+    server = sys.argv[1]
+    result_Db = sys.argv[2]
+    contract_analysisSID = sys.argv[4]
+    location_analysisSID = sys.argv[5]
 
     # Initialize the connection with the server
     validation = dbConnection(server)
