@@ -6,6 +6,7 @@ __maintainer__ = 'Shashank kapadia'
 __email__ = 'skapadia@air-worldwide.com'
 __status__ = 'Production'
 
+# Import internal packages
 from DbConn.main import *
 from LossMod.main import *
 from CsvTools.main import _saveDFCsv
@@ -13,14 +14,16 @@ from CsvTools.main import _saveDFCsv
 
 if __name__ == '__main__':
 
-    server = 'QAWUDB2\SQL2012'
-    #server = sys.argv[1]
-    result_Db = 'SKRes'
-    #result_Db = sys.argv[2]
-    analysis_SID = 333
-    #analysis_SID = sys.argv[3]
-    result_path =  r'C:\Users\i56228\Documents\Python\Git\ValidationLib'
-    #path = sys.argv[4]
+    # server = 'QAWUDB2\SQL2012'
+    server = sys.argv[1]
+    # result_Db = 'SKRes'
+    result_Db = sys.argv[2]
+    # analysis_SID = 333
+    analysis_SID = sys.argv[3]
+    # result_path =  r'C:\Users\i56228\Documents\Python\Git\ValidationLib'
+    result_path = sys.argv[4]
+    # filename = 'LossModValidation'
+    filename = sys.argv[5]
 
     # Initialize the connection with the server
     validation = dbConnection(server)
@@ -86,7 +89,7 @@ if __name__ == '__main__':
     
     print('**********************************************************************************************************')
     print('Step 8. Saving the results')
-    _saveDFCsv(validatedDF, result_path, 'LossModValidation')
+    _saveDFCsv(validatedDF, result_path, filename)
     print('**********************************************************************************************************')
     
     print('----------------------------------------------------------------------------------------------------------')

@@ -4,7 +4,7 @@ __version__ = '1.0'
 __interpreter__ = 'Python 2.7.9'
 __maintainer__ = 'Shashank kapadia'
 __email__ = 'skapadia@air-worldwide.com'
-__status__ = 'Production'
+__status__ = 'Complete'
 
 # Import internal packages
 from DbConn.main import *
@@ -35,20 +35,36 @@ if __name__ == '__main__':
     validation = dbConnection(server)
     corrValidation = CorrValidation(server)
 
+    print('**********************************************************************************')
+    print('Step 1. Getting the Intra and Inter Correlation Factors')
     # Extract the correlation factors using Contract Analtsis SID
     intraCorrelation, interCorrelation = corrValidation._getCorrelationFactor(contract_analysisSID)
+    print('1. Intra Correlation Factor: ' + str(intraCorrelation))
+    print('2. Inter Correlation Factor: ' + str(interCorrelation))
+    print('**********************************************************************************')
 
+    print('**********************************************************************************')
+    print('Step 2. Getting the contract and the location result SID')
     # Get the result SID using Location and Contract Analysis SID
     contractResultSID = validation._getResultSID(contract_analysisSID)
     locationResultSID = validation._getResultSID(location_analysisSID)
+    print('1. Contract Result SID: ' + str(contractResultSID))
+    print('2. Location Result SID: ' + str(locationResultSID))
+    print('**********************************************************************************')
 
+    print('**********************************************************************************')
+    print('Step 3. Getting the loss numbers and validating them')
     # Validate the correlation equation
     resultDF_detailed, resultDF_summary = corrValidation._getSD(contractResultSID, result_Db, 'Intra',
                                                                 locationResultSID=locationResultSID,
                                                                 intraCorrelation=intraCorrelation)
+    print('**********************************************************************************')
 
+    print('**********************************************************************************')
+    print('Ste 4. Saving the results')
     _saveDFCsv(resultDF_detailed, result_path, 'Detailed-Intra')
     _saveDFCsv(resultDF_summary, result_path, 'Summary-Intra')
+    print('**********************************************************************************')
 
     print('----------------------------------------------------------------------------------')
     print('                     Correlation Validation Completed                             ')
