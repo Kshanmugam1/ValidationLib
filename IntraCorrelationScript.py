@@ -36,10 +36,10 @@ if __name__ == '__main__':
     4. Arg(4) - Contract Analysis SID
     5. Arg(5) - Location AnalysisSID
     '''
-    server = sys.argv[1]
-    result_Db = sys.argv[2]
-    contract_analysisSID = sys.argv[4]
-    location_analysisSID = sys.argv[5]
+    server = sys.argv[3]
+    result_Db = sys.argv[4]
+    contract_analysisSID = sys.argv[6]
+    location_analysisSID = sys.argv[7]
 
     # Initialize the connection with the server
     validation = dbConnection(server)
