@@ -33,18 +33,33 @@ if __name__ == '__main__':
     validation = dbConnection(server)
     corrValidation = CorrValidation(server)
 
+    print('**********************************************************************************')
+    print('Step 1. Getting the Intra and Inter Correlation Factors')
     # Extract the correlation factors using Contract Analtsis SID
     intraCorrelation, interCorrelation = corrValidation._getCorrelationFactor(contract_analysisSID)
+    print('1. Intra Correlation Factor: ' + str(intraCorrelation))
+    print('2. Inter Correlation Factor: ' + str(interCorrelation))
+    print('**********************************************************************************')
 
+    print('**********************************************************************************')
+    print('Step 2. Getting the contract result SID')
     # Get the result SID using Location and Contract Analysis SID
     contractResultSID = validation._getResultSID(contract_analysisSID)
+    print('1. Contract Result SID: ' + str(contractResultSID))
+    print('**********************************************************************************')
 
+    print('**********************************************************************************')
+    print('Step 3. Getting the loss numbers and validating them')
     # Validate the correlation equation
     resultDF_detailed, resultDF_summary = corrValidation._getSD(contractResultSID, result_Db, 'Inter',
                                                                 interCorrelation=intraCorrelation)
+    print('**********************************************************************************')
 
+    print('**********************************************************************************')
+    print('Ste 4. Saving the results')
     _saveDFCsv(resultDF_detailed, result_path, 'Detailed-Inter')
     _saveDFCsv(resultDF_summary, result_path, 'Summary-Inter')
+    print('**********************************************************************************')
 
     print('----------------------------------------------------------------------------------')
     print('                     Correlation Validation Completed                             ')
