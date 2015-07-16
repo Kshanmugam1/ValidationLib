@@ -71,7 +71,7 @@ if __name__ == '__main__':
 
     print('**********************************************************************************')
     print('Ste 4. Saving the results')
-    _saveDFCsv(resultDF_detailed, outfile)
+    _saveDFCsv(resultDF_detailed, outfile[:-4] + '-Detailed.csv')
     _saveDFCsv(resultDF_summary, outfile)
     print('**********************************************************************************')
 
