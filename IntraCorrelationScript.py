@@ -25,6 +25,7 @@ if __name__ == '__main__':
     3. Arg(5) - Result Path (As an Outfile)
     4. Arg(6) - Contract Analysis SID
     5. Arg(7) - Location AnalysisSID
+    6. Arg(8) - Tolerance
     '''
     server = sys.argv[3]
     result_Db = sys.argv[4]
@@ -39,6 +40,7 @@ if __name__ == '__main__':
         raise Exception("outfile not passed into script")
     contract_analysisSID = sys.argv[6]
     location_analysisSID = sys.argv[7]
+    tolerance = sys.argv[8]
 
     # Initialize the connection with the server
     validation = dbConnection(server)
@@ -66,7 +68,7 @@ if __name__ == '__main__':
     # Validate the correlation equation
     resultDF_detailed, resultDF_summary = corrValidation._getSD(contractResultSID, result_Db, 'Intra',
                                                                 locationResultSID=locationResultSID,
-                                                                intraCorrelation=intraCorrelation)
+                                                                intraCorrelation=intraCorrelation, tolerance=tolerance)
     print('**********************************************************************************')
 
     print('**********************************************************************************')
