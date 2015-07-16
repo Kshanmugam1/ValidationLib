@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="a16f72e8-2994-4be5-bfc0-4ead301bc890" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/IntraCorrelationScript.py" afterPath="$PROJECT_DIR$/IntraCorrelationScript.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Correlation/main.py" afterPath="$PROJECT_DIR$/Correlation/main.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="ValidationLib.iws" />
@@ -25,31 +25,21 @@
   </component>
   <component name="FileEditorManager">
     <leaf>
-      <file leaf-file-name="IntraCorrelationScript.py" pinned="false" current-in-tab="true">
+      <file leaf-file-name="IntraCorrelationScript.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/IntraCorrelationScript.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.13471502">
-              <caret line="29" column="0" selection-start-line="29" selection-start-column="0" selection-end-line="43" selection-end-column="0" />
-              <folding />
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="main.py" pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/DbConn/main.py">
-          <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
-              <caret line="22" column="0" selection-start-line="22" selection-start-column="0" selection-end-line="22" selection-end-column="0" />
+              <caret line="42" column="27" selection-start-line="42" selection-start-column="27" selection-end-line="42" selection-end-column="27" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="main.py" pinned="false" current-in-tab="false">
+      <file leaf-file-name="main.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/Correlation/main.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0">
-              <caret line="130" column="0" selection-start-line="130" selection-start-column="0" selection-end-line="130" selection-end-column="0" />
+            <state vertical-scroll-proportion="0.88255614">
+              <caret line="141" column="50" selection-start-line="141" selection-start-column="50" selection-end-line="141" selection-end-column="50" />
               <folding>
                 <element signature="e#487#593#0" expanded="false" />
                 <element signature="e#654#1058#0" expanded="false" />
@@ -74,8 +64,8 @@
         <option value="$PROJECT_DIR$/LossModScript.py" />
         <option value="$PROJECT_DIR$/CsvTools/main.py" />
         <option value="$PROJECT_DIR$/InterCorrelationScript.py" />
-        <option value="$PROJECT_DIR$/Correlation/main.py" />
         <option value="$PROJECT_DIR$/IntraCorrelationScript.py" />
+        <option value="$PROJECT_DIR$/Correlation/main.py" />
       </list>
     </option>
   </component>
@@ -426,7 +416,13 @@
       <option name="project" value="LOCAL" />
       <updated>1437064885185</updated>
     </task>
-    <option name="localTasksCounter" value="13" />
+    <task id="LOCAL-00013" summary="Tolerance, seperate detailed file, percent difference">
+      <created>1437064908121</created>
+      <option name="number" value="00013" />
+      <option name="project" value="LOCAL" />
+      <updated>1437064908121</updated>
+    </task>
+    <option name="localTasksCounter" value="14" />
     <servers />
   </component>
   <component name="TodoView">
@@ -511,7 +507,7 @@
           <folding>
             <element signature="e#487#593#0" expanded="false" />
             <element signature="e#654#1058#0" expanded="false" />
-            <element signature="e#1146#8932#0" expanded="false" />
+            <element signature="e#1146#8931#0" expanded="false" />
           </folding>
         </state>
       </provider>
@@ -606,22 +602,22 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/Correlation/main.py">
+    <entry file="file://$PROJECT_DIR$/IntraCorrelationScript.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="130" column="0" selection-start-line="130" selection-start-column="0" selection-end-line="130" selection-end-column="0" />
+          <caret line="42" column="27" selection-start-line="42" selection-start-column="27" selection-end-line="42" selection-end-column="27" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Correlation/main.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.88255614">
+          <caret line="141" column="50" selection-start-line="141" selection-start-column="50" selection-end-line="141" selection-end-column="50" />
           <folding>
             <element signature="e#487#593#0" expanded="false" />
             <element signature="e#654#1058#0" expanded="false" />
           </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/IntraCorrelationScript.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.13471502">
-          <caret line="29" column="0" selection-start-line="29" selection-start-column="0" selection-end-line="43" selection-end-column="0" />
-          <folding />
         </state>
       </provider>
     </entry>
