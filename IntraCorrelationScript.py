@@ -12,14 +12,6 @@ from DbConn.main import *
 from Correlation.main import *
 from CsvTools.main import _saveDFCsv
 
-optlist, args = getopt.getopt(sys.argv[1:], [''], ['outfile='])
-outfile = None
-for o, a in optlist:
-    if o == "--outfile":
-        outfile = a
-        print ("Outfile: " + outfile)
-if outfile is None:
-    raise Exception("outfile not passed into script")
 
 if __name__ == '__main__':
 
@@ -28,14 +20,23 @@ if __name__ == '__main__':
     print('**********************************************************************************')
     # Extract the given arguments
     '''
-    1. Arg(1) - Server
-    2. Arg(2) - Result DB
-    3. Arg(3) - REsult Path
-    4. Arg(4) - Contract Analysis SID
-    5. Arg(5) - Location AnalysisSID
+    1. Arg(3) - Server
+    2. Arg(4) - Result DB
+    3. Arg(5) - Result Path (As an Outfile)
+    4. Arg(6) - Contract Analysis SID
+    5. Arg(7) - Location AnalysisSID
     '''
     server = sys.argv[3]
     result_Db = sys.argv[4]
+    optlist, args = getopt.getopt(sys.argv[1:], [''], ['outfile='])
+
+    outfile = None
+    for o, a in optlist:
+        if o == "--outfile":
+            outfile = a
+        print ("Outfile: " + outfile)
+    if outfile is None:
+        raise Exception("outfile not passed into script")
     contract_analysisSID = sys.argv[6]
     location_analysisSID = sys.argv[7]
 
