@@ -77,9 +77,9 @@ class CorrValidation:
 
             script =    'SELECT CatalogTypeCode, ModelCode, ' \
                         'SQRT(SUM(POWER(CalculatedPortfolioGroundUpSD,2))) AS CalculatedPortGuSD , SQRT(SUM(POWER(PortGuSD,2))) AS PortGuSD,' \
-                        'SQRT(SUM(POWER(CalculatedPortfolioGroundUpSD,2))) - SQRT(SUM(POWER(PortGuSD,2)))/ SQRT(SUM(POWER(PortGuSD,2))) AS DifferencePortGuSD%, ' \
+                        'SQRT(SUM(POWER(CalculatedPortfolioGroundUpSD,2))) - SQRT(SUM(POWER(PortGuSD,2)))/ SQRT(SUM(POWER(PortGuSD,2))) AS DifferencePortGuSD_Percent, ' \
                         'SQRT(SUM(POWER(CalculatedPortfolioGrossSD,2))) AS CalculatedPortGrSD , SQRT(SUM(POWER(PortGrSD,2))) AS PortGrSD,' \
-                        'SQRT(SUM(POWER(CalculatedPortfolioGrossSD,2))) - SQRT(SUM(POWER(PortGrSD,2)))/SQRT(SUM(POWER(PortGrSD,2))) AS DifferencePortGrSD%' \
+                        'SQRT(SUM(POWER(CalculatedPortfolioGrossSD,2))) - SQRT(SUM(POWER(PortGrSD,2)))/SQRT(SUM(POWER(PortGrSD,2))) AS DifferencePortGrSD_Percent' \
                         '\nFROM [' + resultDB + '].dbo.Temp_Table_Inter' \
                                                  '\nGROUP BY CatalogTypeCode, ModelCode, PerilSetCode' \
                                                  '\nORDER BY ModelCode'
@@ -120,14 +120,13 @@ class CorrValidation:
 
             script =    'SELECT intra.CatalogTypeCode, intra.ModelCode, intra.PerilSetCode, dimCon.ContractID, ' \
                         'SQRT(SUM(POWER(intra.CalculatedConGroundUpSD,2))) AS CalculatedConGuSD , SQRT(SUM(POWER(intra.ContractGuSD,2))) AS ContractGuSD,' \
-                        'SQRT(SUM(POWER(intra.CalculatedConGroundUpSD,2))) - SQRT(SUM(POWER(intra.ContractGuSD,2)))/SQRT(SUM(POWER(intra.ContractGuSD,2))) AS DifferenceConGuSD%,' \
+                        'SQRT(SUM(POWER(intra.CalculatedConGroundUpSD,2))) - SQRT(SUM(POWER(intra.ContractGuSD,2)))/SQRT(SUM(POWER(intra.ContractGuSD,2))) AS DifferenceConGuSD_Percent,' \
                         'SQRT(SUM(POWER(intra.CalculatedConGrossSD,2))) AS CalculatedConGrSD , SQRT(SUM(POWER(intra.ContractGrSD,2))) AS ContractGrSD,' \
-                        'SQRT(SUM(POWER(intra.CalculatedConGrossSD,2))) - SQRT(SUM(POWER(intra.ContractGrSD,2)))/SQRT(SUM(POWER(intra.ContractGrSD,2))) AS DifferenceConGrSD%' \
+                        'SQRT(SUM(POWER(intra.CalculatedConGrossSD,2))) - SQRT(SUM(POWER(intra.ContractGrSD,2)))/SQRT(SUM(POWER(intra.ContractGrSD,2))) AS DifferenceConGrSD_Percent' \
                         '\nFROM [' + resultDB + '].dbo.Temp_Table_Intra intra' \
                         '\n INNER JOIN [' + resultDB + '].dbo.t' + str(locationResultSID) + '_LOSS_DimContract dimCon ON intra.ContractSID = dimCon.ContractSID'\
                         '\nGROUP BY intra.CatalogTypeCode, intra.ModelCode, intra.PerilSetCode, dimCon.ContractID' \
                         '\nORDER BY intra.ModelCode'
-
             print(script)
             resultDF_summary = pd.read_sql(script, self.connection)
             resultDF_summary['Status'] = ''
