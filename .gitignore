@@ -57,3 +57,4 @@ docs/_build/
 target/
 *.xml
 .idea/workspace.xml
+*.xml
