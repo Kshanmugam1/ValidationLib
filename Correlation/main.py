@@ -115,19 +115,20 @@ class CorrValidation:
 
             self.cursor.execute(sql_script)
             self.connection.commit()
-
             script = 'SELECT * FROM [' + resultDB + '].dbo.Temp_Table_Intra'
             resultDF_detailed = pd.read_sql(script, self.connection)
 
-            script =    'SELECT CatalogTypeCode, ModelCode, PerilSetCode, ContractSID, ' \
-                        'SQRT(SUM(POWER(CalculatedConGroundUpSD,2))) AS CalculatedConGuSD , SQRT(SUM(POWER(ContractGuSD,2))) AS ContractGuSD,' \
-                        'SQRT(SUM(POWER(CalculatedConGroundUpSD,2))) - SQRT(SUM(POWER(ContractGuSD,2))) AS DifferenceConGuSD,' \
-                        'SQRT(SUM(POWER(CalculatedConGrossSD,2))) AS CalculatedConGrSD , SQRT(SUM(POWER(ContractGrSD,2))) AS ContractGrSD,' \
-                        'SQRT(SUM(POWER(CalculatedConGrossSD,2))) - SQRT(SUM(POWER(ContractGrSD,2))) AS DifferenceConGrSD' \
-                        '\nFROM [' + resultDB + '].dbo.Temp_Table_Intra' \
-                                                 '\nGROUP BY CatalogTypeCode, ModelCode, PerilSetCode, ContractSID' \
-                                                 '\nORDER BY ModelCode'
+            script =    'SELECT intra.CatalogTypeCode, intra.ModelCode, intra.PerilSetCode, dimCon.ContractID, ' \
+                        'SQRT(SUM(POWER(intra.CalculatedConGroundUpSD,2))) AS CalculatedConGuSD , SQRT(SUM(POWER(intra.ContractGuSD,2))) AS ContractGuSD,' \
+                        'SQRT(SUM(POWER(intra.CalculatedConGroundUpSD,2))) - SQRT(SUM(POWER(intra.ContractGuSD,2))) AS DifferenceConGuSD,' \
+                        'SQRT(SUM(POWER(intra.CalculatedConGrossSD,2))) AS CalculatedConGrSD , SQRT(SUM(POWER(intra.ContractGrSD,2))) AS ContractGrSD,' \
+                        'SQRT(SUM(POWER(intra.CalculatedConGrossSD,2))) - SQRT(SUM(POWER(intra.ContractGrSD,2))) AS DifferenceConGrSD' \
+                        '\nFROM [' + resultDB + '].dbo.Temp_Table_Intra intra' \
+                        '\n INNER JOIN [' + resultDB + '].dbo.t' + str(locationResultSID) + '_LOSS_DimContract dimCon ON intra.ContractSID = dimCon.ContractSID'\
+                        '\nGROUP BY intra.CatalogTypeCode, intra.ModelCode, intra.PerilSetCode, dimCon.ContractID' \
+                        '\nORDER BY intra.ModelCode'
 
+            print(script)
             resultDF_summary = pd.read_sql(script, self.connection)
             resultDF_summary['Status'] = ''
             resultDF_summary.loc[(abs(resultDF_summary['DifferenceConGuSD'])>=0.01) | (abs(resultDF_summary['DifferenceConGrSD'])>=0.01) , 'Status'] = 'Fail'
