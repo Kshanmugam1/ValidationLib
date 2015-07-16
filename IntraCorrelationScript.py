@@ -27,27 +27,20 @@ if __name__ == '__main__':
     5. Arg(7) - Location AnalysisSID
     6. Arg(8) - Tolerance
     '''
-    # server = sys.argv[3]
-    # result_Db = sys.argv[4]
-    # optlist, args = getopt.getopt(sys.argv[1:], [''], ['outfile='])
-    #
-    # outfile = None
-    # for o, a in optlist:
-    #     if o == "--outfile":
-    #         outfile = a
-    #     print ("Outfile: " + outfile)
-    # if outfile is None:
-    #     raise Exception("outfile not passed into script")
-    # contract_analysisSID = sys.argv[6]
-    # location_analysisSID = sys.argv[7]
-    # tolerance = sys.argv[8]
+    server = sys.argv[3]
+    result_Db = sys.argv[4]
+    optlist, args = getopt.getopt(sys.argv[1:], [''], ['outfile='])
 
-    server = "QAWUDB2\SQL2012"
-    result_Db = "SKResCorr"
-    outfile = r"\\qafile2\TS\Working Data\Shashank\sample.csv"
-    contract_analysisSID = "424"
-    location_analysisSID = "399"
-    tolerance = "10"
+    outfile = None
+    for o, a in optlist:
+        if o == "--outfile":
+            outfile = a
+        print ("Outfile: " + outfile)
+    if outfile is None:
+        raise Exception("outfile not passed into script")
+    contract_analysisSID = sys.argv[6]
+    location_analysisSID = sys.argv[7]
+    tolerance = sys.argv[8]
 
 # Initialize the connection with the server
     validation = dbConnection(server)
