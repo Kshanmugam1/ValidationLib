@@ -77,16 +77,19 @@ class CorrValidation:
 
             script =    'SELECT CatalogTypeCode, ModelCode, ' \
                         'SQRT(SUM(POWER(CalculatedPortfolioGroundUpSD,2))) AS CalculatedPortGuSD , SQRT(SUM(POWER(PortGuSD,2))) AS PortGuSD,' \
-                        'SQRT(SUM(POWER(CalculatedPortfolioGroundUpSD,2))) - SQRT(SUM(POWER(PortGuSD,2)))/ SQRT(SUM(POWER(PortGuSD,2))) AS DifferencePortGuSD_Percent, ' \
-                        'SQRT(SUM(POWER(CalculatedPortfolioGrossSD,2))) AS CalculatedPortGrSD , SQRT(SUM(POWER(PortGrSD,2))) AS PortGrSD,' \
-                        'SQRT(SUM(POWER(CalculatedPortfolioGrossSD,2))) - SQRT(SUM(POWER(PortGrSD,2)))/SQRT(SUM(POWER(PortGrSD,2))) AS DifferencePortGrSD_Percent' \
+                        'SQRT(SUM(POWER(CalculatedPortfolioGrossSD,2))) AS CalculatedPortGrSD , SQRT(SUM(POWER(PortGrSD,2))) AS PortGrSD' \
                         '\nFROM [' + resultDB + '].dbo.Temp_Table_Inter' \
                                                  '\nGROUP BY CatalogTypeCode, ModelCode, PerilSetCode' \
                                                  '\nORDER BY ModelCode'
 
             resultDF_summary = pd.read_sql(script, self.connection)
             resultDF_summary['Status'] = ''
-            resultDF_summary.loc[(abs(resultDF_summary['DifferencePortGuSD'])>=0.01) | (abs(resultDF_summary['DifferencePortGrSD'])>=0.01), 'Status'] = 'Fail'
+
+            resultDF_summary['DifferencePortGuSD_Percent'] = (resultDF_summary['CalculatedPortGuSD'] - resultDF_summary['PortGuSD']) / resultDF_summary['PortGuSD']
+            resultDF_summary['DifferencePortGrSD_Percent'] = (resultDF_summary['CalculatedPortGrSD'] - resultDF_summary['PortGrSD']) / resultDF_summary['PortGrSD']
+            resultDF_summary.fillna(0)
+
+            resultDF_summary.loc[(abs(resultDF_summary['DifferencePortGuSD_Percent'])>=(float(tolerance)/100)) | (abs(resultDF_summary['DifferencePortGrSD_Percent'])>=(float(tolerance)/100)), 'Status'] = 'Fail'
             resultDF_summary.loc[resultDF_summary['Status']=='', 'Status'] = 'Pass'
 
         elif type == 'Intra':
@@ -120,17 +123,21 @@ class CorrValidation:
 
             script =    'SELECT intra.CatalogTypeCode, intra.ModelCode, intra.PerilSetCode, dimCon.ContractID, ' \
                         'SQRT(SUM(POWER(intra.CalculatedConGroundUpSD,2))) AS CalculatedConGuSD , SQRT(SUM(POWER(intra.ContractGuSD,2))) AS ContractGuSD,' \
-                        'SQRT(SUM(POWER(intra.CalculatedConGroundUpSD,2))) - SQRT(SUM(POWER(intra.ContractGuSD,2)))/SQRT(SUM(POWER(intra.ContractGuSD,2))) AS DifferenceConGuSD_Percent,' \
-                        'SQRT(SUM(POWER(intra.CalculatedConGrossSD,2))) AS CalculatedConGrSD , SQRT(SUM(POWER(intra.ContractGrSD,2))) AS ContractGrSD,' \
-                        'SQRT(SUM(POWER(intra.CalculatedConGrossSD,2))) - SQRT(SUM(POWER(intra.ContractGrSD,2)))/SQRT(SUM(POWER(intra.ContractGrSD,2))) AS DifferenceConGrSD_Percent' \
+                        'SQRT(SUM(POWER(intra.CalculatedConGrossSD,2))) AS CalculatedConGrSD , SQRT(SUM(POWER(intra.ContractGrSD,2))) AS ContractGrSD' \
                         '\nFROM [' + resultDB + '].dbo.Temp_Table_Intra intra' \
                         '\n INNER JOIN [' + resultDB + '].dbo.t' + str(locationResultSID) + '_LOSS_DimContract dimCon ON intra.ContractSID = dimCon.ContractSID'\
                         '\nGROUP BY intra.CatalogTypeCode, intra.ModelCode, intra.PerilSetCode, dimCon.ContractID' \
                         '\nORDER BY intra.ModelCode'
-            print(script)
+
             resultDF_summary = pd.read_sql(script, self.connection)
+
             resultDF_summary['Status'] = ''
-            resultDF_summary.loc[(abs(resultDF_summary['DifferenceConGuSD%'])>=(tolerance/100)) | (abs(resultDF_summary['DifferenceConGrSD%'])>=(tolerance/100)) , 'Status'] = 'Fail'
+
+            resultDF_summary['DifferenceConGuSD_Percent'] = (resultDF_summary['CalculatedConGuSD'] - resultDF_summary['ContractGuSD']) / resultDF_summary['ContractGuSD']
+            resultDF_summary['DifferenceConGrSD_Percent'] = (resultDF_summary['CalculatedConGrSD'] - resultDF_summary['ContractGrSD']) / resultDF_summary['ContractGrSD']
+            resultDF_summary.fillna(0)
+
+            resultDF_summary.loc[(abs(resultDF_summary['DifferenceConGuSD_Percent'])>=(float(tolerance)/100)) | (abs(resultDF_summary['DifferenceConGrSD_Percent'])>=(float(tolerance)/100)) , 'Status'] = 'Fail'
             resultDF_summary.loc[resultDF_summary['Status']=='', 'Status'] = 'Pass'
 
         return resultDF_detailed, resultDF_summary
