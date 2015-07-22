@@ -13,6 +13,7 @@ import sys
 # Import internal packages
 from DbConn.main import *
 import threading
+import time
 # Import external Python libraries
 import pandas as pd
 
@@ -37,23 +38,24 @@ class ProgramValidation:
                                               'NetOfPreCATLoss', 'PostCATNetLoss', 'Recovery',
                                               'CalculatedPostCATNetLoss'])
 
-        def multiThread(y, m, c):
+        def multiThread(y, m, c, j):
 
-            agg_limit_temp = copy.deepcopy(agg_limit)
-            agg_ret_temp = copy.deepcopy(agg_ret)
+            agg_limit_temp = copy.deepcopy(agg_limit[j])
+            agg_ret_temp = copy.deepcopy(agg_ret[j])
+
             sample_lossDF = lossDF.loc[(lossDF['CatalogTypeCode'] == c) & (lossDF['ModelCode'] == m) &
                                        (lossDF['YearID'] == y)][['CatalogTypeCode', 'ModelCode',
                                                                  'YearID', 'EventID', 'NetOfPreCATLoss',
                                                                  'PostCATNetLoss']].reset_index().drop('index', axis=1)
 
 
-            sample_lossDF['Recovery'] = sample_lossDF['NetOfPreCATLoss'] - occ_ret
+            sample_lossDF['Recovery'] = sample_lossDF['NetOfPreCATLoss'] - occ_ret[j]
 
             sample_lossDF.loc[sample_lossDF['Recovery']<0, 'Recovery'] = 0
-            sample_lossDF.loc[sample_lossDF['Recovery']>occ_limit, 'Recovery'] = occ_limit
+            sample_lossDF.loc[sample_lossDF['Recovery']>occ_limit[j], 'Recovery'] = occ_limit[j]
 
             if len(sample_lossDF['Recovery']) == 1:
-                sample_lossDF['Recovery'] = min(max(sample_lossDF['Recovery'].values[0] - agg_ret, 0), agg_limit)
+                sample_lossDF['Recovery'] = min(max(sample_lossDF['Recovery'].values[0] - agg_ret_temp, 0), agg_limit_temp)
 
             else:
                 for i in range(len(sample_lossDF['Recovery'])):
@@ -68,8 +70,8 @@ class ProgramValidation:
                     agg_ret_temp = copy.deepcopy(temp_agg_ret)
                     agg_limit_temp -= copy.deepcopy(sample_lossDF['Recovery'][i])
 
-            sample_lossDF['Recovery'] = sample_lossDF['Recovery'] * (1 - ins_coins[0])
-            sample_lossDF['Recovery'] = sample_lossDF['Recovery'] * placed_percent
+            sample_lossDF['Recovery'] = sample_lossDF['Recovery'] * (1 - float(ins_coins[j]))
+            sample_lossDF['Recovery'] = sample_lossDF['Recovery'] * placed_percent[j]
 
             sample_lossDF['CalculatedPostCATNetLoss'] = sample_lossDF['NetOfPreCATLoss'] - \
                                                         sample_lossDF['Recovery']
@@ -84,21 +86,22 @@ class ProgramValidation:
 
         Catalogtypes = lossDF.loc[:, 'CatalogTypeCode'].unique()
         thread_list = []
-        for c in Catalogtypes:
-            ModelCode = lossDF.loc[lossDF['CatalogTypeCode'] == c, 'ModelCode'].unique()
-            for m in ModelCode:
-                yearID = lossDF.loc[(lossDF['CatalogTypeCode'] == c) & (lossDF['ModelCode'] == m) , 'YearID'].unique()
-                for y in yearID:
-                    t = threading.Thread(target=multiThread, args=(y, m, c))
-                    thread_list.append(t)
+        for i in range(len(occ_limit)):
+            for c in Catalogtypes:
+                ModelCode = lossDF.loc[lossDF['CatalogTypeCode'] == c, 'ModelCode'].unique()
+                for m in ModelCode:
+                    yearID = lossDF.loc[(lossDF['CatalogTypeCode'] == c) & (lossDF['ModelCode'] == m) , 'YearID'].unique()
+                    for y in yearID:
+                        t = threading.Thread(target=multiThread, args=(y, m, c, i))
+                        thread_list.append(t)
+                        try:
+                            t.start()
+                        except:
+                            time.sleep(1)
+                            t.start()
 
-        thread_list = chunks(thread_list, 600)
-        for i in range(len(thread_list)):
-            for thread in thread_list[i]:
-                thread.start()
-
-            for thread in thread_list[i]:
-                thread.join()
+        for thread in thread_list:
+            thread.join()
 
         self.resultDF.insert(0, 'Status', '-')
         self.resultDF.loc[self.resultDF['PostCATNetLoss'] - self.resultDF['CalculatedPostCATNetLoss'] < 0.001, 'Status'] = 'Pass'
