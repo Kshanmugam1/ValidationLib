@@ -1,9 +1,11 @@
 # Import internal packages
 from DbConn.main import *
 from Catxol.main import *
+from Catxol.main import _validate
 from CsvTools.main import _saveDFCsv
 
 import time
+import multiprocessing as mp
 
 if __name__ == '__main__':
 
@@ -39,13 +41,21 @@ if __name__ == '__main__':
     print('Step 3. Program Info')
     occ_limit, occ_ret, agg_limit, agg_ret, placed_percent, ins_coins = validation._getProgramInfo(programSID)
     print(occ_limit, occ_ret, agg_limit, agg_ret, placed_percent, ins_coins)
+
     print('**********************************************************************************************************')
-    print('Step 5. Validate the Program')
+    print('Step 4. Getting the task list')
     start = time.time()
-    resultDF = Program._validate(result_Db, resultSID, occ_limit, occ_ret, agg_limit,
-                                 agg_ret, placed_percent, ins_coins, 10)
-    print('Finish Time: ' + str(float(time.time() - start)))
+    tasks, lossDF = Program._GetTasks(result_Db, resultSID, occ_limit)
+
+    print('**********************************************************************************************************')
+    print('Step 5. Getting result DF')
+    pool = mp.Pool()
+    results = [pool.apply_async(_validate, args=(tasks[i], lossDF, occ_ret, occ_limit, agg_ret, agg_limit, placed_percent, ins_coins)) for i in range(len(tasks))]
+    output = [p.get() for p in results]
+    resultDF = Program._getResultDF(output)
 
     print('**********************************************************************************')
     print('Ste 6. Saving the results')
     _saveDFCsv(resultDF, result_path)
+
+    print('********** Process Complete: ' + str(time.time() - start) + ' Seconds **********')

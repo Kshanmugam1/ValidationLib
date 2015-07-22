@@ -9,11 +9,16 @@ __status__ = 'Production'
 # Import standard Python packages
 import copy
 import sys
+import threading
+import multiprocessing as mp
+import math
+from Queue import *
+from functools import partial
+
 
 # Import internal packages
 from DbConn.main import *
-import threading
-import time
+
 # Import external Python libraries
 import pandas as pd
 
@@ -22,89 +27,85 @@ def chunks(l, n):
     n = max(1, n)
     return [l[i:i + n] for i in range(0, len(l), n)]
 
+
+def _validate(tuple, lossDF, occ_ret, occ_limit, agg_ret, agg_limit, placed_percent, ins_coins):
+
+    agg_limit_temp = copy.deepcopy(agg_limit[tuple[0]])
+    agg_ret_temp = copy.deepcopy(agg_ret[tuple[0]])
+
+    sample_lossDF = lossDF.loc[(lossDF['CatalogTypeCode'] == tuple[1]) & (lossDF['ModelCode'] == tuple[2]) &
+                                       (lossDF['YearID'] == tuple[3])][['CatalogTypeCode', 'ModelCode',
+                                                                 'YearID', 'EventID', 'NetOfPreCATLoss',
+                                                                 'PostCATNetLoss']].reset_index().drop('index', axis=1)
+    sample_lossDF['Recovery'] = sample_lossDF['NetOfPreCATLoss'] - occ_ret[tuple[0]]
+
+    sample_lossDF.loc[sample_lossDF['Recovery']<0, 'Recovery'] = 0
+    sample_lossDF.loc[sample_lossDF['Recovery']>occ_limit[tuple[0]], 'Recovery'] = occ_limit[tuple[0]]
+
+    if len(sample_lossDF['Recovery']) == 1:
+        sample_lossDF['Recovery'] = min(max(sample_lossDF['Recovery'].values[0] - agg_ret_temp, 0), agg_limit_temp)
+
+    else:
+        for i in range(len(sample_lossDF['Recovery'])):
+
+            if sample_lossDF['Recovery'][i] - agg_ret_temp < 0:
+                temp_agg_ret = agg_ret_temp - sample_lossDF['Recovery'][i]
+            else:
+                temp_agg_ret = 0
+
+            sample_lossDF['Recovery'][i] = min(max(sample_lossDF['Recovery'][i] -
+                                                   agg_ret_temp, 0), agg_limit_temp)
+            agg_ret_temp = copy.deepcopy(temp_agg_ret)
+            agg_limit_temp -= copy.deepcopy(sample_lossDF['Recovery'][i])
+
+    sample_lossDF['Recovery'] = sample_lossDF['Recovery'] * (1 - float(ins_coins[tuple[0]]))
+    sample_lossDF['Recovery'] = sample_lossDF['Recovery'] * placed_percent[tuple[0]]
+
+    sample_lossDF['CalculatedPostCATNetLoss'] = sample_lossDF['NetOfPreCATLoss'] - \
+                                                sample_lossDF['Recovery']
+    return sample_lossDF
+
 class ProgramValidation:
 
     def __init__(self, server):
 
         # Initializing the connection and cursor
+        self.server = server
         self.setup = dbConnection(server)
         self.connection = self.setup.connection
         self.cursor = self.setup.cursor
         self.lock = threading.RLock()
 
-    def _validate(self, resultDB, resultSID, occ_limit, occ_ret, agg_limit, agg_ret, placed_percent, ins_coins, tolerance):
+    def _GetTasks(self, resultDB, resultSID, occ_limit):
 
-        self.resultDF = pd.DataFrame(columns=['CatalogTypeCode', 'ModelCode', 'YearID', 'EventID',
-                                              'NetOfPreCATLoss', 'PostCATNetLoss', 'Recovery',
-                                              'CalculatedPostCATNetLoss'])
-
-        def multiThread(y, m, c, j):
-
-            agg_limit_temp = copy.deepcopy(agg_limit[j])
-            agg_ret_temp = copy.deepcopy(agg_ret[j])
-
-            sample_lossDF = lossDF.loc[(lossDF['CatalogTypeCode'] == c) & (lossDF['ModelCode'] == m) &
-                                       (lossDF['YearID'] == y)][['CatalogTypeCode', 'ModelCode',
-                                                                 'YearID', 'EventID', 'NetOfPreCATLoss',
-                                                                 'PostCATNetLoss']].reset_index().drop('index', axis=1)
-
-
-            sample_lossDF['Recovery'] = sample_lossDF['NetOfPreCATLoss'] - occ_ret[j]
-
-            sample_lossDF.loc[sample_lossDF['Recovery']<0, 'Recovery'] = 0
-            sample_lossDF.loc[sample_lossDF['Recovery']>occ_limit[j], 'Recovery'] = occ_limit[j]
-
-            if len(sample_lossDF['Recovery']) == 1:
-                sample_lossDF['Recovery'] = min(max(sample_lossDF['Recovery'].values[0] - agg_ret_temp, 0), agg_limit_temp)
-
-            else:
-                for i in range(len(sample_lossDF['Recovery'])):
-
-                    if sample_lossDF['Recovery'][i] - agg_ret_temp < 0:
-                        temp_agg_ret = agg_ret_temp - sample_lossDF['Recovery'][i]
-                    else:
-                        temp_agg_ret = 0
-
-                    sample_lossDF['Recovery'][i] = min(max(sample_lossDF['Recovery'][i] -
-                                                           agg_ret_temp, 0), agg_limit_temp)
-                    agg_ret_temp = copy.deepcopy(temp_agg_ret)
-                    agg_limit_temp -= copy.deepcopy(sample_lossDF['Recovery'][i])
-
-            sample_lossDF['Recovery'] = sample_lossDF['Recovery'] * (1 - float(ins_coins[j]))
-            sample_lossDF['Recovery'] = sample_lossDF['Recovery'] * placed_percent[j]
-
-            sample_lossDF['CalculatedPostCATNetLoss'] = sample_lossDF['NetOfPreCATLoss'] - \
-                                                        sample_lossDF['Recovery']
-            self.lock.acquire(blocking=1)
-            self.resultDF = pd.concat([self.resultDF, sample_lossDF], axis=0)
-            self.lock.release()
-
+        print(resultSID)
         lossDF = self.setup._getLossDF(resultDB, resultSID, 'PORT')
         lossDF.sort(['CatalogTypeCode', 'ModelCode', 'YearID', 'EventID'], inplace=True)
 
         lossDF = lossDF[['CatalogTypeCode', 'ModelCode', 'YearID', 'EventID', 'NetOfPreCATLoss', 'PostCATNetLoss']]
 
         Catalogtypes = lossDF.loc[:, 'CatalogTypeCode'].unique()
-        thread_list = []
+        task_list = []
         for i in range(len(occ_limit)):
             for c in Catalogtypes:
                 ModelCode = lossDF.loc[lossDF['CatalogTypeCode'] == c, 'ModelCode'].unique()
                 for m in ModelCode:
                     yearID = lossDF.loc[(lossDF['CatalogTypeCode'] == c) & (lossDF['ModelCode'] == m) , 'YearID'].unique()
                     for y in yearID:
-                        t = threading.Thread(target=multiThread, args=(y, m, c, i))
-                        thread_list.append(t)
-                        try:
-                            t.start()
-                        except:
-                            time.sleep(1)
-                            t.start()
+                        task_list.append(tuple([i,c,m,y]))
 
-        for thread in thread_list:
-            thread.join()
+        return task_list, lossDF
 
-        self.resultDF.insert(0, 'Status', '-')
-        self.resultDF.loc[self.resultDF['PostCATNetLoss'] - self.resultDF['CalculatedPostCATNetLoss'] < 0.001, 'Status'] = 'Pass'
-        self.resultDF.loc[self.resultDF['Status'] == '-', 'Status'] = 'Fail'
+    def _getResultDF(self, result):
 
-        return self.resultDF
+        resultDF = pd.DataFrame(columns=['CatalogTypeCode', 'ModelCode', 'YearID', 'EventID',
+                                         'NetOfPreCATLoss', 'PostCATNetLoss', 'Recovery',
+                                         'CalculatedPostCATNetLoss'])
+        for i in range(len(result)):
+            resultDF = pd.concat([resultDF, result[i]], axis=0)
+
+        resultDF.insert(0, 'Status', '-')
+        resultDF.loc[resultDF['PostCATNetLoss'] - resultDF['CalculatedPostCATNetLoss'] < 0.001, 'Status'] = 'Pass'
+        resultDF.loc[resultDF['Status'] == '-', 'Status'] = 'Fail'
+
+        return resultDF
