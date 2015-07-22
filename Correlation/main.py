@@ -1,11 +1,3 @@
-__author__ = 'Shashank Kapadia'
-__copyright__ = '2015 AIR Worldwide, Inc.. All rights reserved'
-__version__ = '1.0'
-__interpreter__ = 'Python 2.7.9'
-__maintainer__ = 'Shashank kapadia'
-__email__ = 'skapadia@air-worldwide.com'
-__status__ = 'Complete'
-
 # Import standard Python packages
 import copy
 # Import internal packages
@@ -87,7 +79,9 @@ class CorrValidation:
 
             resultDF_summary['DifferencePortGuSD_Percent'] = (resultDF_summary['CalculatedPortGuSD'] - resultDF_summary['PortGuSD']) / resultDF_summary['PortGuSD']
             resultDF_summary['DifferencePortGrSD_Percent'] = (resultDF_summary['CalculatedPortGrSD'] - resultDF_summary['PortGrSD']) / resultDF_summary['PortGrSD']
-            resultDF_summary.fillna(0)
+            resultDF_summary = resultDF_summary.fillna(0)
+            resultDF_summary['DifferencePortGuSD_Percent'] = resultDF_summary['DifferencePortGuSD_Percent'].astype(int)
+            resultDF_summary['DifferencePortGrSD_Percent'] = resultDF_summary['DifferencePortGrSD_Percent'].astype(int)
 
             resultDF_summary.loc[(abs(resultDF_summary['DifferencePortGuSD_Percent'])>=(float(tolerance)/100)) | (abs(resultDF_summary['DifferencePortGrSD_Percent'])>=(float(tolerance)/100)), 'Status'] = 'Fail'
             resultDF_summary.loc[resultDF_summary['Status']=='', 'Status'] = 'Pass'
@@ -133,13 +127,12 @@ class CorrValidation:
 
             resultDF_summary['DifferenceConGuSD_Percent'] = (resultDF_summary['CalculatedConGuSD'] - resultDF_summary['ContractGuSD']) / resultDF_summary['ContractGuSD']
             resultDF_summary['DifferenceConGrSD_Percent'] = (resultDF_summary['CalculatedConGrSD'] - resultDF_summary['ContractGrSD']) / resultDF_summary['ContractGrSD']
-            resultDF_summary.fillna(0)
+            resultDF_summary = resultDF_summary.fillna(0)
+            resultDF_summary['DifferenceConGuSD_Percent'] = resultDF_summary['DifferenceConGuSD_Percent'].astype(int)
+            resultDF_summary['DifferenceConGrSD_Percent']  =resultDF_summary['DifferenceConGrSD_Percent'].astype(int)
 
             resultDF_summary['Status'] = ''
             resultDF_summary.loc[(abs(resultDF_summary['DifferenceConGuSD_Percent'])>=(float(tolerance)/100)) | (abs(resultDF_summary['DifferenceConGrSD_Percent'])>=(float(tolerance)/100)) , 'Status'] = 'Fail'
             resultDF_summary.loc[resultDF_summary['Status']=='', 'Status'] = 'Pass'
 
         return resultDF_detailed, resultDF_summary
-
-
-
