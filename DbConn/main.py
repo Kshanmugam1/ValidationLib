@@ -219,4 +219,4 @@ class dbConnection:
             placed_percent.append(info[i][21])
             ins_coins.append(info[i][26])
 
-        return occ_limit, occ_ret, agg_limit, agg_ret, placed_percent, ins_coins
+        return [occ_limit, occ_ret, agg_limit, agg_ret, placed_percent, ins_coins]

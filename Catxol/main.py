@@ -28,19 +28,19 @@ def chunks(l, n):
     return [l[i:i + n] for i in range(0, len(l), n)]
 
 
-def _validate(tuple, lossDF, occ_ret, occ_limit, agg_ret, agg_limit, placed_percent, ins_coins):
+def _validate(tuple, lossDF, programInfo):
 
-    agg_limit_temp = copy.deepcopy(agg_limit[tuple[0]])
-    agg_ret_temp = copy.deepcopy(agg_ret[tuple[0]])
+    agg_limit_temp = copy.deepcopy(programInfo[2])
+    agg_ret_temp = copy.deepcopy(programInfo[3])
 
-    sample_lossDF = lossDF.loc[(lossDF['CatalogTypeCode'] == tuple[1]) & (lossDF['ModelCode'] == tuple[2]) &
-                                       (lossDF['YearID'] == tuple[3])][['CatalogTypeCode', 'ModelCode',
+    sample_lossDF = lossDF.loc[(lossDF['CatalogTypeCode'] == tuple[0]) & (lossDF['ModelCode'] == tuple[1]) &
+                                       (lossDF['YearID'] == tuple[2])][['CatalogTypeCode', 'ModelCode',
                                                                  'YearID', 'EventID', 'NetOfPreCATLoss',
                                                                  'PostCATNetLoss']].reset_index().drop('index', axis=1)
-    sample_lossDF['Recovery'] = sample_lossDF['NetOfPreCATLoss'] - occ_ret[tuple[0]]
+    sample_lossDF['Recovery'] = sample_lossDF['NetOfPreCATLoss'] - programInfo[1]
 
     sample_lossDF.loc[sample_lossDF['Recovery']<0, 'Recovery'] = 0
-    sample_lossDF.loc[sample_lossDF['Recovery']>occ_limit[tuple[0]], 'Recovery'] = occ_limit[tuple[0]]
+    sample_lossDF.loc[sample_lossDF['Recovery']>programInfo[0], 'Recovery'] = programInfo[0]
 
     if len(sample_lossDF['Recovery']) == 1:
         sample_lossDF['Recovery'] = min(max(sample_lossDF['Recovery'].values[0] - agg_ret_temp, 0), agg_limit_temp)
@@ -58,8 +58,8 @@ def _validate(tuple, lossDF, occ_ret, occ_limit, agg_ret, agg_limit, placed_perc
             agg_ret_temp = copy.deepcopy(temp_agg_ret)
             agg_limit_temp -= copy.deepcopy(sample_lossDF['Recovery'][i])
 
-    sample_lossDF['Recovery'] = sample_lossDF['Recovery'] * (1 - float(ins_coins[tuple[0]]))
-    sample_lossDF['Recovery'] = sample_lossDF['Recovery'] * placed_percent[tuple[0]]
+    sample_lossDF['Recovery'] = sample_lossDF['Recovery'] * (1 - float(programInfo[5]))
+    sample_lossDF['Recovery'] = sample_lossDF['Recovery'] * programInfo[4]
 
     sample_lossDF['CalculatedPostCATNetLoss'] = sample_lossDF['NetOfPreCATLoss'] - \
                                                 sample_lossDF['Recovery']
@@ -76,9 +76,8 @@ class ProgramValidation:
         self.cursor = self.setup.cursor
         self.lock = threading.RLock()
 
-    def _GetTasks(self, resultDB, resultSID, occ_limit):
+    def _GetTasks(self, resultDB, resultSID):
 
-        print(resultSID)
         lossDF = self.setup._getLossDF(resultDB, resultSID, 'PORT')
         lossDF.sort(['CatalogTypeCode', 'ModelCode', 'YearID', 'EventID'], inplace=True)
 
@@ -86,13 +85,12 @@ class ProgramValidation:
 
         Catalogtypes = lossDF.loc[:, 'CatalogTypeCode'].unique()
         task_list = []
-        for i in range(len(occ_limit)):
-            for c in Catalogtypes:
-                ModelCode = lossDF.loc[lossDF['CatalogTypeCode'] == c, 'ModelCode'].unique()
-                for m in ModelCode:
-                    yearID = lossDF.loc[(lossDF['CatalogTypeCode'] == c) & (lossDF['ModelCode'] == m) , 'YearID'].unique()
-                    for y in yearID:
-                        task_list.append(tuple([i,c,m,y]))
+        for c in Catalogtypes:
+            ModelCode = lossDF.loc[lossDF['CatalogTypeCode'] == c, 'ModelCode'].unique()
+            for m in ModelCode:
+                yearID = lossDF.loc[(lossDF['CatalogTypeCode'] == c) & (lossDF['ModelCode'] == m) , 'YearID'].unique()
+                for y in yearID:
+                    task_list.append(tuple([c,m,y]))
 
         return task_list, lossDF
 
@@ -105,7 +103,14 @@ class ProgramValidation:
             resultDF = pd.concat([resultDF, result[i]], axis=0)
 
         resultDF.insert(0, 'Status', '-')
-        resultDF.loc[resultDF['PostCATNetLoss'] - resultDF['CalculatedPostCATNetLoss'] < 0.001, 'Status'] = 'Pass'
+        resultDF.loc[abs(resultDF['PostCATNetLoss'] - resultDF['CalculatedPostCATNetLoss']) < 0.001, 'Status'] = 'Pass'
         resultDF.loc[resultDF['Status'] == '-', 'Status'] = 'Fail'
 
         return resultDF
+
+    def _getUPdatedProgram(self, programInfo):
+
+        updtProgramInfo = []
+        for i in range(len(programInfo)):
+            updtProgramInfo.append(min(programInfo[i]))
+        return updtProgramInfo
