@@ -23,7 +23,7 @@ if __name__ == '__main__':
     server = 'QAWUDB2\SQL2012'
     result_Db = 'SKCatRes'
     result_path =  r'C:\Users\i56228\Documents\Python\Git\ValidationLib\Catxol_Validation.csv'
-    analysis_SID = 635
+    analysis_SID = 625
 
     # Initialize the connection with the server
     validation = dbConnection(server)
@@ -39,18 +39,16 @@ if __name__ == '__main__':
 
     print('**********************************************************************************************************')
     print('Step 3. Program Info')
-    occ_limit, occ_ret, agg_limit, agg_ret, placed_percent, ins_coins = validation._getProgramInfo(programSID)
-    print(occ_limit, occ_ret, agg_limit, agg_ret, placed_percent, ins_coins)
-
+    programInfo = validation._getProgramInfo(programSID)
     print('**********************************************************************************************************')
     print('Step 4. Getting the task list')
     start = time.time()
-    tasks, lossDF = Program._GetTasks(result_Db, resultSID, occ_limit)
+    tasks, lossDF = Program._GetTasks(result_Db, resultSID)
 
     print('**********************************************************************************************************')
     print('Step 5. Getting result DF')
     pool = mp.Pool()
-    results = [pool.apply_async(_validate, args=(tasks[i], lossDF, occ_ret, occ_limit, agg_ret, agg_limit, placed_percent, ins_coins)) for i in range(len(tasks))]
+    results = [pool.apply_async(_validate, args=(tasks[i], lossDF, programInfo)) for i in range(len(tasks))]
     output = [p.get() for p in results]
     resultDF = Program._getResultDF(output)
 

@@ -16,11 +16,11 @@ if __name__ == '__main__':
 
     server = 'QAWUDB2\SQL2012'
     # server = sys.argv[1]
-    result_Db = 'SKRes'
+    result_Db = 'SSG_LossMod_Res'
     # result_Db = sys.argv[2]
-    analysis_SID = 333
+    analysis_SID = 651
     # analysis_SID = sys.argv[3]
-    result_path =  r'C:\Users\i56228\Documents\Python\Git\ValidationLib'
+    result_path =  r'C:\Users\i56228\Documents\Python\Git\ValidationLib\LossMod_validation.csv'
     # result_path = sys.argv[4]
     filename = 'LossModValidation'
     # filename = sys.argv[5]
@@ -42,7 +42,7 @@ if __name__ == '__main__':
     print('**********************************************************************************************************')
     print('Step 2. Getting the information from the loss mod template')
     perilsTemp, coverage, LOB, occupancy, construction, \
-    yearBuilt, stories, contractID, locationID, factor = LossModValidation._getLossModInfo(templateID)
+    yearBuilt, stories, contractID, locationID, factor = validation._getLossModInfo(templateID)
     print('1. Perils: ' + str(perilsTemp))
     print('2. Coverage: ' + str(coverage))
     print('3. LOB: ' + str(LOB))
@@ -65,7 +65,7 @@ if __name__ == '__main__':
 
     print('**********************************************************************************************************')
     print('Step 4. Grouping analysis Perils')
-    perilsAnalysisGrouped = LossModValidation._groupAnalysisPerils(analysis_SID, perilsTemp)
+    perilsAnalysisGrouped = validation._groupAnalysisPerils(analysis_SID, perilsTemp)
     print('1. Grouped Perils used in analysis: ' + str(perilsAnalysisGrouped))
     print('**********************************************************************************************************')
 
@@ -89,7 +89,7 @@ if __name__ == '__main__':
     
     print('**********************************************************************************************************')
     print('Step 8. Saving the results')
-    _saveDFCsv(validatedDF, result_path, filename)
+    _saveDFCsv(validatedDF, result_path)
     print('**********************************************************************************************************')
     
     print('----------------------------------------------------------------------------------------------------------')
