@@ -17,11 +17,10 @@ def chunks(l, n):
     n = max(1, n)
     return [l[i:i + n] for i in range(0, len(l), n)]
 
-def _validate(tuple, lossDF, programInfo):
+def _getRecovery(tuple, lossDF, programInfo):
 
     agg_limit_temp = copy.deepcopy(programInfo[2])
     agg_ret_temp = copy.deepcopy(programInfo[3])
-
     sample_lossDF = lossDF.loc[(lossDF['CatalogTypeCode'] == tuple[0]) & (lossDF['ModelCode'] == tuple[1]) &
                                        (lossDF['YearID'] == tuple[2])][['CatalogTypeCode', 'ModelCode',
                                                                  'YearID', 'EventID', 'NetOfPreCATLoss',
@@ -47,12 +46,10 @@ def _validate(tuple, lossDF, programInfo):
             agg_ret_temp = copy.deepcopy(temp_agg_ret)
             agg_limit_temp -= copy.deepcopy(sample_lossDF['Recovery'][i])
 
-    sample_lossDF['Recovery'] = sample_lossDF['Recovery'] * (1 - (programInfo[5][0]))
+    sample_lossDF['Recovery'] = sample_lossDF['Recovery'] * (1 - (programInfo[5]))
     sample_lossDF['Recovery'] = sample_lossDF['Recovery'] * programInfo[4]
 
-    sample_lossDF['CalculatedPostCATNetLoss'] = sample_lossDF['NetOfPreCATLoss'] - \
-                                                sample_lossDF['Recovery']
-    return sample_lossDF
+    return sample_lossDF['Recovery'].values
 
 class ProgramValidation:
 
@@ -82,16 +79,11 @@ class ProgramValidation:
 
         return task_list, lossDF
 
-    def _getResultDF(self, result):
+    def _validate(self, result):
 
-        resultDF = pd.DataFrame(columns=['CatalogTypeCode', 'ModelCode', 'YearID', 'EventID',
-                                         'NetOfPreCATLoss', 'PostCATNetLoss', 'Recovery',
-                                         'CalculatedPostCATNetLoss'])
-        for i in range(len(result)):
-            resultDF = pd.concat([resultDF, result[i]], axis=0)
 
-        resultDF.insert(0, 'Status', '-')
-        resultDF.loc[abs(resultDF['PostCATNetLoss'] - resultDF['CalculatedPostCATNetLoss']) < 0.001, 'Status'] = 'Pass'
-        resultDF.loc[resultDF['Status'] == '-', 'Status'] = 'Fail'
+        result.insert(0, 'Status', '-')
+        result.loc[abs(result['PostCATNetLoss'] - result['CalculatedPostCATNetLoss']) < 0.001, 'Status'] = 'Pass'
+        result.loc[result['Status'] == '-', 'Status'] = 'Fail'
 
-        return resultDF
+        return result

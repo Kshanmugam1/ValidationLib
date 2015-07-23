@@ -1,8 +1,9 @@
 # Import internal packages
 from DbConn.main import *
 from Catxol.main import *
-from Catxol.main import _validate
+from Catxol.main import _getRecovery
 from CsvTools.main import _saveDFCsv
+from operator import add
 
 import time
 import multiprocessing as mp
@@ -23,7 +24,7 @@ if __name__ == '__main__':
     server = 'QAWUDB2\SQL2012'
     result_Db = 'SKCatRes'
     result_path =  r'C:\Users\i56228\Documents\Python\Git\ValidationLib\Catxol_Validation.csv'
-    analysis_SID = 625
+    analysis_SID = 635
 
     # Initialize the connection with the server
     validation = dbConnection(server)
@@ -40,6 +41,9 @@ if __name__ == '__main__':
     print('**********************************************************************************************************')
     print('Step 3. Program Info')
     programInfo = validation._getProgramInfo(programSID)
+    programInfo = pd.DataFrame(data=zip(*programInfo), columns=['Occ_Limit', 'Occ_Ret', 'Agg_Limit',
+                                                                'Agg_Ret', '%Placed', 'Ins_CoIns', 'Inuring'])
+
     print('**********************************************************************************************************')
     print('Step 4. Getting the task list')
     start = time.time()
@@ -47,13 +51,34 @@ if __name__ == '__main__':
 
     print('**********************************************************************************************************')
     print('Step 5. Getting result DF')
-    pool = mp.Pool()
-    results = [pool.apply_async(_validate, args=(tasks[i], lossDF, programInfo)) for i in range(len(tasks))]
-    output = [p.get() for p in results]
-    resultDF = Program._getResultDF(output)
+    max_inuring = max(programInfo['Inuring'].values)
+    recovery = []
+    for k in range(max_inuring):
+        program_infos = programInfo.loc[programInfo['Inuring'] == k+1, :].values
+
+
+        for j in range(len(program_infos)):
+            pool = mp.Pool()
+            results = [pool.apply_async(_getRecovery, args=(tasks[i], lossDF, program_infos[j])) for i in range(len(tasks))]
+            output = [p.get() for p in results]
+            recovery.append([item for sublist in output for item in sublist])
+        recovery = [sum(x) for x in zip(*recovery)]
+        print(k)
+        if k == max_inuring - 1:
+            lossDF['Recovery'] = recovery
+            lossDF['CalculatedPostCATNetLoss'] = lossDF['NetOfPreCATLoss'] - recovery
+        else:
+            lossDF['NetOfPreCATLoss'] = lossDF['NetOfPreCATLoss'] - recovery
+        recovery = []
+
+    print(lossDF)
+
+    print('**********************************************************************************************************')
+    print('Step 6.Validating Result dF')
+    resultDF = Program._validate(lossDF)
 
     print('**********************************************************************************')
-    print('Ste 6. Saving the results')
+    print('Ste 7. Saving the results')
     _saveDFCsv(resultDF, result_path)
 
     print('********** Process Complete: ' + str(time.time() - start) + ' Seconds **********')

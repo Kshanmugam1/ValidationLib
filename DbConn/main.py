@@ -203,13 +203,14 @@ class dbConnection:
 
         self.cursor.execute(script)
         info = copy.deepcopy(self.cursor.fetchall())
-
+        print(info)
         occ_ret = []
         occ_limit = []
         agg_ret = []
         agg_limit = []
         placed_percent = []
         ins_coins = []
+        sequence_number = []
         for i in range(len(info)):
 
             occ_ret.append(info[i][17])
@@ -218,5 +219,6 @@ class dbConnection:
             agg_limit.append(info[i][18])
             placed_percent.append(info[i][21])
             ins_coins.append(info[i][26])
+            sequence_number.append(info[i][40])
 
-        return [occ_limit, occ_ret, agg_limit, agg_ret, placed_percent, ins_coins]
+        return [occ_limit, occ_ret, agg_limit, agg_ret, placed_percent, ins_coins, sequence_number]
