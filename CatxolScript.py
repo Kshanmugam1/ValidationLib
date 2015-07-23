@@ -23,7 +23,7 @@ if __name__ == '__main__':
     server = 'QAWUDB2\SQL2012'
     result_Db = 'SKCatRes'
     result_path =  r'C:\Users\i56228\Documents\Python\Git\ValidationLib\Catxol_Validation.csv'
-    analysis_SID = 635
+    analysis_SID = 625
 
     # Initialize the connection with the server
     validation = dbConnection(server)
@@ -40,10 +40,6 @@ if __name__ == '__main__':
     print('**********************************************************************************************************')
     print('Step 3. Program Info')
     programInfo = validation._getProgramInfo(programSID)
-    print(programInfo)
-    if len(programInfo[0]) > 1:
-        programInfo = Program._getUPdatedProgram(programInfo)
-    print(programInfo)
     print('**********************************************************************************************************')
     print('Step 4. Getting the task list')
     start = time.time()

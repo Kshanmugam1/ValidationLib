@@ -6,16 +6,6 @@ __maintainer__ = 'Shashank kapadia'
 __email__ = 'skapadia@air-worldwide.com'
 __status__ = 'Production'
 
-# Import standard Python packages
-import copy
-import sys
-import threading
-import multiprocessing as mp
-import math
-from Queue import *
-from functools import partial
-
-
 # Import internal packages
 from DbConn.main import *
 
@@ -26,7 +16,6 @@ def chunks(l, n):
     """Yield successive n-sized chunks from l."""
     n = max(1, n)
     return [l[i:i + n] for i in range(0, len(l), n)]
-
 
 def _validate(tuple, lossDF, programInfo):
 
@@ -58,7 +47,7 @@ def _validate(tuple, lossDF, programInfo):
             agg_ret_temp = copy.deepcopy(temp_agg_ret)
             agg_limit_temp -= copy.deepcopy(sample_lossDF['Recovery'][i])
 
-    sample_lossDF['Recovery'] = sample_lossDF['Recovery'] * (1 - float(programInfo[5]))
+    sample_lossDF['Recovery'] = sample_lossDF['Recovery'] * (1 - (programInfo[5][0]))
     sample_lossDF['Recovery'] = sample_lossDF['Recovery'] * programInfo[4]
 
     sample_lossDF['CalculatedPostCATNetLoss'] = sample_lossDF['NetOfPreCATLoss'] - \
@@ -74,7 +63,6 @@ class ProgramValidation:
         self.setup = dbConnection(server)
         self.connection = self.setup.connection
         self.cursor = self.setup.cursor
-        self.lock = threading.RLock()
 
     def _GetTasks(self, resultDB, resultSID):
 
@@ -107,10 +95,3 @@ class ProgramValidation:
         resultDF.loc[resultDF['Status'] == '-', 'Status'] = 'Fail'
 
         return resultDF
-
-    def _getUPdatedProgram(self, programInfo):
-
-        updtProgramInfo = []
-        for i in range(len(programInfo)):
-            updtProgramInfo.append(min(programInfo[i]))
-        return updtProgramInfo
