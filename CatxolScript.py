@@ -24,7 +24,7 @@ if __name__ == '__main__':
     server = 'QAWUDB2\SQL2012'
     result_Db = 'SKCatRes'
     result_path =  r'C:\Users\i56228\Documents\Python\Git\ValidationLib\Catxol_Validation.csv'
-    analysis_SID = 635
+    analysis_SID = 745
 
     # Initialize the connection with the server
     validation = dbConnection(server)
@@ -54,8 +54,8 @@ if __name__ == '__main__':
     max_inuring = max(programInfo['Inuring'].values)
     recovery = []
     for k in range(max_inuring):
-        program_infos = programInfo.loc[programInfo['Inuring'] == k+1, :].values
 
+        program_infos = programInfo.loc[programInfo['Inuring'] == k+1, :].values
 
         for j in range(len(program_infos)):
             pool = mp.Pool()
@@ -63,15 +63,13 @@ if __name__ == '__main__':
             output = [p.get() for p in results]
             recovery.append([item for sublist in output for item in sublist])
         recovery = [sum(x) for x in zip(*recovery)]
-        print(k)
+        recovery = [min(x) for x in zip(lossDF['NetOfPreCATLoss'], recovery)]
+        lossDF['Recovery'] = recovery
         if k == max_inuring - 1:
-            lossDF['Recovery'] = recovery
-            lossDF['CalculatedPostCATNetLoss'] = lossDF['NetOfPreCATLoss'] - recovery
+            lossDF['CalculatedPostCATNetLoss'] = lossDF['NetOfPreCATLoss'] - lossDF['Recovery']
         else:
-            lossDF['NetOfPreCATLoss'] = lossDF['NetOfPreCATLoss'] - recovery
+            lossDF['NetOfPreCATLoss'] = lossDF['NetOfPreCATLoss'] - lossDF['Recovery']
         recovery = []
-
-    print(lossDF)
 
     print('**********************************************************************************************************')
     print('Step 6.Validating Result dF')

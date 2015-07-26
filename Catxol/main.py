@@ -83,7 +83,11 @@ class ProgramValidation:
 
 
         result.insert(0, 'Status', '-')
-        result.loc[abs(result['PostCATNetLoss'] - result['CalculatedPostCATNetLoss']) < 0.001, 'Status'] = 'Pass'
+
+        result['DifferencePercent'] = (result['CalculatedPostCATNetLoss'] - result['PostCATNetLoss'])/result['PostCATNetLoss']
+        result = result.fillna(0)
+        result['DifferencePercent'] = result['DifferencePercent'].astype(int)
+        result.loc[abs(result['DifferencePercent']) < 0.1, 'Status'] = 'Pass'
         result.loc[result['Status'] == '-', 'Status'] = 'Fail'
 
         return result
