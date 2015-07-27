@@ -158,29 +158,36 @@ class dbConnection:
         perilsAnalysisGrouped = []
 
         for i in range(len(perilsTemp)):
-
             script = 'Select PerilSet FROM AIRReference.dbo.tPerilSet WHERE PerilSetCode = ' + str(perilsTemp[i])
             self.cursor.execute(script)
             perilsTemplateList = copy.deepcopy(self.cursor.fetchall()[0][0].split(', '))
-
             perils_exclusive = [perilsTemplateList[i] for i in range(len(perilsTemplateList))
                                 if perilsTemplateList[i] in perilsAnalyisSeperateList]
-            try:
-              valid_grouped_perils = [perils_exclusive[i] for i in range(len(perils_exclusive))
-                                        if perils_exclusive[i] in ['EQ', 'FF', 'SL', 'TS', 'PF', 'SU', 'TC']]
-              script = 'Select PerilDisplayGroup, Sum(PerilSetCode) FROM AIRReference.dbo.tPeril WHERE PerilCode IN' \
-                       + str(tuple(valid_grouped_perils)) + 'Group BY PerilDisplayGroup'
-              self.cursor.execute(script)
-              info = copy.deepcopy(self.cursor.fetchall())
-              perils = [info[i][1] for  i in range(len(info))]
+            if not perils_exclusive == []:
+                try:
+                  valid_grouped_perils = [perils_exclusive[i] for i in range(len(perils_exclusive))
+                                            if perils_exclusive[i] in ['EQ', 'FF', 'SL', 'TS', 'PF', 'SU', 'TC']]
+                  script = 'Select PerilDisplayGroup, Sum(PerilSetCode) FROM AIRReference.dbo.tPeril WHERE PerilCode IN' \
+                           + str(tuple(valid_grouped_perils)) + 'Group BY PerilDisplayGroup'
+                  self.cursor.execute(script)
+                  info = copy.deepcopy(self.cursor.fetchall())
+                  perils = [info[i][1] for  i in range(len(info))]
 
-            except:
-                script = 'Select PerilSetCode FROM AIRReference.dbo.tPeril WHERE PerilCode = '+ "'" + str(perils_exclusive[0]) + "'"
+                except:
+                    script = 'Select PerilSetCode FROM AIRReference.dbo.tPeril WHERE PerilCode = '+ "'" + str(perils_exclusive[0]) + "'"
+
+                    self.cursor.execute(script)
+                    info = copy.deepcopy(self.cursor.fetchall())
+                    perils = [info[i][0] for  i in range(len(info))]
+            else:
+                try:
+                    script = 'Select PerilSetCode FROM AIRReference.dbo.tPeril WHERE PerilCode IN '+ str(tuple(perilsTemplateList))
+                except:
+                    script = 'Select PerilSetCode FROM AIRReference.dbo.tPeril WHERE PerilCode = '+ "'" + str(perilsTemplateList[0]) + "'"
 
                 self.cursor.execute(script)
                 info = copy.deepcopy(self.cursor.fetchall())
                 perils = [info[i][0] for  i in range(len(info))]
-
 
             perilsAnalysisGrouped.append(perils)
 
