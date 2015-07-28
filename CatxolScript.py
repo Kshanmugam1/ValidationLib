@@ -1,12 +1,11 @@
 # Import internal packages
-from DbConn.main import *
-from Catxol.main import *
-from Catxol.main import _getRecovery
-from CsvTools.main import _saveDFCsv
-from operator import add
-
 import time
 import multiprocessing as mp
+
+from database.main import *
+from financials.Catxol.main import *
+from financials.Catxol.main import _getRecovery
+from general.CsvTools.main import _saveDFCsv
 
 if __name__ == '__main__':
 
@@ -24,7 +23,7 @@ if __name__ == '__main__':
     server = 'QAWUDB2\SQL2012'
     result_Db = 'SKCatRes'
     result_path =  r'C:\Users\i56228\Documents\Python\Git\ValidationLib\Catxol_Validation.csv'
-    analysis_SID = 745
+    analysis_SID = 765
 
     # Initialize the connection with the server
     validation = dbConnection(server)

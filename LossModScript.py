@@ -7,9 +7,8 @@ __email__ = 'skapadia@air-worldwide.com'
 __status__ = 'Production'
 
 # Import internal packages
-from DbConn.main import *
-from LossMod.main import *
-from CsvTools.main import _saveDFCsv
+from analysis.LossMod.main import *
+from general.CsvTools.main import _saveDFCsv
 
 
 if __name__ == '__main__':

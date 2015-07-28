@@ -6,12 +6,11 @@ __maintainer__ = 'Shashank kapadia'
 __email__ = 'skapadia@air-worldwide.com'
 __status__ = 'Complete'
 
-import getopt, sys
+import getopt
+import sys
 # Import internal packages
-from DbConn.main import *
-from Correlation.main import *
-from CsvTools.main import _saveDFCsv
-
+from general.CsvTools.main import _saveDFCsv
+from financials.Correlation.main import *
 
 if __name__ == '__main__':
 

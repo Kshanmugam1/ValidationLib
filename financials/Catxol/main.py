@@ -7,7 +7,7 @@ __email__ = 'skapadia@air-worldwide.com'
 __status__ = 'Production'
 
 # Import internal packages
-from DbConn.main import *
+from database.main import *
 
 # Import external Python libraries
 import pandas as pd

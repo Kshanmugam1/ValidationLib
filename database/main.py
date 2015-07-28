@@ -210,7 +210,6 @@ class dbConnection:
 
         self.cursor.execute(script)
         info = copy.deepcopy(self.cursor.fetchall())
-        print(info)
         occ_ret = []
         occ_limit = []
         agg_ret = []

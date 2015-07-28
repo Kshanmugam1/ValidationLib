@@ -1,7 +1,7 @@
 # Import standard Python packages
 import copy
 # Import internal packages
-from DbConn.main import *
+from database.main import *
 
 # Import external Python libraries
 import pyodbc

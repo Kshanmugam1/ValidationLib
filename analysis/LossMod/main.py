@@ -13,7 +13,7 @@ import sys
 import logging
 
 # Import internal packages
-from DbConn.main import *
+from database.main import *
 from general.main import *
 
 # Import external Python libraries
