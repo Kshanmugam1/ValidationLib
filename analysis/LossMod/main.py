@@ -450,6 +450,44 @@ class LossModValidation:
 
         info_analysis = self.setup._getAnalysisInfo(ModAnalysisSID)
 
+        ############################################################################################################
+        '''
+
+        Validation Rule: In this module we validate the application of loss mod template.
+
+        Pseudo Algorithm:
+            1. For each template info:
+                if the analysis is not saved by Location Summary or Contract Summary
+                    if the Coverage is not present
+                        if the analysis wasn't saved ByDefault:
+
+                            PART 1:
+                                - For the given Key template info rows, the ratio should be equal to given Factor
+                                (Example: for selected ContractID 1, 2, 3, 4: Ratio should be 4)
+                                - Calculate the difference between given ratio and calculated ratio
+                                - if the absolute difference is less than 0.001, Pass, else, Fail
+
+                            PART 2:
+                                - For all other rows, for which the status column won't be updated, given Factor is assumed
+                                to be 1
+                                - Calculate the difference between given ratio and calculated ratio (also should be 1)
+                                - if the absolute difference is less than 0.001, Pass, else, Fail
+                        else if the analysis was saved byDefault:
+
+                            Everything is SAME but, in this case Key is different
+
+                    else if Coverage is present
+
+                        if the analysis wasn't saved ByDefault:
+                            Everything is SAME, but in this scenario, we also calcuate the ratio and difference for
+                            Coverage loss
+
+                        else if the analysis was saved byDefault:
+                            Same as Above
+
+        '''
+        ############################################################################################################
+
         for i in range(len(template_info)):
 
             if not info_analysis[0][8] in ['LOCSUM', 'CONSUM']:
@@ -497,7 +535,8 @@ class LossModValidation:
                             resultDF.loc[resultDF['Status'] == 1.0, 'Input_Ratio'] = 1.0
                             resultDF.loc[resultDF['Status'] == 1.0, 'Difference'] = resultDF.loc[resultDF[
                                                                                                      'Status'] == 1.0, 'Ratio'] - 1.0
-                            resultDF.loc[resultDF['Status'] == 1.0, 'Status'] = 'Pass'
+                            resultDF.loc[abs(resultDF['Difference']) < 0.001, 'Status'] = 'Pass'
+                            resultDF.loc[abs(resultDF['Difference']) > 0.001, 'Status'] = 'Fail'
                 else:
                     if info_analysis[0][7] != 'PORT':
                         coverages = list(template_info[i][3])
@@ -559,7 +598,8 @@ class LossModValidation:
                             resultDF.loc[:, 'Difference_' + j] = resultDF.loc[:,
                                                                  'GroundUpLoss' + j + '_Ratio'] - resultDF.loc[:,
                                                                                                   'Input_Ratio_' + j]
-                            resultDF.loc[resultDF['Difference_' + j] < 0.001, 'Status'] = 'Pass'
+                            resultDF.loc[abs(resultDF['Difference_' + j]) < 0.001, 'Status'] = 'Pass'
+                            resultDF.loc[abs(resultDF['Difference_' + j]) > 0.001, 'Status'] = 'Fail'
 
             elif info_analysis[0][8] == 'LOCSUM':
 

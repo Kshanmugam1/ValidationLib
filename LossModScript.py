@@ -10,7 +10,6 @@ __status__ = 'Production'
 from analysis.LossMod.main import *
 from general.CsvTools.main import _saveDFCsv
 
-
 if __name__ == '__main__':
 
     server = 'QAWUDB2\SQL2012'
