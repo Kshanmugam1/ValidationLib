@@ -20,7 +20,7 @@ if __name__ == '__main__':
     # result_Db = sys.argv[2]
     # Initialize the connection with the server
 
-    analysis_SID = 634
+    analysis_SID = 641
     # analysis_SID = sys.argv[3]
     result_path =  r'C:\Users\i56228\Documents\Python\Git\ValidationLib\LossMod_validation' + str(analysis_SID) + '.csv'
     # result_path = sys.argv[4]
