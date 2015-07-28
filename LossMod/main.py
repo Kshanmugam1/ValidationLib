@@ -14,6 +14,7 @@ import logging
 
 # Import internal packages
 from DbConn.main import *
+from general.main import *
 
 # Import external Python libraries
 import pandas as pd
@@ -405,7 +406,6 @@ class LossModValidation:
 
         if info_analysis[0][7] == 'LOC':
             resultDF['LocationSID'] = resultDF_Mod['LocationSID']
-            # resultDF['ContractSID'] = resultDF_Mod['ContractSID']
 
         if info_analysis[0][7] == 'LYR':
             resultDF['LayerSID'] = resultDF_Mod['LayerSID']
@@ -502,6 +502,7 @@ class LossModValidation:
                     if info_analysis[0][7] != 'PORT':
                         coverages = list(template_info[i][3])
                         for j in coverages:
+
                             resultDF.loc[(resultDF['GroundUpLoss' + j + '_Mod'] == 0) & (
                                 resultDF['PerilSetCode'].isin(template_info[i][0])) &
                                          (resultDF.iloc[:, 2].isin(
@@ -512,7 +513,6 @@ class LossModValidation:
                                          (resultDF.iloc[:, 2].isin(template_info[i][1])) & (
                                              resultDF['GroundUpLoss' + j + '_Ratio'] != 1), 'Input_Ratio_' + j] = float(
                                 template_info[i][2])
-
                             resultDF.loc[(resultDF['PerilSetCode'].isin(template_info[i][0])) &
                                          (resultDF.iloc[:, 2].isin(template_info[i][1])) & (
                                              resultDF['GroundUpLoss' + j + '_Ratio'] != 1), 'Difference_' + j] = \
@@ -528,15 +528,15 @@ class LossModValidation:
                                 resultDF.loc[(resultDF['PerilSetCode'].isin(template_info[i][0])) &
                                              (resultDF.iloc[:, 2].isin(template_info[i][1])) & (
                                                  resultDF['GroundUpLoss' + j + '_Ratio'] != 1), 'Status'] = 'Pass'
-                            # else:
-                            #     resultDF.loc[(resultDF['PerilSetCode'].isin(template_info[i][0])) &
-                            #                  (resultDF.iloc[:, 2].isin(template_info[i][1])), 'Status'] = 'Fail'
 
                             resultDF = resultDF.fillna(1)
-                            resultDF.loc[:, 'Difference_' + j] = resultDF.loc[:,
-                                                                 'GroundUpLoss' + j + '_Ratio'] - resultDF.loc[:,
+
+                            resultDF.loc[:, 'Difference_' + j] = resultDF.loc[:, 'GroundUpLoss' + j + '_Ratio'] - resultDF.loc[:,
                                                                                                   'Input_Ratio_' + j]
-                            resultDF.loc[resultDF['Difference_' + j] < 0.001, 'Status'] = 'Pass'
+                            resultDF.loc[abs(resultDF['Difference_' + j]) < 0.001, 'Status'] = 'Pass'
+
+                            resultDF.loc[abs(resultDF['Difference_' + j]) > 0.001, 'Status'] = 'Fail'
+
                     else:
                         coverages = list(template_info[i][2])
                         for j in coverages:
@@ -608,5 +608,26 @@ class LossModValidation:
                             [str(resultDF.iloc[:, 1].values[i]) + '_' + str(resultDF.iloc[:, 2].values[i]) for i in
                              range(len(resultDF.iloc[:, 1]))])
             resultDF.drop(resultDF.columns[[2, 3]], axis=1, inplace=True)
+
+        if not 'Input_Ratio' in resultDF.columns:
+            resultDF['Input_Ratio'] = '-'
+            resultDF['Difference'] = '-'
+
+        for i in ['A', 'B', 'C', 'D']:
+            if not 'Difference_' + i in resultDF.columns:
+                resultDF['Difference_' + i] = '-'
+                resultDF['Input_Ratio_' + i] = '-'
+
+        resultDF = set_column_sequence(resultDF, ['Status', 'ID', 'GroundUpLoss_Mod', 'GroundUpLoss_Base',
+                                                  'Ratio', 'Input_Ratio', 'Difference',
+                                                  'GroundUpLossA_Mod', 'GroundUpLossA_Base',
+                                                  'GroundUpLossA_Ratio', 'Input_Ratio_A',
+                                                  'Difference_A', 'GroundUpLossB_Mod',
+                                                  'GroundUpLossB_Base', 'GroundUpLossB_Ratio', 'Input_Ratio_B',
+                                                  'Difference_B', 'GroundUpLossC_Mod',
+                                                  'GroundUpLossC_Base', 'GroundUpLossC_Ratio', 'Input_Ratio_C',
+                                                  'Difference_C', 'GroundUpLossD_Mod',
+                                                  'GroundUpLossD_Base', 'GroundUpLossD_Ratio', 'Input_Ratio_D',
+                                                  'Difference_D'])
 
         return resultDF
