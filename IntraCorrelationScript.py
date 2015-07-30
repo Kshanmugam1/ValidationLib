@@ -48,7 +48,7 @@ if __name__ == '__main__':
     print('**********************************************************************************')
     print('Step 1. Getting the Intra and Inter Correlation Factors')
     # Extract the correlation factors using Contract Analtsis SID
-    intraCorrelation, interCorrelation = corrValidation._getCorrelationFactor(contract_analysisSID)
+    intraCorrelation, interCorrelation = corrValidation._get_correlation_factor(contract_analysisSID)
     print('1. Intra Correlation Factor: ' + str(intraCorrelation))
     print('2. Inter Correlation Factor: ' + str(interCorrelation))
     print('**********************************************************************************')
@@ -65,9 +65,9 @@ if __name__ == '__main__':
     print('**********************************************************************************')
     print('Step 3. Getting the loss numbers and validating them')
     # Validate the correlation equation
-    resultDF_detailed, resultDF_summary = corrValidation._getSD(contractResultSID, result_Db, 'Intra',
-                                                                locationResultSID=locationResultSID,
-                                                                intraCorrelation=intraCorrelation, tolerance=tolerance)
+    resultDF_detailed, resultDF_summary = corrValidation._get_sd(contractResultSID, result_Db, 'Intra',
+                                                                location_result_sid=locationResultSID,
+                                                                intra_correlation=intraCorrelation, tolerance=tolerance)
     print('**********************************************************************************')
 
     print('**********************************************************************************')
