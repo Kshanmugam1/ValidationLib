@@ -1,3 +1,11 @@
+# Import standard Python packages
+import getopt
+import time
+
+# Import internal packages
+from analysis.LossMod.main import *
+from general.CsvTools.main import _saveDFCsv
+
 __author__ = 'Shashank Kapadia'
 __copyright__ = '2015 AIR Worldwide, Inc.. All rights reserved'
 __version__ = '1.0'
@@ -6,12 +14,10 @@ __maintainer__ = 'Shashank kapadia'
 __email__ = 'skapadia@air-worldwide.com'
 __status__ = 'Complete'
 
-import getopt
-# Import internal packages
-from analysis.LossMod.main import *
-from general.CsvTools.main import _saveDFCsv
 
 if __name__ == '__main__':
+
+    start = time.time()
 
     print('**********************************************************************************')
     print('                        Loss Mod Validation Tool                                  ')
@@ -19,39 +25,40 @@ if __name__ == '__main__':
 
     # Extract the given parameters
     '''
+    Input:
+
     1. Arg(3) - Server
     2. Arg(4) - Result DB
     3. Arg(5) - Result Path
     4. Arg(6) - Analysis SID
     5. Arg(7) - Tolerance
+
+    Output:
+
+    1. Summary File
     '''
+    #
+    # server = sys.argv[3]
+    # result_Db = sys.argv[4]
+    #
+    # optlist, args = getopt.getopt(sys.argv[1:], [''], ['outfile='])
+    # outfile = None
+    # for o, a in optlist:
+    #     if o == "--outfile":
+    #         outfile = a
+    #     print ("Outfile: " + outfile)
+    # if outfile is None:
+    #     raise Exception("outfile not passed into script")
+    #
+    # analysis_SID = sys.argv[6]
+    # tolerance = sys.argv[7]
 
-    server = sys.argv[3]
-    result_Db = sys.argv[4]
-
-    optlist, args = getopt.getopt(sys.argv[1:], [''], ['outfile='])
-    outfile = None
-    for o, a in optlist:
-        if o == "--outfile":
-            outfile = a
-        print ("Outfile: " + outfile)
-    if outfile is None:
-        raise Exception("outfile not passed into script")
-
-    analysis_SID = sys.argv[6]
-    tolerance = sys.argv[7]
-
-    # server = 'QAWUDB2\SQL2012'
-    # # server = sys.argv[1]
-    # result_Db = 'SSG_LossMod_Res'
-    # # result_Db = sys.argv[2]
-    # analysis_SID = 730
-    # # analysis_SID = sys.argv[3]
-    # outfile =  r'C:\Users\i56228\Documents\Python\Git\ValidationLib\LossMod_validation' + str(analysis_SID) + '.csv'
-    # # result_path = sys.argv[4]
-    # filename = 'LossModValidation'
-    # # filename = sys.argv[5]
-    # tolerance = 1
+    server = 'QAWUDB2\SQL2012'
+    result_Db = 'SSG_LossMod_Res'
+    analysis_SID = 730
+    outfile =  r'C:\Users\i56228\Documents\Python\Git\ValidationLib\LossMod_validation' + str(analysis_SID) + '.csv'
+    filename = 'LossModValidation'
+    tolerance = 1
 
     # Initialize the connection with the server
     validation = dbConnection(server)
@@ -100,8 +107,8 @@ if __name__ == '__main__':
     print('**********************************************************************************************************')
     print('Step 5. Checking rule')
     template_info = LossModValidation._check_rule(analysis_SID, perilsAnalysisGrouped, coverage,
-                                                 LOB, occupancy, construction, yearBuilt,
-                                                 stories, contractID, locationID, factor, modResultSID, result_Db)
+                                                  LOB, occupancy, construction, yearBuilt,
+                                                  stories, contractID, locationID, factor, modResultSID, result_Db)
     print('Rule Validated!!')
     print('**********************************************************************************************************')
 
@@ -123,3 +130,5 @@ if __name__ == '__main__':
     print('----------------------------------------------------------------------------------------------------------')
     print('                                             Validation Complete')
     print('----------------------------------------------------------------------------------------------------------')
+
+    print('********** Process Complete: ' + str(time.time() - start) + ' Seconds **********')

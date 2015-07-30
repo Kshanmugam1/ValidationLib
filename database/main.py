@@ -98,7 +98,9 @@ class dbConnection:
 
         if type in ['LOC', 'Location']:
 
-            script =  'SELECT * FROM [' + resultDB + '].dbo.t' + str(resultSID) + '_LOSS_ByLocation'
+            script =  'SELECT a.*, id.LocationID FROM [' + resultDB + '].dbo.t' + str(resultSID) + '_LOSS_ByLocation a' \
+                      ' JOIN [' + resultDB + '].dbo.t' + str(resultSID) + '_LOSS_DimLocation id ' \
+                                                                          'ON a.LocationSID = id.LocationSID'
             return copy.deepcopy(pd.read_sql(script, self.connection))
 
         if type in ['LYR', 'Layer']:

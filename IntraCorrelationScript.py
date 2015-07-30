@@ -1,30 +1,43 @@
-__author__ = 'Shashank Kapadia'
-__copyright__ = '2015 AIR Worldwide, Inc.. All rights reserved'
-__version__ = '1.0'
-__interpreter__ = 'Python 2.7.9'
-__maintainer__ = 'Shashank kapadia'
-__email__ = 'skapadia@air-worldwide.com'
-__status__ = 'Complete'
-
+# Import standard Python packages
 import getopt
 import sys
+import time
+
 # Import internal packages
 from general.CsvTools.main import _saveDFCsv
 from financials.Correlation.main import *
 
+__author__ = 'Shashank Kapadia'
+__copyright__ = '2015 AIR Worldwide, Inc.. All rights reserved'
+__version__ = '1.0'
+__interpreter__ = 'Python 2.7.10'
+__maintainer__ = 'Shashank kapadia'
+__email__ = 'skapadia@air-worldwide.com'
+__status__ = 'Complete'
+
 if __name__ == '__main__':
+
+    start = time.time()
 
     print('**********************************************************************************')
     print('                     Correlation Validation Tool                                  ')
     print('**********************************************************************************')
     # Extract the given arguments
     '''
+    Input:
+
     1. Arg(3) - Server
     2. Arg(4) - Result DB
     3. Arg(5) - Result Path (As an Outfile)
     4. Arg(6) - Contract Analysis SID
     5. Arg(7) - Location AnalysisSID
     6. Arg(8) - Tolerance
+
+    Output:
+
+    1. Summary File ( To be considered as a base file)
+    2. Detailed File
+
     '''
     server = sys.argv[3]
     result_Db = sys.argv[4]
@@ -41,7 +54,7 @@ if __name__ == '__main__':
     location_analysisSID = sys.argv[7]
     tolerance = sys.argv[8]
 
-# Initialize the connection with the server
+    # Initialize the connection with the server
     validation = dbConnection(server)
     corrValidation = CorrValidation(server)
 
@@ -66,8 +79,8 @@ if __name__ == '__main__':
     print('Step 3. Getting the loss numbers and validating them')
     # Validate the correlation equation
     resultDF_detailed, resultDF_summary = corrValidation._get_sd(contractResultSID, result_Db, 'Intra',
-                                                                location_result_sid=locationResultSID,
-                                                                intra_correlation=intraCorrelation, tolerance=tolerance)
+                                                                 location_result_sid=locationResultSID,
+                                                                 intra_correlation=intraCorrelation, tolerance=tolerance)
     print('**********************************************************************************')
 
     print('**********************************************************************************')
@@ -79,3 +92,5 @@ if __name__ == '__main__':
     print('----------------------------------------------------------------------------------')
     print('                     Correlation Validation Completed                             ')
     print('----------------------------------------------------------------------------------')
+
+    print('********** Process Complete: ' + str(time.time() - start) + ' Seconds **********')

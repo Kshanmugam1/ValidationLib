@@ -4,7 +4,7 @@ __version__ = '1.0'
 __interpreter__ = 'Python 2.7.10'
 __maintainer__ = 'Shashank kapadia'
 __email__ = 'skapadia@air-worldwide.com'
-__status__ = 'Production'
+__status__ = 'Complete'
 
 # ToDo-Shashank: Add option for Location and Contract Summary
 
@@ -405,7 +405,7 @@ class LossModValidation:
             resultDF['ContractSID'] = resultDF_Mod['ContractSID']
 
         if info_analysis[0][7] == 'LOC':
-            resultDF['LocationSID'] = resultDF_Mod['LocationSID']
+            resultDF['LocationID'] = resultDF_Mod['LocationID']
 
         if info_analysis[0][7] == 'LYR':
             resultDF['LayerSID'] = resultDF_Mod['LayerSID']

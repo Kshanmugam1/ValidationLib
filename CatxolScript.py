@@ -1,23 +1,40 @@
-# Import internal packages
+# Import standard Python packages
 import time
 import multiprocessing as mp
 
+# Import internal packages
 from database.main import *
 from financials.Catxol.main import *
 from financials.Catxol.main import _getRecovery
 from general.CsvTools.main import _saveDFCsv
 
+__author__ = 'Shashank Kapadia'
+__copyright__ = '2015 AIR Worldwide, Inc.. All rights reserved'
+__version__ = '1.0'
+__interpreter__ = 'Python 2.7.10'
+__maintainer__ = 'Shashank kapadia'
+__email__ = 'skapadia@air-worldwide.com'
+__status__ = 'Complete'
+
 if __name__ == '__main__':
+
+    start = time.time()
 
     print('**********************************************************************************')
     print('                          CATXOL Validation Tool                                  ')
     print('**********************************************************************************')
     # Extract the given arguments
     '''
+    Input:
+
     1. Arg(3) - Server
     2. Arg(4) - Result DB
     3. Arg(5) - Result Path (As an Outfile)
     4. Arg(6) - Analysis SID
+
+    Output:
+
+    1. Summary File
     '''
 
     server = 'QAWUDB2\SQL2012'
@@ -45,7 +62,6 @@ if __name__ == '__main__':
 
     print('**********************************************************************************************************')
     print('Step 4. Getting the task list')
-    start = time.time()
     tasks, lossDF = Program._GetTasks(result_Db, resultSID)
 
     print('**********************************************************************************************************')
@@ -58,7 +74,8 @@ if __name__ == '__main__':
 
         for j in range(len(program_infos)):
             pool = mp.Pool()
-            results = [pool.apply_async(_getRecovery, args=(tasks[i], lossDF, program_infos[j])) for i in range(len(tasks))]
+            results = [pool.apply_async(_getRecovery, args=(tasks[i], lossDF, program_infos[j]))
+                       for i in range(len(tasks))]
             output = [p.get() for p in results]
             recovery.append([item for sublist in output for item in sublist])
         recovery = [sum(x) for x in zip(*recovery)]
@@ -77,5 +94,9 @@ if __name__ == '__main__':
     print('**********************************************************************************')
     print('Ste 7. Saving the results')
     _saveDFCsv(resultDF, result_path)
+
+    print('----------------------------------------------------------------------------------')
+    print('                          CATXOL Validation Completed                             ')
+    print('----------------------------------------------------------------------------------')
 
     print('********** Process Complete: ' + str(time.time() - start) + ' Seconds **********')
