@@ -4,13 +4,17 @@ __version__ = '1.0'
 __interpreter__ = 'Python 2.7.9'
 __maintainer__ = 'Shashank kapadia'
 __email__ = 'skapadia@air-worldwide.com'
-__status__ = 'Production'
+__status__ = 'Complete'
 
 # Import internal packages
 from analysis.LossMod.main import *
 from general.CsvTools.main import _saveDFCsv
 
 if __name__ == '__main__':
+
+    print('**********************************************************************************')
+    print('                        Loss Mod Validation Tool                                  ')
+    print('**********************************************************************************')
 
     server = 'QAWUDB2\SQL2012'
     # server = sys.argv[1]
