@@ -6,6 +6,7 @@ __maintainer__ = 'Shashank kapadia'
 __email__ = 'skapadia@air-worldwide.com'
 __status__ = 'Complete'
 
+import getopt
 # Import internal packages
 from analysis.LossMod.main import *
 from general.CsvTools.main import _saveDFCsv
@@ -16,20 +17,43 @@ if __name__ == '__main__':
     print('                        Loss Mod Validation Tool                                  ')
     print('**********************************************************************************')
 
-    server = 'QAWUDB2\SQL2012'
-    # server = sys.argv[1]
-    result_Db = 'SSG_LossMod_Res'
-    # result_Db = sys.argv[2]
+    # Extract the given parameters
+    '''
+    1. Arg(3) - Server
+    2. Arg(4) - Result DB
+    3. Arg(5) - Result Path
+    4. Arg(6) - Analysis SID
+    5. Arg(7) - Tolerance
+    '''
+
+    server = sys.argv[3]
+    result_Db = sys.argv[4]
+
+    optlist, args = getopt.getopt(sys.argv[1:], [''], ['outfile='])
+    outfile = None
+    for o, a in optlist:
+        if o == "--outfile":
+            outfile = a
+        print ("Outfile: " + outfile)
+    if outfile is None:
+        raise Exception("outfile not passed into script")
+
+    analysis_SID = sys.argv[6]
+    tolerance = sys.argv[7]
+
+    # server = 'QAWUDB2\SQL2012'
+    # # server = sys.argv[1]
+    # result_Db = 'SSG_LossMod_Res'
+    # # result_Db = sys.argv[2]
+    # analysis_SID = 730
+    # # analysis_SID = sys.argv[3]
+    # outfile =  r'C:\Users\i56228\Documents\Python\Git\ValidationLib\LossMod_validation' + str(analysis_SID) + '.csv'
+    # # result_path = sys.argv[4]
+    # filename = 'LossModValidation'
+    # # filename = sys.argv[5]
+    # tolerance = 1
+
     # Initialize the connection with the server
-
-    analysis_SID = 730
-    # analysis_SID = sys.argv[3]
-    result_path =  r'C:\Users\i56228\Documents\Python\Git\ValidationLib\LossMod_validation' + str(analysis_SID) + '.csv'
-    # result_path = sys.argv[4]
-    filename = 'LossModValidation'
-    # filename = sys.argv[5]
-
-
     validation = dbConnection(server)
     LossModValidation = LossModValidation(server)
 
@@ -88,12 +112,12 @@ if __name__ == '__main__':
 
     print('**********************************************************************************************************')
     print('Step 7. Validating the results')
-    validatedDF = LossModValidation._validate(resultDF, template_info, coverage, analysis_SID)
+    validatedDF = LossModValidation._validate(resultDF, template_info, coverage, analysis_SID, tolerance)
     print('**********************************************************************************************************')
 
     print('**********************************************************************************************************')
     print('Step 8. Saving the results')
-    _saveDFCsv(validatedDF, result_path)
+    _saveDFCsv(validatedDF, outfile)
     print('**********************************************************************************************************')
 
     print('----------------------------------------------------------------------------------------------------------')
