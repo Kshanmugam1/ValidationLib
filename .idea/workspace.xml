@@ -1,23 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="a16f72e8-2994-4be5-bfc0-4ead301bc890" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/financials/__init__.py" />
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/general/CsvTools/__init__.py" />
-      <change type="MOVED" beforePath="C:\Users\i56228\Documents\Python\Git\ValidationLib\Catxol\__init__.py" afterPath="$PROJECT_DIR$/analysis/LossMod/__init__.py" />
-      <change type="MOVED" beforePath="C:\Users\i56228\Documents\Python\Git\ValidationLib\Catxol\main.py" afterPath="$PROJECT_DIR$/financials/Catxol/main.py" />
-      <change type="MOVED" beforePath="C:\Users\i56228\Documents\Python\Git\ValidationLib\Correlation\__init__.py" afterPath="$PROJECT_DIR$/analysis/__init__.py" />
-      <change type="MOVED" beforePath="C:\Users\i56228\Documents\Python\Git\ValidationLib\Correlation\main.py" afterPath="$PROJECT_DIR$/financials/Correlation/main.py" />
-      <change type="MOVED" beforePath="C:\Users\i56228\Documents\Python\Git\ValidationLib\CsvTools\__init__.py" afterPath="$PROJECT_DIR$/database/__init__.py" />
-      <change type="MOVED" beforePath="C:\Users\i56228\Documents\Python\Git\ValidationLib\CsvTools\main.py" afterPath="$PROJECT_DIR$/general/CsvTools/main.py" />
-      <change type="MOVED" beforePath="C:\Users\i56228\Documents\Python\Git\ValidationLib\DbConn\__init__.py" afterPath="$PROJECT_DIR$/financials/Catxol/__init__.py" />
-      <change type="MOVED" beforePath="C:\Users\i56228\Documents\Python\Git\ValidationLib\DbConn\main.py" afterPath="$PROJECT_DIR$/database/main.py" />
-      <change type="MOVED" beforePath="C:\Users\i56228\Documents\Python\Git\ValidationLib\LossMod\__init__.py" afterPath="$PROJECT_DIR$/financials/Correlation/__init__.py" />
-      <change type="MOVED" beforePath="C:\Users\i56228\Documents\Python\Git\ValidationLib\LossMod\main.py" afterPath="$PROJECT_DIR$/analysis/LossMod/main.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/CatxolScript.py" afterPath="$PROJECT_DIR$/CatxolScript.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/InterCorrelationScript.py" afterPath="$PROJECT_DIR$/InterCorrelationScript.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/IntraCorrelationScript.py" afterPath="$PROJECT_DIR$/IntraCorrelationScript.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/LossModScript.py" afterPath="$PROJECT_DIR$/LossModScript.py" />
+    <list default="true" id="a16f72e8-2994-4be5-bfc0-4ead301bc890" name="Default" comment="Db Connection updates">
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/financials/Correlation/main.py" afterPath="$PROJECT_DIR$/financials/Correlation/main.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="ValidationLib.iws" />
@@ -34,12 +19,67 @@
   <component name="CreatePatchCommitExecutor">
     <option name="PATCH_PATH" value="" />
   </component>
+  <component name="DockManager">
+    <window id="1">
+      <content type="file-editors">
+        <state>
+          <leaf>
+            <file leaf-file-name="main.py" pinned="false" current-in-tab="true">
+              <entry file="file://$PROJECT_DIR$/financials/Correlation/main.py">
+                <provider selected="true" editor-type-id="text-editor">
+                  <state vertical-scroll-proportion="0.9038855">
+                    <caret line="69" column="19" selection-start-line="69" selection-start-column="19" selection-end-line="69" selection-end-column="19" />
+                    <folding>
+                      <element signature="e#346#1067#0" expanded="false" />
+                    </folding>
+                  </state>
+                </provider>
+              </entry>
+            </file>
+          </leaf>
+        </state>
+      </content>
+    </window>
+  </component>
   <component name="ExecutionTargetManager" SELECTED_TARGET="default_target" />
   <component name="FavoritesManager">
     <favorites_list name="ValidationLib" />
   </component>
   <component name="FileEditorManager">
-    <leaf />
+    <splitter split-orientation="horizontal" split-proportion="0.88150686">
+      <split-first>
+        <leaf>
+          <file leaf-file-name="test_corrValidation.py" pinned="false" current-in-tab="true">
+            <entry file="file://$PROJECT_DIR$/unit_tests/test_corrValidation.py">
+              <provider selected="true" editor-type-id="text-editor">
+                <state vertical-scroll-proportion="0.5392321">
+                  <caret line="19" column="0" selection-start-line="19" selection-start-column="0" selection-end-line="19" selection-end-column="0" />
+                  <folding>
+                    <element signature="e#0#15#0" expanded="true" />
+                  </folding>
+                </state>
+              </provider>
+            </entry>
+          </file>
+        </leaf>
+      </split-first>
+      <split-second>
+        <leaf>
+          <file leaf-file-name="InterCorrelationScript.py" pinned="false" current-in-tab="true">
+            <entry file="file://$PROJECT_DIR$/InterCorrelationScript.py">
+              <provider selected="true" editor-type-id="text-editor">
+                <state vertical-scroll-proportion="0.13856427">
+                  <caret line="29" column="67" selection-start-line="29" selection-start-column="4" selection-end-line="29" selection-end-column="67" />
+                  <folding>
+                    <element signature="e#251#264#0" expanded="true" />
+                  </folding>
+                </state>
+              </provider>
+            </entry>
+          </file>
+        </leaf>
+      </split-second>
+    </splitter>
   </component>
   <component name="FileTemplateManagerImpl">
     <option name="RECENT_TEMPLATES">
@@ -66,13 +106,19 @@
         <option value="$PROJECT_DIR$/.idea/workspace.xml" />
         <option value="$PROJECT_DIR$/Correlation/main.py" />
         <option value="$PROJECT_DIR$/Catxol/main.py" />
-        <option value="$PROJECT_DIR$/LossModScript.py" />
         <option value="$PROJECT_DIR$/general/main.py" />
         <option value="$PROJECT_DIR$/LossMod/main.py" />
         <option value="$PROJECT_DIR$/DbConn/main.py" />
         <option value="$PROJECT_DIR$/InterCorrelationScript.py" />
         <option value="$PROJECT_DIR$/IntraCorrelationScript.py" />
+        <option value="$PROJECT_DIR$/database/main.py" />
         <option value="$PROJECT_DIR$/CatxolScript.py" />
+        <option value="$PROJECT_DIR$/financials/Correlation/test_corrValidation.py" />
+        <option value="$PROJECT_DIR$/financials/Catxol/main.py" />
+        <option value="$PROJECT_DIR$/analysis/LossMod/main.py" />
+        <option value="$PROJECT_DIR$/LossModScript.py" />
+        <option value="$PROJECT_DIR$/financials/Correlation/main.py" />
+        <option value="$PROJECT_DIR$/unit_tests/test_corrValidation.py" />
       </list>
     </option>
   </component>
@@ -80,10 +126,29 @@
     <order />
   </component>
   <component name="ProjectFrameBounds">
-    <option name="x" value="-1924" />
+    <option name="x" value="-4" />
     <option name="y" value="-4" />
-    <option name="width" value="1928" />
+    <option name="width" value="1866" />
     <option name="height" value="1088" />
+  </component>
+  <component name="ProjectInspectionProfilesVisibleTreeState">
+    <entry key="Project Default">
+      <profile-state>
+        <expanded-state>
+          <State>
+            <id />
+          </State>
+          <State>
+            <id>Python</id>
+          </State>
+        </expanded-state>
+        <selected-state>
+          <State>
+            <id>Python</id>
+          </State>
+        </selected-state>
+      </profile-state>
+    </entry>
   </component>
   <component name="ProjectLevelVcsManager" settingsEditedManually="false">
     <OptionsSetting value="true" id="Add" />
@@ -108,6 +173,7 @@
       <sortByType />
     </navigator>
     <panes>
+      <pane id="Scratches" />
       <pane id="ProjectPane">
         <subPane>
           <PATH>
@@ -129,11 +195,10 @@
         </subPane>
       </pane>
       <pane id="Scope" />
-      <pane id="Scratches" />
     </panes>
   </component>
   <component name="PropertiesComponent">
-    <property name="last_opened_file_path" value="$PROJECT_DIR$/general" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="settings.editor.selected.configurable" value="reference.settingsdialog.IDE.editor.colors.Python" />
     <property name="settings.editor.splitter.proportion" value="0.2" />
     <property name="recentsLimit" value="5" />
@@ -141,27 +206,72 @@
   </component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="C:\Users\i56228\Documents\Python\Git\ValidationLib\unit_tests" />
       <recent name="C:\Users\i56228\Documents\Python\Git\ValidationLib\general" />
       <recent name="C:\Users\i56228\Documents\Python\Git\ValidationLib\analysis" />
       <recent name="C:\Users\i56228\Documents\Python\Git\ValidationLib\financials" />
     </key>
   </component>
-  <component name="RunManager" selected="Python.LossModScript">
-    <configuration default="false" name="IntraCorrelationScript" type="PythonConfigurationType" factoryName="Python" temporary="true">
+  <component name="RunManager" selected="Python tests.Unittest TestCorrValidation.test_negative_analysis_sid">
+    <configuration default="false" name="Unittest TestCorrValidation.test__get_correlation_factor" type="tests" factoryName="Unittests" temporary="true" nameIsGenerated="true">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/financials/Correlation" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="ValidationLib" />
+      <option name="SCRIPT_NAME" value="C:\Users\i56228\Documents\Python\Git\ValidationLib\unit_tests\test_corrValidation.py" />
+      <option name="CLASS_NAME" value="TestCorrValidation" />
+      <option name="METHOD_NAME" value="test__get_correlation_factor" />
+      <option name="FOLDER_NAME" value="" />
+      <option name="TEST_TYPE" value="TEST_METHOD" />
+      <option name="PATTERN" value="" />
+      <option name="USE_PATTERN" value="false" />
+      <option name="PUREUNITTEST" value="true" />
+      <option name="PARAMS" value="" />
+      <option name="USE_PARAM" value="false" />
+      <method />
+    </configuration>
+    <configuration default="false" name="test_corrValidation" type="PythonConfigurationType" factoryName="Python" temporary="true">
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
       <envs>
         <env name="PYTHONUNBUFFERED" value="1" />
       </envs>
       <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/financials/Correlation" />
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <module name="ValidationLib" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/IntraCorrelationScript.py" />
+      <option name="SCRIPT_NAME" value="C:\Users\i56228\Documents\Python\Git\ValidationLib\unit_tests\test_corrValidation.py" />
       <option name="PARAMETERS" value="" />
       <option name="SHOW_COMMAND_LINE" value="false" />
+      <method />
+    </configuration>
+    <configuration default="false" name="Unittests in test_corrValidation" type="tests" factoryName="Unittests" temporary="true" nameIsGenerated="true">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/financials/Correlation" />
+      <option name="IS_MODULE_SDK" value="true" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="ValidationLib" />
+      <option name="SCRIPT_NAME" value="C:\Users\i56228\Documents\Python\Git\ValidationLib\unit_tests\test_corrValidation.py" />
+      <option name="CLASS_NAME" value="" />
+      <option name="METHOD_NAME" value="" />
+      <option name="FOLDER_NAME" value="" />
+      <option name="TEST_TYPE" value="TEST_SCRIPT" />
+      <option name="PATTERN" value="" />
+      <option name="USE_PATTERN" value="false" />
+      <option name="PUREUNITTEST" value="true" />
+      <option name="PARAMS" value="" />
+      <option name="USE_PARAM" value="false" />
       <method />
     </configuration>
     <configuration default="false" name="LossModScript" type="PythonConfigurationType" factoryName="Python" temporary="true">
@@ -181,55 +291,26 @@
       <option name="SHOW_COMMAND_LINE" value="false" />
       <method />
     </configuration>
-    <configuration default="false" name="main" type="PythonConfigurationType" factoryName="Python" temporary="true">
+    <configuration default="false" name="Unittest TestCorrValidation.test_negative_analysis_sid" type="tests" factoryName="Unittests" temporary="true" nameIsGenerated="true">
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
+      <envs />
       <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/Correlation" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/unit_tests" />
       <option name="IS_MODULE_SDK" value="true" />
       <option name="ADD_CONTENT_ROOTS" value="true" />
       <option name="ADD_SOURCE_ROOTS" value="true" />
       <module name="ValidationLib" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/Correlation/main.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <method />
-    </configuration>
-    <configuration default="false" name="CatxolScript" type="PythonConfigurationType" factoryName="Python" temporary="true">
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <module name="ValidationLib" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/CatxolScript.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
-      <method />
-    </configuration>
-    <configuration default="false" name="main (1)" type="PythonConfigurationType" factoryName="Python" temporary="true">
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs>
-        <env name="PYTHONUNBUFFERED" value="1" />
-      </envs>
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/LossMod" />
-      <option name="IS_MODULE_SDK" value="true" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <module name="ValidationLib" />
-      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/LossMod/main.py" />
-      <option name="PARAMETERS" value="" />
-      <option name="SHOW_COMMAND_LINE" value="false" />
+      <option name="SCRIPT_NAME" value="$PROJECT_DIR$/unit_tests/test_corrValidation.py" />
+      <option name="CLASS_NAME" value="TestCorrValidation" />
+      <option name="METHOD_NAME" value="test_negative_analysis_sid" />
+      <option name="FOLDER_NAME" value="" />
+      <option name="TEST_TYPE" value="TEST_METHOD" />
+      <option name="PATTERN" value="" />
+      <option name="USE_PATTERN" value="false" />
+      <option name="PUREUNITTEST" value="true" />
+      <option name="PARAMS" value="" />
+      <option name="USE_PARAM" value="false" />
       <method />
     </configuration>
     <configuration default="true" type="PythonConfigurationType" factoryName="Python">
@@ -377,20 +458,20 @@
       <method />
     </configuration>
     <list size="6">
-      <item index="0" class="java.lang.String" itemvalue="Python.IntraCorrelationScript" />
-      <item index="1" class="java.lang.String" itemvalue="Python.LossModScript" />
-      <item index="2" class="java.lang.String" itemvalue="Python.main" />
-      <item index="3" class="java.lang.String" itemvalue="Python.CatxolScript" />
-      <item index="4" class="java.lang.String" itemvalue="Python tests.Unittests in ValidationLib" />
-      <item index="5" class="java.lang.String" itemvalue="Python.main (1)" />
+      <item index="0" class="java.lang.String" itemvalue="Python tests.Unittests in ValidationLib" />
+      <item index="1" class="java.lang.String" itemvalue="Python tests.Unittest TestCorrValidation.test__get_correlation_factor" />
+      <item index="2" class="java.lang.String" itemvalue="Python.test_corrValidation" />
+      <item index="3" class="java.lang.String" itemvalue="Python tests.Unittests in test_corrValidation" />
+      <item index="4" class="java.lang.String" itemvalue="Python.LossModScript" />
+      <item index="5" class="java.lang.String" itemvalue="Python tests.Unittest TestCorrValidation.test_negative_analysis_sid" />
     </list>
     <recent_temporary>
       <list size="5">
-        <item index="0" class="java.lang.String" itemvalue="Python.LossModScript" />
-        <item index="1" class="java.lang.String" itemvalue="Python.CatxolScript" />
-        <item index="2" class="java.lang.String" itemvalue="Python.main (1)" />
-        <item index="3" class="java.lang.String" itemvalue="Python.IntraCorrelationScript" />
-        <item index="4" class="java.lang.String" itemvalue="Python.main" />
+        <item index="0" class="java.lang.String" itemvalue="Python tests.Unittest TestCorrValidation.test_negative_analysis_sid" />
+        <item index="1" class="java.lang.String" itemvalue="Python.LossModScript" />
+        <item index="2" class="java.lang.String" itemvalue="Python tests.Unittests in test_corrValidation" />
+        <item index="3" class="java.lang.String" itemvalue="Python.test_corrValidation" />
+        <item index="4" class="java.lang.String" itemvalue="Python tests.Unittest TestCorrValidation.test__get_correlation_factor" />
       </list>
     </recent_temporary>
   </component>
@@ -554,7 +635,67 @@
       <option name="project" value="LOCAL" />
       <updated>1438106791519</updated>
     </task>
-    <option name="localTasksCounter" value="25" />
+    <task id="LOCAL-00025" summary="Reorganized packages">
+      <created>1438114170637</created>
+      <option name="number" value="00025" />
+      <option name="project" value="LOCAL" />
+      <updated>1438114170638</updated>
+    </task>
+    <task id="LOCAL-00026" summary="Added new comments&#10;">
+      <created>1438117672919</created>
+      <option name="number" value="00026" />
+      <option name="project" value="LOCAL" />
+      <updated>1438117672919</updated>
+    </task>
+    <task id="LOCAL-00027" summary="Inter Correlation -Refactored&#10;">
+      <created>1438265385742</created>
+      <option name="number" value="00027" />
+      <option name="project" value="LOCAL" />
+      <updated>1438265385742</updated>
+    </task>
+    <task id="LOCAL-00028" summary="Intra Correlation -Refactored&#10;">
+      <created>1438265399677</created>
+      <option name="number" value="00028" />
+      <option name="project" value="LOCAL" />
+      <updated>1438265399677</updated>
+    </task>
+    <task id="LOCAL-00029" summary="Db Connection updates">
+      <created>1438265429625</created>
+      <option name="number" value="00029" />
+      <option name="project" value="LOCAL" />
+      <updated>1438265429625</updated>
+    </task>
+    <task id="LOCAL-00030" summary="Correlation - Refactored">
+      <created>1438265592878</created>
+      <option name="number" value="00030" />
+      <option name="project" value="LOCAL" />
+      <updated>1438265592878</updated>
+    </task>
+    <task id="LOCAL-00031" summary="Unit_Tests">
+      <created>1438265608745</created>
+      <option name="number" value="00031" />
+      <option name="project" value="LOCAL" />
+      <updated>1438265608745</updated>
+    </task>
+    <task id="LOCAL-00032" summary="LossMod script">
+      <created>1438265625567</created>
+      <option name="number" value="00032" />
+      <option name="project" value="LOCAL" />
+      <updated>1438265625567</updated>
+    </task>
+    <task id="LOCAL-00033" summary="Tolerance, round">
+      <created>1438268184672</created>
+      <option name="number" value="00033" />
+      <option name="project" value="LOCAL" />
+      <updated>1438268184672</updated>
+    </task>
+    <task id="LOCAL-00034" summary="LossMod Script">
+      <created>1438268239807</created>
+      <option name="number" value="00034" />
+      <option name="project" value="LOCAL" />
+      <updated>1438268239807</updated>
+    </task>
+    <option name="localTasksCounter" value="35" />
     <servers />
   </component>
   <component name="TodoView">
@@ -568,22 +709,22 @@
     </todo-panel>
   </component>
   <component name="ToolWindowManager">
-    <frame x="-1924" y="-4" width="1928" height="1088" extended-state="6" />
+    <frame x="-4" y="-4" width="1866" height="1088" extended-state="6" />
     <editor active="false" />
     <layout>
+      <window_info id="Project" active="true" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.2308111" sideWeight="0.48168105" order="0" side_tool="false" content_ui="combo" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.28867102" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
-      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.20824742" sideWeight="0.5018431" order="0" side_tool="true" content_ui="tabs" />
       <window_info id="Application Servers" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
-      <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32886598" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
-      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.5216495" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.66961133" sideWeight="0.49815693" order="0" side_tool="false" content_ui="tabs" />
-      <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3298969" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
-      <window_info id="Project" active="true" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.22222222" sideWeight="0.48168105" order="0" side_tool="false" content_ui="combo" />
-      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3298969" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32848233" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.52079004" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.3556701" sideWeight="0.49815693" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.22222222" sideWeight="0.51831895" order="0" side_tool="true" content_ui="tabs" />
+      <window_info id="Terminal" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3298969" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.22222222" sideWeight="0.51831895" order="0" side_tool="true" content_ui="tabs" />
-      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3257732" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3253638" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32952183" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
     </layout>
     <layout-to-restore>
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.56494844" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
@@ -621,7 +762,17 @@
     <MESSAGE value="Added:&#10;1. Coverage validation&#10;" />
     <MESSAGE value="Add Comments for the Loss Mod" />
     <MESSAGE value="LossMod-Rule Comments" />
-    <option name="LAST_COMMIT_MESSAGE" value="LossMod-Rule Comments" />
+    <MESSAGE value="Reorganized packages" />
+    <MESSAGE value="Added new comments&#10;" />
+    <MESSAGE value="Inter Correlation -Refactored&#10;" />
+    <MESSAGE value="Intra Correlation -Refactored&#10;" />
+    <MESSAGE value="Db Connection updates" />
+    <MESSAGE value="Correlation - Refactored" />
+    <MESSAGE value="Unit_Tests" />
+    <MESSAGE value="LossMod script" />
+    <MESSAGE value="Tolerance, round" />
+    <MESSAGE value="LossMod Script" />
+    <option name="LAST_COMMIT_MESSAGE" value="LossMod Script" />
     <option name="UPDATE_GROUP_BY_PACKAGES" value="true" />
   </component>
   <component name="XDebuggerManager">
@@ -633,22 +784,33 @@
           </selected-grouping-rules>
         </breakpoints-dialog>
       </breakpoints-dialog>
-      <option name="time" value="1" />
+      <option name="time" value="3" />
     </breakpoint-manager>
     <watches-manager />
   </component>
   <component name="editorHistoryManager">
+    <entry file="file://$PROJECT_DIR$/LossModScript.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="45" column="35" selection-start-line="45" selection-start-column="35" selection-end-line="45" selection-end-column="35" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/InterCorrelationScript.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
+          <folding>
+            <element signature="e#251#264#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/financials/Catxol/main.py">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="85" column="0" selection-start-line="85" selection-start-column="0" selection-end-line="85" selection-end-column="0" />
-          <folding>
-            <element signature="e#387#503#0" expanded="false" />
-            <element signature="e#556#2252#0" expanded="false" />
-            <element signature="e#2321#2520#0" expanded="false" />
-            <element signature="e#2577#3322#0" expanded="false" />
-            <element signature="e#3367#3802#0" expanded="false" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -656,7 +818,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -664,13 +825,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding>
-            <element signature="e#387#503#0" expanded="false" />
-            <element signature="e#556#2252#0" expanded="false" />
-            <element signature="e#2321#2520#0" expanded="false" />
-            <element signature="e#2577#3322#0" expanded="false" />
-            <element signature="e#3367#3802#0" expanded="false" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -804,7 +958,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.75782883">
           <caret line="2830" column="0" selection-start-line="2830" selection-start-column="0" selection-end-line="2830" selection-end-column="0" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -812,57 +965,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.79937303">
           <caret line="15" column="26" selection-start-line="15" selection-start-column="26" selection-end-line="15" selection-end-column="26" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/database/main.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.30555555">
-          <caret line="211" column="52" selection-start-line="211" selection-start-column="52" selection-end-line="211" selection-end-column="52" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/financials/Correlation/main.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.74788135">
-          <caret line="129" column="12" selection-start-line="129" selection-start-column="12" selection-end-line="129" selection-end-column="12" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/financials/Catxol/main.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.43220338">
-          <caret line="81" column="32" selection-start-line="81" selection-start-column="32" selection-end-line="81" selection-end-column="32" />
-          <folding>
-            <element signature="e#387#503#0" expanded="false" />
-            <element signature="e#556#2252#0" expanded="false" />
-            <element signature="e#2321#2520#0" expanded="false" />
-            <element signature="e#2577#3322#0" expanded="false" />
-            <element signature="e#3367#3802#0" expanded="false" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/LossModScript.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.23305085">
-          <caret line="14" column="0" selection-start-line="14" selection-start-column="0" selection-end-line="14" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/analysis/LossMod/main.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.018008474">
-          <caret line="276" column="89" selection-start-line="274" selection-start-column="14" selection-end-line="276" selection-end-column="89" />
-          <folding>
-            <element signature="e#351#361#0" expanded="true" />
-            <element signature="e#585#706#0" expanded="false" />
-            <element signature="e#20346#24903#0" expanded="false" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -870,17 +972,6 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.38771185">
           <caret line="23" column="21" selection-start-line="23" selection-start-column="21" selection-end-line="23" selection-end-column="21" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/InterCorrelationScript.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.23411018">
-          <caret line="13" column="0" selection-start-line="13" selection-start-column="0" selection-end-line="13" selection-end-column="41" />
-          <folding>
-            <element signature="e#251#264#0" expanded="true" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -888,16 +979,79 @@
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
           <caret line="13" column="35" selection-start-line="13" selection-start-column="35" selection-end-line="13" selection-end-column="35" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/database/main.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="17" column="41" selection-start-line="17" selection-start-column="41" selection-end-line="17" selection-end-column="41" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$USER_HOME$/.PyCharm40/system/python_stubs/-946255732/exceptions.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.8787879">
+          <caret line="81" column="8" selection-start-line="81" selection-start-column="8" selection-end-line="81" selection-end-column="8" />
           <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/financials/Catxol/main.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.68802696">
+          <caret line="92" column="21" selection-start-line="92" selection-start-column="21" selection-end-line="92" selection-end-column="21" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/CatxolScript.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.59427965">
-          <caret line="33" column="54" selection-start-line="33" selection-start-column="54" selection-end-line="33" selection-end-column="54" />
+        <state vertical-scroll-proportion="0.623946">
+          <caret line="22" column="29" selection-start-line="22" selection-start-column="14" selection-end-line="22" selection-end-column="29" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/analysis/LossMod/main.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="1.7740303">
+          <caret line="677" column="0" selection-start-line="677" selection-start-column="0" selection-end-line="677" selection-end-column="0" />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/InterCorrelationScript.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.13856427">
+          <caret line="29" column="67" selection-start-line="29" selection-start-column="4" selection-end-line="29" selection-end-column="67" />
           <folding>
-            <element signature="e#27#38#0" expanded="true" />
+            <element signature="e#251#264#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/LossModScript.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.55073994">
+          <caret line="45" column="35" selection-start-line="45" selection-start-column="35" selection-end-line="45" selection-end-column="35" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/financials/Correlation/main.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.9038855">
+          <caret line="69" column="19" selection-start-line="69" selection-start-column="19" selection-end-line="69" selection-end-column="19" />
+          <folding>
+            <element signature="e#346#1067#0" expanded="false" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/unit_tests/test_corrValidation.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.5392321">
+          <caret line="19" column="0" selection-start-line="19" selection-start-column="0" selection-end-line="19" selection-end-column="0" />
+          <folding>
+            <element signature="e#0#15#0" expanded="true" />
           </folding>
         </state>
       </provider>

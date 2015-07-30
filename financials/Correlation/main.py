@@ -22,11 +22,14 @@ class CorrValidation:
 
             intra_correlation = info_analysis_option[0][44]
             inter_correlation = info_analysis_option[0][45]
-            if (intra_correlation and inter_correlation) > 0:
+
+            if (intra_correlation and inter_correlation) >= 0.0:
                 return intra_correlation, inter_correlation
+            else:
+                raise Exception('Invalid Intra or Inter Correlation Factor')
 
         else:
-            raise Exception
+            raise Exception('Analysis SID should be greater than or equal to zero')
 
     def _get_sd(self, contract_result_sid, result_db, sd_type, tolerance, intra_correlation=None,
                 location_result_sid=None,
