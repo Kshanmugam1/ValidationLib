@@ -17,6 +17,11 @@ class dbConnection:
 
     def _getResultSID(self, AnalysisSID):
 
+        """
+        The function _getResultSID is a method of class dbConnection. Given the analysis_sid, it returns the associated
+        result_sid
+        """
+
         script = 'SELECT ResultSID FROM AIRProject.dbo.tAnalysis ' \
                  'WHERE AnalysisSID = ' + str(AnalysisSID)
         self.cursor.execute(script)
