@@ -439,14 +439,14 @@ class LossModValidation:
         else:
             coverages = ['A', 'B', 'C', 'D']
             for i in coverages:
-                resultDF['GroundUpLoss' + i + '_Base'] = '-'
-                resultDF['GroundUpLoss' + i + '_Mod'] = '-'
-                resultDF['GroundUpLoss' + i + '_Ratio'] = '-'
+                resultDF['GroundUpLoss' + i + '_Base'] = -1.0
+                resultDF['GroundUpLoss' + i + '_Mod'] = -1.0
+                resultDF['GroundUpLoss' + i + '_Ratio'] = -1.0
         resultDF.loc[:, 'Status'] = 1
 
         return resultDF
 
-    def _validate(self, resultDF, template_info, coverage, ModAnalysisSID):
+    def _validate(self, resultDF, template_info, coverage, ModAnalysisSID, tolerance):
 
         info_analysis = self.setup._getAnalysisInfo(ModAnalysisSID)
 
@@ -504,14 +504,14 @@ class LossModValidation:
                                 resultDF.iloc[:, 2].isin(template_info[i][1])), 'Ratio'] - float(template_info[i][2])
 
                         if (abs(resultDF[(resultDF['PerilSetCode'].isin(template_info[i][0])) &
-                            (resultDF.iloc[:, 2].isin(template_info[i][1]))]['Difference']) < 0.001).all():
+                            (resultDF.iloc[:, 2].isin(template_info[i][1]))]['Difference']) < (tolerance/100.0)).all():
                             resultDF.loc[(resultDF['PerilSetCode'].isin(template_info[i][0])) &
                                          (resultDF.iloc[:, 2].isin(template_info[i][1])), 'Status'] = 'Pass'
                         else:
                             resultDF.loc[(resultDF['PerilSetCode'].isin(template_info[i][0])) &
                                          (resultDF.iloc[:, 2].isin(template_info[i][1])), 'Status'] = 'Fail'
 
-                        if ((resultDF[resultDF['Status'] == 1.0]['Ratio'] - 1.0).all() < 0.001).all():
+                        if ((resultDF[resultDF['Status'] == 1.0]['Ratio'] - 1.0).all() < (tolerance/100.0)).all():
                             resultDF.loc[resultDF['Status'] == 1.0, 'Input_Ratio'] = 1.0
                             resultDF.loc[resultDF['Status'] == 1.0, 'Difference'] = resultDF.loc[resultDF[
                                                                                                      'Status'] == 1.0, 'Ratio'] - 1.0
@@ -531,12 +531,12 @@ class LossModValidation:
                         else:
                             resultDF.loc[(resultDF['PerilSetCode'].isin(template_info[i][0])), 'Status'] = 'Fail'
 
-                        if ((resultDF[resultDF['Status'] == 1.0]['Ratio'] - 1.0).all() < 0.001).all():
+                        if ((resultDF[resultDF['Status'] == 1.0]['Ratio'] - 1.0).all() < (tolerance/100.0)).all():
                             resultDF.loc[resultDF['Status'] == 1.0, 'Input_Ratio'] = 1.0
                             resultDF.loc[resultDF['Status'] == 1.0, 'Difference'] = resultDF.loc[resultDF[
                                                                                                      'Status'] == 1.0, 'Ratio'] - 1.0
-                            resultDF.loc[abs(resultDF['Difference']) < 0.001, 'Status'] = 'Pass'
-                            resultDF.loc[abs(resultDF['Difference']) > 0.001, 'Status'] = 'Fail'
+                            resultDF.loc[abs(resultDF['Difference']) < (tolerance/100.0), 'Status'] = 'Pass'
+                            resultDF.loc[abs(resultDF['Difference']) > (tolerance/100.0), 'Status'] = 'Fail'
                 else:
                     if info_analysis[0][7] != 'PORT':
                         coverages = list(template_info[i][3])
@@ -563,7 +563,7 @@ class LossModValidation:
                             if (abs(resultDF[(resultDF['PerilSetCode'].isin(template_info[i][0])) &
                                 (resultDF.iloc[:, 2].isin(template_info[i][1])) & (
                                         resultDF['GroundUpLoss' + j + '_Ratio'] != 1)]['Difference_' + j].fillna(
-                                0)) < 0.001).all():
+                                0)) < (tolerance/100.0)).all():
                                 resultDF.loc[(resultDF['PerilSetCode'].isin(template_info[i][0])) &
                                              (resultDF.iloc[:, 2].isin(template_info[i][1])) & (
                                                  resultDF['GroundUpLoss' + j + '_Ratio'] != 1), 'Status'] = 'Pass'
@@ -572,9 +572,9 @@ class LossModValidation:
 
                             resultDF.loc[:, 'Difference_' + j] = resultDF.loc[:, 'GroundUpLoss' + j + '_Ratio'] - resultDF.loc[:,
                                                                                                   'Input_Ratio_' + j]
-                            resultDF.loc[abs(resultDF['Difference_' + j]) < 0.001, 'Status'] = 'Pass'
+                            resultDF.loc[abs(resultDF['Difference_' + j]) < (tolerance/100.0), 'Status'] = 'Pass'
 
-                            resultDF.loc[abs(resultDF['Difference_' + j]) > 0.001, 'Status'] = 'Fail'
+                            resultDF.loc[abs(resultDF['Difference_' + j]) > (tolerance/100.0), 'Status'] = 'Fail'
 
                     else:
                         coverages = list(template_info[i][2])
@@ -591,15 +591,15 @@ class LossModValidation:
                                     template_info[i][0])), 'GroundUpLoss' + j + '_Ratio'] - float(template_info[i][1])
 
                             if (abs(resultDF[(resultDF['PerilSetCode'].isin(template_info[i][0]))][
-                                            'Difference_' + j]) < 0.001).all():
+                                            'Difference_' + j]) < (tolerance/100.0)).all():
                                 resultDF.loc[(resultDF['PerilSetCode'].isin(template_info[i][0])), 'Status'] = 'Pass'
 
                             resultDF = resultDF.fillna(1)
                             resultDF.loc[:, 'Difference_' + j] = resultDF.loc[:,
                                                                  'GroundUpLoss' + j + '_Ratio'] - resultDF.loc[:,
                                                                                                   'Input_Ratio_' + j]
-                            resultDF.loc[abs(resultDF['Difference_' + j]) < 0.001, 'Status'] = 'Pass'
-                            resultDF.loc[abs(resultDF['Difference_' + j]) > 0.001, 'Status'] = 'Fail'
+                            resultDF.loc[abs(resultDF['Difference_' + j]) < (tolerance/100.0), 'Status'] = 'Pass'
+                            resultDF.loc[abs(resultDF['Difference_' + j]) > (tolerance/100.0), 'Status'] = 'Fail'
 
             elif info_analysis[0][8] == 'LOCSUM':
 
@@ -609,12 +609,12 @@ class LossModValidation:
                     resultDF.loc[(resultDF['LocationSID'].isin(template_info[i][0])), 'Ratio'] - float(
                         template_info[i][1])
 
-                if (abs(resultDF[(resultDF['LocationSID'].isin(template_info[i][0]))]['Difference']) < 0.001).all():
+                if (abs(resultDF[(resultDF['LocationSID'].isin(template_info[i][0]))]['Difference']) < (tolerance/100.0)).all():
                     resultDF.loc[(resultDF['LocationSID'].isin(template_info[i][0])), 'Status'] = 'Pass'
                 else:
                     resultDF.loc[(resultDF['LocationSID'].isin(template_info[i][0])), 'Status'] = 'Fail'
 
-                if ((resultDF[resultDF['Status'] == 1.0]['Ratio'] - 1.0 < 0.001).all()):
+                if ((resultDF[resultDF['Status'] == 1.0]['Ratio'] - 1.0 < (tolerance/100.0)).all()):
                     resultDF.loc[resultDF['Status'] == 1.0, 'Input_Ratio'] = 1.0
                     resultDF.loc[resultDF['Status'] == 1.0, 'Difference'] = \
                         resultDF.loc[resultDF['Status'] == 1.0, 'Ratio'] - 1.0
@@ -633,7 +633,7 @@ class LossModValidation:
                 else:
                     resultDF.loc[(resultDF['ContractSID'].isin(template_info[i][0])), 'Status'] = 'Fail'
 
-                if (resultDF[resultDF['Status'] == 1.0]['Ratio'] - 1.0 < 0.001).all():
+                if (resultDF[resultDF['Status'] == 1.0]['Ratio'] - 1.0 < (tolerance/100.0)).all():
                     resultDF.loc[resultDF['Status'] == 1.0, 'Input_Ratio'] = 1.0
                     resultDF.loc[resultDF['Status'] == 1.0, 'Difference'] = \
                         resultDF.loc[resultDF['Status'] == 1.0, 'Ratio'] - 1.0
@@ -650,13 +650,13 @@ class LossModValidation:
             resultDF.drop(resultDF.columns[[2, 3]], axis=1, inplace=True)
 
         if not 'Input_Ratio' in resultDF.columns:
-            resultDF['Input_Ratio'] = '-'
-            resultDF['Difference'] = '-'
+            resultDF['Input_Ratio'] = -1.0
+            resultDF['Difference'] = -1.0
 
         for i in ['A', 'B', 'C', 'D']:
             if not 'Difference_' + i in resultDF.columns:
-                resultDF['Difference_' + i] = '-'
-                resultDF['Input_Ratio_' + i] = '-'
+                resultDF['Difference_' + i] = -1.0
+                resultDF['Input_Ratio_' + i] = -1.0
 
         resultDF = set_column_sequence(resultDF, ['Status', 'ID', 'GroundUpLoss_Mod', 'GroundUpLoss_Base',
                                                   'Ratio', 'Input_Ratio', 'Difference',
@@ -669,5 +669,9 @@ class LossModValidation:
                                                   'Difference_C', 'GroundUpLossD_Mod',
                                                   'GroundUpLossD_Base', 'GroundUpLossD_Ratio', 'Input_Ratio_D',
                                                   'Difference_D'])
+        resultDF.loc[:, ['Difference', 'Difference_A',
+                                          'Difference_B', 'Difference_C', 'Difference_D']] = \
+            resultDF.loc[:, ['Difference', 'Difference_A',
+                                          'Difference_B', 'Difference_C', 'Difference_D']].values.round(2)
 
         return resultDF
