@@ -102,14 +102,14 @@ class LossModValidation:
             lob_update = []
             if any(lob):
                 for i in range(len(lob)):
-                    self.cursor.execute('Select ExposureAttributeSID from [' + result_db + '].dbo.t' +
+                    self.cursor.execute('Select ExposureAttribute from [' + result_db + '].dbo.t' +
                                         str(mod_result_sid) +
                                         '_LOSS_DimExposureAttribute WHERE ExposureAttribute ' + str(lob[i]))
                     info = copy.deepcopy(self.cursor.fetchall())
                     lob_update.append([info[i][0] for i in range(len(info))])
             else:
                 for i in range(len(factor)):
-                    self.cursor.execute('Select ExposureAttributeSID from [' + result_db + '].dbo.t' +
+                    self.cursor.execute('Select ExposureAttribute from [' + result_db + '].dbo.t' +
                                         str(mod_result_sid) + '_LOSS_DimExposureAttribute')
                     info = copy.deepcopy(self.cursor.fetchall())
                     lob_update.append([info[i][0] for i in range(len(info))])
@@ -147,49 +147,54 @@ class LossModValidation:
         """
 
         if info_analysis[0][7] in ['CON', 'LOC']:
+            contract_sid_update = []
             contract_id_update = []
             if any(lob) and any(contract_id): # 1.
                 for i in range(len(lob)):
                     try:
-                        self.cursor.execute('Select ContractSID from [' + result_db + '].dbo.t' +
+                        self.cursor.execute('Select ContractSID, ContractID from [' + result_db + '].dbo.t' +
                                             str(mod_result_sid) + '_LOSS_DimContract WHERE UserLineOfBusiness ' +
                                             str(lob[i]) + 'AND ContractID in ' + str(tuple(contract_id[i].split(','))))
                     except:
-                        self.cursor.execute('Select ContractSID from [' + result_db + '].dbo.t' +
+                        self.cursor.execute('Select ContractSID, ContractID from [' + result_db + '].dbo.t' +
                                             str(mod_result_sid) + '_LOSS_DimContract WHERE UserLineOfBusiness ' +
                                             str(lob[i]) + 'AND ContractID = ' + "'" +
                                             str(contract_id[i]) + "'")
 
                     info = copy.deepcopy(self.cursor.fetchall())
-                    contract_id_update.append([info[i][0] for i in range(len(info))])
+                    contract_id_update.append([info[i][1] for i in range(len(info))])
+                    contract_sid_update.append([info[i][0] for i in range(len(info))])
 
             elif any(lob): # 2.
                 for i in range(len(lob)):
-                    self.cursor.execute('Select ContractSID from [' + result_db + '].dbo.t' +
+                    self.cursor.execute('Select ContractSID, ContractID from [' + result_db + '].dbo.t' +
                                         str(mod_result_sid) + '_LOSS_DimContract WHERE UserLineOfBusiness ' +
                                         str(lob[i]))
                     info = copy.deepcopy(self.cursor.fetchall())
-                    contract_id_update.append([info[i][0] for i in range(len(info))])
+                    contract_id_update.append([info[i][1] for i in range(len(info))])
+                    contract_sid_update.append([info[i][0] for i in range(len(info))])
 
             elif any(contract_id): # 2.
                 for i in range(len(contract_id)):
                     try:
-                        self.cursor.execute('Select ContractSID from [' + result_db + '].dbo.t' +
+                        self.cursor.execute('Select ContractSID, ContractID from [' + result_db + '].dbo.t' +
                                             str(mod_result_sid) + '_LOSS_DimContract WHERE ContractID in ' + str(
                             tuple(contract_id[i].split(','))))
                     except:
-                        self.cursor.execute('Select ContractSID from [' + result_db + '].dbo.t' +
+                        self.cursor.execute('Select ContractSID, COntractID from [' + result_db + '].dbo.t' +
                                             str(mod_result_sid) + '_LOSS_DimContract WHERE ContractID  = ' + "'" +
                                             str(contract_id[i]) + "'")
 
                     info = copy.deepcopy(self.cursor.fetchall())
-                    contract_id_update.append([info[i][0] for i in range(len(info))])
+                    contract_id_update.append([info[i][1] for i in range(len(info))])
+                    contract_sid_update.append([info[i][0] for i in range(len(info))])
             else: # 3.
                 for i in range(len(perils_analysis_grouped)):
-                    self.cursor.execute('Select ContractSID from [' + result_db + '].dbo.t' +
+                    self.cursor.execute('Select ContractSID, ContractID from [' + result_db + '].dbo.t' +
                                         str(mod_result_sid) + '_LOSS_DimContract')
                     info = copy.deepcopy(self.cursor.fetchall())
-                    contract_id_update.append([info[i][0] for i in range(len(info))])
+                    contract_id_update.append([info[i][1] for i in range(len(info))])
+                    contract_sid_update.append([info[i][0] for i in range(len(info))])
 
             if info_analysis[0][7] == 'CON': # 4.
                 if any(coverage):
@@ -197,20 +202,22 @@ class LossModValidation:
                 else:
                     template_info = zip(perils_analysis_grouped, contract_id_update, factor)
             else: # 4., 5.
+                location_sid_update = []
                 location_id_update = []
                 if not (any(year_built) and any(stories) and any(construction) and (occupancy) and any(location_id)):
-                    for i in range(len(contract_id_update)):
+                    for i in range(len(contract_sid_update)):
                         try:
                             self.cursor.execute(
-                                'Select LocationSID from [' + result_db + '].dbo.t' + str(mod_result_sid) +
-                                '_LOSS_DimLocation WHERE ContractSID in ' + str(tuple(contract_id_update[i])))
+                                'Select LocationSID, LocationID from [' + result_db + '].dbo.t' + str(mod_result_sid) +
+                                '_LOSS_DimLocation WHERE ContractSID in ' + str(tuple(contract_sid_update[i])))
                         except:
                             self.cursor.execute(
-                                'Select LocationSID from [' + result_db + '].dbo.t' + str(mod_result_sid) +
+                                'Select LocationSID, LocationID from [' + result_db + '].dbo.t' + str(mod_result_sid) +
                                 '_LOSS_DimLocation WHERE ContractSID = ' + "'" +
-                                str(contract_id_update[i][0]) + "'")
+                                str(contract_sid_update[i][0]) + "'")
                         info = copy.deepcopy(self.cursor.fetchall())
-                        location_id_update.append([info[i][0] for i in range(len(info))])
+                        location_id_update.append([info[i][1] for i in range(len(info))])
+                        location_sid_update.append([info[i][0] for i in range(len(info))])
                         if any(coverage):
                             template_info = zip(perils_analysis_grouped, location_id_update, factor, coverage)
                         else:
@@ -219,17 +226,17 @@ class LossModValidation:
                     script = ('Select * from [' + result_db + '].dbo.t' + str(mod_result_sid) +
                                   '_LOSS_DimLocation')
                     dimLocation_DF = pd.read_sql(script, self.connection)
-                    location_id_update = []
+                    location_sid_update = []
                     for i in range(len(perils_analysis_grouped)):
                         if any(location_id):
                             try:
                                 self.cursor.execute(
-                                    'Select LocationSID from [' + result_db + '].dbo.t' + str(mod_result_sid) +
+                                    'Select LocationSID, LocationID from [' + result_db + '].dbo.t' + str(mod_result_sid) +
                                     '_LOSS_DimLocation WHERE LocationID in ' + str(
                                         tuple(location_id[i].split(','))))
                             except:
                                 self.cursor.execute(
-                                    'Select LocationSID from [' + result_db + '].dbo.t' + str(mod_result_sid) +
+                                    'Select LocationSID, LocationID from [' + result_db + '].dbo.t' + str(mod_result_sid) +
                                     '_LOSS_DimLocation WHERE LocationID = ' + "'" +
                                     str(location_id[i].split(',')[0]) + "'")
                             info = copy.deepcopy(self.cursor.fetchall())
@@ -255,10 +262,11 @@ class LossModValidation:
                             if not stories[i] == None:
                                 dimLocation_DF = dimLocation_DF.loc[dimLocation_DF['Stories'] == stories[i], :]
 
-                        location_id_update.append(dimLocation_DF['LocationSID'].values)
-                        script = ('Select * from [' + result_db + '].dbo.t' + str(mod_result_sid) +
-                                  '_LOSS_DimLocation')
-                        dimLocation_DF = pd.read_sql(script, self.connection)
+                        location_sid_update.append(dimLocation_DF['LocationSID'].values)
+                        location_id_update.append(dimLocation_DF['LocationID'].values)
+                        # script = ('Select * from [' + result_db + '].dbo.t' + str(mod_result_sid) +
+                        #           '_LOSS_DimLocation')
+                        # dimLocation_DF = pd.read_sql(script, self.connection)
                     if any(coverage): # 7.
                         template_info = zip(perils_analysis_grouped, location_id_update, factor, coverage)
                     else:
@@ -278,44 +286,44 @@ class LossModValidation:
         #         sys.exit()
         #     else:
         #         if any(contract_id):
-        #             contract_id_update = []
+        #             contract_sid_update = []
         #             for i in range(len(contract_id)):
         #                 self.cursor.execute('Select ContractSID from [' + result_db + '].dbo.t' + str(mod_result_sid) +
         #                                     '_LOSS_DimContract where ContractID in ' + str(
         #                     tuple(contract_id[i].split(','))))
         #                 info = copy.deepcopy(self.cursor.fetchall())
-        #                 contract_id_update.append([info[i][0] for i in range(len(info))])
+        #                 contract_sid_update.append([info[i][0] for i in range(len(info))])
         #         else:
         #             self.cursor.execute('Select ContractSID from [' + result_db + '].dbo.t' + str(mod_result_sid) +
         #                                 '_LOSS_DimContract')
         #             info = copy.deepcopy(self.cursor.fetchall())
-        #             contract_id_update = [info[i][0] for i in range(len(info))]
+        #             contract_sid_update = [info[i][0] for i in range(len(info))]
         #         if info_analysis[0][8] == 'CONSUM':
         #             if any(coverage):
-        #                 template_info = zip(perils_analysis_grouped, contract_id_update, factor, coverage)
+        #                 template_info = zip(perils_analysis_grouped, contract_sid_update, factor, coverage)
         #             else:
-        #                 template_info = zip(perils_analysis_grouped, contract_id_update, factor)
+        #                 template_info = zip(perils_analysis_grouped, contract_sid_update, factor)
         #         else:
         #             if not (any(year_built) or any(stories) or (construction) or (occupancy)):
         #                 if any(location_id):
-        #                     location_id_update = []
-        #                     for i in range(len(contract_id_update)):
+        #                     location_sid_update = []
+        #                     for i in range(len(contract_sid_update)):
         #                         try:
         #                             self.cursor.execute(
         #                                 'Select LocationSID from [' + result_db + '].dbo.t' + str(mod_result_sid) +
-        #                                 '_LOSS_DimLocation WHERE ContractSID in ' + str(tuple(contract_id_update[i])))
+        #                                 '_LOSS_DimLocation WHERE ContractSID in ' + str(tuple(contract_sid_update[i])))
         #                         except:
         #                             self.cursor.execute(
         #                                 'Select LocationSID from [' + result_db + '].dbo.t' + str(mod_result_sid) +
         #                                 '_LOSS_DimLocation WHERE ContractSID = ' + "'" +
-        #                                 str(contract_id_update[i][0]) + "'")
+        #                                 str(contract_sid_update[i][0]) + "'")
         #                         info = copy.deepcopy(self.cursor.fetchall())
-        #                         location_id_update.append([info[i][0] for i in range(len(info))])
+        #                         location_sid_update.append([info[i][0] for i in range(len(info))])
         #             else:
         #                 query = ('Select * from [' + result_db + '].dbo.t' + str(mod_result_sid) +
         #                          '_LOSS_DimLocation')
         #                 dimLocation_DF = pd.read_sql(query, self.connection)
-        #                 location_id_update = []
+        #                 location_sid_update = []
         #                 for i in range(len(perils_analysis_grouped)):
         #                     if any(construction):
         #                         try:
@@ -336,11 +344,11 @@ class LossModValidation:
         #                             dimLocation_DF = dimLocation_DF.loc[dimLocation_DF['Stories'] == stories[i], :]
         #
         #                     dimLocation_DF_copy = copy.deepcopy(dimLocation_DF)
-        #                     location_id_update.append(dimLocation_DF['LocationSID'].values)
+        #                     location_sid_update.append(dimLocation_DF['LocationSID'].values)
         #                 if any(coverage):
-        #                     template_info = zip(perils_analysis_grouped, location_id_update, factor)
+        #                     template_info = zip(perils_analysis_grouped, location_sid_update, factor)
         #                 else:
-        #                     template_info = zip(perils_analysis_grouped, location_id_update, factor, coverage)
+        #                     template_info = zip(perils_analysis_grouped, location_sid_update, factor, coverage)
         # if (info_analysis[0][7] == 'PORT'):
         #     if any(coverage):
         #         template_info = zip(perils_analysis_grouped, factor, coverage)
@@ -399,10 +407,10 @@ class LossModValidation:
             resultDF['PerilSetCode'] = resultDF_Mod['PerilSetCode']
 
         if info_analysis[0][7] == 'EA':
-            resultDF['ExposureAttributeSID'] = resultDF_Mod['ExposureAttributeSID']
+            resultDF['ExposureAttribute'] = resultDF_Mod['ExposureAttribute']
 
         if info_analysis[0][7] == 'CON':
-            resultDF['ContractSID'] = resultDF_Mod['ContractSID']
+            resultDF['ContractID'] = resultDF_Mod['ContractID']
 
         if info_analysis[0][7] == 'LOC':
             resultDF['LocationID'] = resultDF_Mod['LocationID']

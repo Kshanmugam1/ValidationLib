@@ -70,10 +70,11 @@ class dbConnection:
 
     def _getLossDF(self, resultDB, resultSID, type):
 
-
         if type in ['EA', 'LOB']:
 
-            script = 'SELECT * FROM [' + resultDB + '].dbo.t' + str(resultSID) + '_LOSS_ByExposureAttribute'
+            script = 'SELECT a.*, id.ExposureAttribute FROM [' + resultDB + '].dbo.t' + str(resultSID) + '_LOSS_ByExposureAttribute a ' \
+                     'JOIN [' + resultDB + '].dbo.t' + str(resultSID) + '_LOSS_DimExposureAttribute id ON ' \
+                                                                        'a.ExposureAttributeSID = id.ExposureAttributeSID'
             return copy.deepcopy(pd.read_sql(script, self.connection))
 
         if type in ['CONSUM', 'Contract Summary']:
@@ -93,7 +94,9 @@ class dbConnection:
 
         if type in ['CON', 'Contract']:
 
-            script =  'SELECT * FROM [' + resultDB + '].dbo.t' + str(resultSID) + '_LOSS_ByContract'
+            script =  'SELECT a.*, id.ContractID FROM [' + resultDB + '].dbo.t' + str(resultSID) + '_LOSS_ByContract a ' \
+                      'JOIN [' + resultDB + '].dbo.t' + str(resultSID) + '_LOSS_DimContract id ON ' \
+                                                                         'a.ContractSID = id.ContractSID'
             return copy.deepcopy(pd.read_sql(script, self.connection))
 
         if type in ['LOC', 'Location']:

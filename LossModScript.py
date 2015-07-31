@@ -37,28 +37,28 @@ if __name__ == '__main__':
 
     1. Summary File
     '''
-    #
-    # server = sys.argv[3]
-    # result_Db = sys.argv[4]
-    #
-    # optlist, args = getopt.getopt(sys.argv[1:], [''], ['outfile='])
-    # outfile = None
-    # for o, a in optlist:
-    #     if o == "--outfile":
-    #         outfile = a
-    #     print ("Outfile: " + outfile)
-    # if outfile is None:
-    #     raise Exception("outfile not passed into script")
-    #
-    # analysis_SID = sys.argv[6]
-    # tolerance = sys.argv[7]
 
-    server = 'QAWUDB2\SQL2012'
-    result_Db = 'SSG_LossMod_Res'
-    analysis_SID = 730
-    outfile =  r'C:\Users\i56228\Documents\Python\Git\ValidationLib\LossMod_validation' + str(analysis_SID) + '.csv'
-    filename = 'LossModValidation'
-    tolerance = 1
+    server = sys.argv[3]
+    result_Db = sys.argv[4]
+
+    optlist, args = getopt.getopt(sys.argv[1:], [''], ['outfile='])
+    outfile = None
+    for o, a in optlist:
+        if o == "--outfile":
+            outfile = a
+        print ("Outfile: " + outfile)
+    if outfile is None:
+        raise Exception("outfile not passed into script")
+
+    analysis_SID = sys.argv[6]
+    tolerance = sys.argv[7]
+
+    # server = 'QAWUDB2\SQL2012'
+    # result_Db = 'SSG_LossMod_Res'
+    # analysis_SID = 730
+    # outfile =  r'C:\Users\i56228\Documents\Python\Git\ValidationLib\LossMod_validation' + str(analysis_SID) + '.csv'
+    # filename = 'LossModValidation'
+    # tolerance = 1
 
     # Initialize the connection with the server
     validation = dbConnection(server)
