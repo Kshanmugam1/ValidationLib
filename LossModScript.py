@@ -3,8 +3,7 @@ import getopt
 import time
 
 # Import internal packages
-from analysis.LossMod.main import *
-from general.CsvTools.main import _saveDFCsv
+from ValidationLib.general.CsvTools.main import _saveDFCsv
 
 __author__ = 'Shashank Kapadia'
 __copyright__ = '2015 AIR Worldwide, Inc.. All rights reserved'

@@ -4,8 +4,7 @@ import sys
 import time
 
 # Import internal packages
-from general.CsvTools.main import _saveDFCsv
-from financials.Correlation.main import *
+from ValidationLib.general.CsvTools.main import _saveDFCsv
 
 __author__ = 'Shashank Kapadia'
 __copyright__ = '2015 AIR Worldwide, Inc.. All rights reserved'

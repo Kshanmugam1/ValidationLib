@@ -3,10 +3,9 @@ import time
 import multiprocessing as mp
 
 # Import internal packages
-from database.main import *
-from financials.Catxol.main import *
-from financials.Catxol.main import _getRecovery
-from general.CsvTools.main import _saveDFCsv
+from ValidationLib.financials.Catxol.main import *
+from ValidationLib.financials.Catxol.main import _getRecovery
+from ValidationLib.general.CsvTools.main import _saveDFCsv
 
 __author__ = 'Shashank Kapadia'
 __copyright__ = '2015 AIR Worldwide, Inc.. All rights reserved'

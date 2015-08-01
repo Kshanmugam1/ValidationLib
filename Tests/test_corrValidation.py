@@ -1,5 +1,4 @@
 import unittest
-from financials.Correlation.main import *
 
 __author__ = 'Shashank Kapadia'
 __copyright__ = '2015 AIR Worldwide, Inc.. All rights reserved'
