@@ -74,21 +74,23 @@ if __name__ == '__main__':
     resultSID = validation._getResultSID(analysis_SID)
     logger.info('Result SID: ' + str(resultSID))
 
-    logger.info('**********************************************************************************************************')
+    logger.info('*****************************************************************************************************')
     logger.info('Step 2. Getting Program ID')
     programSID = validation._getProgramID(analysis_SID)
+    logger.info('Program ID: ' + str(programSID))
 
-    logger.info('**********************************************************************************************************')
+    logger.info('*****************************************************************************************************')
     logger.info('Step 3. Program Info')
     programInfo = validation._getProgramInfo(programSID)
     programInfo = pd.DataFrame(data=zip(*programInfo), columns=['Occ_Limit', 'Occ_Ret', 'Agg_Limit',
                                                                 'Agg_Ret', '%Placed', 'Ins_CoIns', 'Inuring'])
+    logger.info(programInfo)
 
-    logger.info('**********************************************************************************************************')
+    logger.info('*****************************************************************************************************')
     logger.info('Step 4. Getting the task list')
     tasks, lossDF = Program._GetTasks(result_Db, resultSID)
 
-    logger.info('**********************************************************************************************************')
+    logger.info('*****************************************************************************************************')
     logger.info('Step 5. Getting result DF')
     '''
     Pseudo Algorithm:
@@ -118,11 +120,11 @@ if __name__ == '__main__':
             lossDF['NetOfPreCATLoss'] = lossDF['NetOfPreCATLoss'] - lossDF['Recovery']
         recovery = []
 
-    logger.info('**********************************************************************************************************')
+    logger.info('*****************************************************************************************************')
     logger.info('Step 6.Validating Result dF')
     resultDF = Program._validate(lossDF)
 
-    logger.info('**********************************************************************************')
+    logger.info('*****************************************************************************************************')
     logger.info('Ste 7. Saving the results')
     _saveDFCsv(resultDF, outfile)
 
