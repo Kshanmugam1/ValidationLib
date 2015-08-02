@@ -8,11 +8,11 @@ import logging
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
-handler = logging.FileHandler('CATXOL.log')
-handler.setLevel(logging.info)
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-handler.setFormatter(formatter)
-logger.addHandler(handler)
+handler_info = logging.FileHandler('CATXOL_info.log')
+handler_info.setLevel(logging.INFO)
+# formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+# handler_info.setFormatter(formatter)
+logger.addHandler(handler_info)
 
 # Import internal packages
 from ValidationLib.financials.Catxol.main import *
@@ -72,6 +72,7 @@ if __name__ == '__main__':
     logger.info('*****************************************************************************************************')
     logger.info('Step 1. Getting result SID')
     resultSID = validation._getResultSID(analysis_SID)
+    logger.info('Result SID: ' + str(resultSID))
 
     logger.info('**********************************************************************************************************')
     logger.info('Step 2. Getting Program ID')
