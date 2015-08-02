@@ -1,14 +1,17 @@
 # Import standard Python packages
 import getopt
 import time
+import sys
 
 # Import internal packages
 from ValidationLib.general.CsvTools.main import _saveDFCsv
+from ValidationLib.database.main import *
+from ValidationLib.analysis.LossMod.main import *
 
 __author__ = 'Shashank Kapadia'
 __copyright__ = '2015 AIR Worldwide, Inc.. All rights reserved'
 __version__ = '1.0'
-__interpreter__ = 'Python 2.7.9'
+__interpreter__ = 'Anaconda - Python 2.7.10 64 bit'
 __maintainer__ = 'Shashank kapadia'
 __email__ = 'skapadia@air-worldwide.com'
 __status__ = 'Complete'
@@ -24,17 +27,19 @@ if __name__ == '__main__':
 
     # Extract the given parameters
     '''
+
     Input:
 
-    1. Arg(3) - Server
-    2. Arg(4) - Result DB
+    1. Arg(3) - Server: 'QAWUDB2\SQL2012'
+    2. Arg(4) - Result DB 'SSG_LossMod_Res'
     3. Arg(5) - Result Path
-    4. Arg(6) - Analysis SID
-    5. Arg(7) - Tolerance
+    4. Arg(6) - Analysis SID 730
+    5. Arg(7) - Tolerance 1
 
     Output:
 
     1. Summary File
+
     '''
 
     server = sys.argv[3]
@@ -51,13 +56,6 @@ if __name__ == '__main__':
 
     analysis_SID = sys.argv[6]
     tolerance = sys.argv[7]
-
-    # server = 'QAWUDB2\SQL2012'
-    # result_Db = 'SSG_LossMod_Res'
-    # analysis_SID = 730
-    # outfile =  r'C:\Users\i56228\Documents\Python\Git\ValidationLib\LossMod_validation' + str(analysis_SID) + '.csv'
-    # filename = 'LossModValidation'
-    # tolerance = 1
 
     # Initialize the connection with the server
     validation = dbConnection(server)
