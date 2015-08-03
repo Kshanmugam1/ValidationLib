@@ -1,3 +1,14 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+"""
+CATXOL Validation Script
+~~~~~~~~~~~~~~~~~~~~~~~~
+This script demonstrates the flow of logic to validate Catastrophe Excess of Loss Treaty.
+
+:copyright: (c) 2015 by Shashank Kapadia for AIR Worldwide
+"""
+
 # Import standard Python packages
 import time
 import multiprocessing as mp
@@ -27,30 +38,28 @@ __maintainer__ = 'Shashank kapadia'
 __email__ = 'skapadia@air-worldwide.com'
 __status__ = 'Complete'
 
-
 if __name__ == '__main__':
 
+    '''
+
+    Input:
+
+    :param server: Server which was used to run analysis
+    :param result_Db: Database where the result was saved
+    :param outfile: Path the save the output
+    :param analysis_SID: Analysis SID
+
+    Output:
+
+    :return resultDF: Comparison between the given and calculated Post-CAT net loss
+    :rtype: CSV file.
+    '''
     start = time.time()
 
     logger.info('**********************************************************************************')
     logger.info('                          CATXOL Validation Tool                                  ')
     logger.info('**********************************************************************************')
     # Extract the given arguments
-    '''
-
-    Input:
-
-    1. Arg(3) - Server 'QAWUDB2\SQL2012'
-    2. Arg(4) - Result DB 'SKCatRes'
-    3. Arg(5) - Result Path (As an Outfile)
-    4. Arg(6) - Analysis SID 765
-
-    Output:
-
-    1. Summary File
-
-    '''
-
     server = sys.argv[3]
     result_Db = sys.argv[4]
 
@@ -103,7 +112,7 @@ if __name__ == '__main__':
     recovery = []
     for k in range(max_inuring):
 
-        program_infos = programInfo.loc[programInfo['Inuring'] == k+1, :].values
+        program_infos = programInfo.loc[programInfo['Inuring'] == k + 1, :].values
 
         for j in range(len(program_infos)):
             pool = mp.Pool()
