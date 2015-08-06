@@ -213,28 +213,43 @@ class dbConnection:
 
         return programID
 
-    def _getProgramInfo(self, program_id):
+    def _getProgramInfo(self, program_id, type):
 
         script = 'SELECT * FROM AIRReinsurance.dbo.tReinsurance '  \
                  'WHERE ProgramSID = ' + str(program_id)
-
+        print(script)
         self.cursor.execute(script)
         info = copy.deepcopy(self.cursor.fetchall())
-        occ_ret = []
         occ_limit = []
-        agg_ret = []
         agg_limit = []
         placed_percent = []
-        ins_coins = []
         sequence_number = []
-        for i in range(len(info)):
 
-            occ_ret.append(info[i][17])
-            occ_limit.append(info[i][16])
-            agg_ret.append(info[i][19])
-            agg_limit.append(info[i][18])
-            placed_percent.append(info[i][21])
-            ins_coins.append(info[i][26])
-            sequence_number.append(info[i][40])
+        if type == 'catxol':
+            occ_ret = []
+            agg_ret = []
+            ins_coins = []
 
-        return [occ_limit, occ_ret, agg_limit, agg_ret, placed_percent, ins_coins, sequence_number]
+            for i in range(len(info)):
+
+                occ_ret.append(info[i][17])
+                occ_limit.append(info[i][16])
+                agg_ret.append(info[i][19])
+                agg_limit.append(info[i][18])
+                placed_percent.append(info[i][21])
+                ins_coins.append(info[i][26])
+                sequence_number.append(info[i][40])
+
+            return [occ_limit, occ_ret, agg_limit, agg_ret, placed_percent, ins_coins, sequence_number]
+        elif type == 'qs':
+
+            ceded_amount = []
+            for i in range(len(info)):
+
+                occ_limit.append(info[i][16])
+                agg_limit.append(info[i][18])
+                ceded_amount.append(info[i][20])
+                placed_percent.append(info[i][21])
+                sequence_number.append(info[i][40])
+
+            return[occ_limit, agg_limit, ceded_amount, placed_percent, sequence_number]
