@@ -76,7 +76,7 @@ if __name__ == '__main__':
 
     # Initialize the connection with the server
     validation = dbConnection(server)
-    Program = ProgramValidation(server)
+    Program = CatxolValidation(server)
 
     logger.info('*****************************************************************************************************')
     logger.info('Step 1. Getting result SID')
@@ -90,7 +90,7 @@ if __name__ == '__main__':
 
     logger.info('*****************************************************************************************************')
     logger.info('Step 3. Program Info')
-    programInfo = validation._getProgramInfo(programSID)
+    programInfo = validation._getProgramInfo(programSID, 'catxol')
     programInfo = pd.DataFrame(data=zip(*programInfo), columns=['Occ_Limit', 'Occ_Ret', 'Agg_Limit',
                                                                 'Agg_Ret', '%Placed', 'Ins_CoIns', 'Inuring'])
     logger.info(programInfo)
