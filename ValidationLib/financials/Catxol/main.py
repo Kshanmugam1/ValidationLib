@@ -50,7 +50,7 @@ def _getRecovery(tuple, lossDF, programInfo):
 
     return sample_lossDF['Recovery'].values
 
-class ProgramValidation:
+class CatxolValidation:
 
     def __init__(self, server):
 
