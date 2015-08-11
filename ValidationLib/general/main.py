@@ -6,6 +6,7 @@ __maintainer__ = 'Shashank kapadia'
 __email__ = 'skapadia@air-worldwide.com'
 __status__ = 'Production'
 
+import pandas as pd
 
 def set_column_sequence(dataframe, seq):
 
@@ -15,6 +16,16 @@ def set_column_sequence(dataframe, seq):
         if x not in cols:
             cols.append(x)
     return dataframe[cols]
+
+def csv2ui(locationFile, outfile):
+
+    input_file = pd.read_csv(locationFile, encoding='utf-16').fillna('-')
+    columns = ['ContractID', 'LocationID', 'LocationName', 'LocationGroup', 'IsPrimary', 'ISOBIN', 'InceptionDate',
+               'ExpirationDate', 'Street', 'City', 'SubArea2', 'SubArea', 'Area', 'CRESTA', 'PostalCode',
+               'CountryISO', 'GeoMatchLevelCode', 'Latitude', 'Longitude']
+    out_file = set_column_sequence(input_file, columns)
+    out_file.iloc[:, 0] = out_file.iloc[:, 0] + '_Custom'
+    out_file.iloc[:, :19].to_csv(outfile, index=False)
 
 class UnicedeCompare:
 
