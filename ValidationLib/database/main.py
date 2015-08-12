@@ -316,7 +316,40 @@ class dbConnection:
                 script = 'SELECT ModelCode, YearID, PerilSetCode, SUM(PostCATNetLoss) as POST FROM ' \
                          '[' + resultDB + '].dbo.t' + str(resultSID) + '_LOSS_ByEvent WHERE CatalogTypeCode = ' + "'STC'" + \
                          ' Group By YearID, ModelCode, PerilSetCode ORDER By POST DESC'
-        print(script)
+        return copy.deepcopy(pd.read_sql(script, self.connection))
+
+
+
+    def _get_rei_loss_ep(self, resultDB, resultSID, financial_prsp, type):
+
+        if financial_prsp == 'GU':
+
+            if type == 'OCC':
+
+                script = 'SELECT ModelCode, YearID, PerilSetCode, MAX(GroundUpLoss) as GU FROM ' \
+                         '[' + resultDB + '].dbo.t' + str(resultSID) + '_LOSS_ByReinsurance WHERE CatalogTypeCode = ' + "'STC'" + \
+                         ' Group By YearID, ModelCode, PerilSetCode ORDER By GU DESC'
+
+            elif type == 'AGG':
+
+                script = 'SELECT ModelCode, YearID, PerilSetCode, SUM(GroundUpLoss) as GU FROM ' \
+                         '[' + resultDB + '].dbo.t' + str(resultSID) + '_LOSS_ByReinsurance WHERE CatalogTypeCode = ' + "'STC'" + \
+                         ' Group By YearID, ModelCode, PerilSetCode ORDER By GU DESC'
+
+        elif financial_prsp == 'GR':
+
+            if type == 'OCC':
+
+                script = 'SELECT ModelCode, YearID, PerilSetCode, MAX(GrossLoss) as GR FROM ' \
+                         '[' + resultDB + '].dbo.t' + str(resultSID) + '_LOSS_ByReinsurance WHERE CatalogTypeCode = ' + "'STC'" + \
+                         ' Group By YearID, ModelCode, PerilSetCode ORDER By GR DESC'
+
+            elif type == 'AGG':
+
+                script = 'SELECT ModelCode, YearID, PerilSetCode, SUM(GrossLoss) as GR FROM ' \
+                         '[' + resultDB + '].dbo.t' + str(resultSID) + '_LOSS_ByReinsurance WHERE CatalogTypeCode = ' + "'STC'" + \
+                         ' Group By YearID, ModelCode, PerilSetCode ORDER By GR DESC'
+
         return copy.deepcopy(pd.read_sql(script, self.connection))
 
     def _get_ep_points(self, analysisSID):
