@@ -111,6 +111,11 @@ class dbConnection:
             script =  'SELECT * FROM [' + resultDB + '].dbo.t' + str(resultSID) + '_LOSS_ByLayer'
             return copy.deepcopy(pd.read_sql(script, self.connection))
 
+        if type in ['EP']:
+
+            script = 'SELECT * FROM [' + resultDB + '].dbo.t' + str(resultSID) + '_LOSS_AnnualEP'
+            return copy.deepcopy(pd.read_sql(script, self.connection))
+
     def _getLossModInfo(self, LossModTempID):
 
         script = 'SELECT * FROM AIRUserSetting.dbo.tLossModTemplateRule ' \
@@ -253,3 +258,124 @@ class dbConnection:
                 sequence_number.append(info[i][40])
 
             return[occ_limit, agg_limit, ceded_amount, placed_percent, sequence_number]
+
+    def _get_event_loss_ep(self, resultDB, resultSID, financial_prsp, type):
+
+        if financial_prsp == 'GU':
+
+            if type == 'OCC':
+
+                script = 'SELECT ModelCode, YearID, PerilSetCode, MAX(GroundUpLoss) as GU FROM ' \
+                         '[' + resultDB + '].dbo.t' + str(resultSID) + '_LOSS_ByEvent WHERE CatalogTypeCode = ' + "'STC'" + \
+                         ' Group By YearID, ModelCode, PerilSetCode ORDER By GU DESC'
+
+            elif type == 'AGG':
+
+                script = 'SELECT ModelCode, YearID, PerilSetCode, SUM(GroundUpLoss) as GU FROM ' \
+                         '[' + resultDB + '].dbo.t' + str(resultSID) + '_LOSS_ByEvent WHERE CatalogTypeCode = ' + "'STC'" + \
+                         ' Group By YearID, ModelCode, PerilSetCode ORDER By GU DESC'
+
+        elif financial_prsp == 'GR':
+
+            if type == 'OCC':
+
+                script = 'SELECT ModelCode, YearID, PerilSetCode, MAX(GrossLoss) as GR FROM ' \
+                         '[' + resultDB + '].dbo.t' + str(resultSID) + '_LOSS_ByEvent WHERE CatalogTypeCode = ' + "'STC'" + \
+                         ' Group By YearID, ModelCode, PerilSetCode ORDER By GR DESC'
+
+            elif type == 'AGG':
+
+                script = 'SELECT ModelCode, YearID, PerilSetCode, SUM(GrossLoss) as GR FROM ' \
+                         '[' + resultDB + '].dbo.t' + str(resultSID) + '_LOSS_ByEvent WHERE CatalogTypeCode = ' + "'STC'" + \
+                         ' Group By YearID, ModelCode, PerilSetCode ORDER By GR DESC'
+
+        elif financial_prsp == 'NT':
+
+            if type == 'OCC':
+
+                script = 'SELECT ModelCode, YearID, PerilSetCode, MAX(NetOfPreCATLoss) as NT FROM ' \
+                         '[' + resultDB + '].dbo.t' + str(resultSID) + '_LOSS_ByEvent WHERE CatalogTypeCode = ' + "'STC'" + \
+                         ' Group By YearID, ModelCode, PerilSetCode ORDER By NT DESC'
+
+            elif type == 'AGG':
+
+                script = 'SELECT ModelCode, YearID, PerilSetCode, SUM(NetOfPreCATLoss) as NT FROM ' \
+                         '[' + resultDB + '].dbo.t' + str(resultSID) + '_LOSS_ByEvent WHERE CatalogTypeCode = ' + "'STC'" + \
+                         ' Group By YearID, ModelCode, PerilSetCode ORDER By NT DESC'
+
+        elif financial_prsp == 'POST':
+
+            if type == 'OCC':
+
+                script = 'SELECT ModelCode, YearID, PerilSetCode, MAX(PostCATNetLoss) as POST FROM ' \
+                         '[' + resultDB + '].dbo.t' + str(resultSID) + '_LOSS_ByEvent WHERE CatalogTypeCode = ' + "'STC'" + \
+                         ' Group By YearID, ModelCode, PerilSetCode ORDER By POST DESC'
+
+            elif type == 'AGG':
+
+                script = 'SELECT ModelCode, YearID, PerilSetCode, SUM(PostCATNetLoss) as POST FROM ' \
+                         '[' + resultDB + '].dbo.t' + str(resultSID) + '_LOSS_ByEvent WHERE CatalogTypeCode = ' + "'STC'" + \
+                         ' Group By YearID, ModelCode, PerilSetCode ORDER By POST DESC'
+
+        elif financial_prsp == 'RT':
+
+            if type == 'OCC':
+
+                script = 'SELECT ModelCode, YearID, PerilSetCode, MAX(RetainedLoss) as RT FROM ' \
+                         '[' + resultDB + '].dbo.t' + str(resultSID) + '_LOSS_ByEvent WHERE CatalogTypeCode = ' + "'STC'" + \
+                         ' Group By YearID, ModelCode, PerilSetCode ORDER By RT DESC'
+
+            elif type == 'AGG':
+
+                script = 'SELECT ModelCode, YearID, PerilSetCode, SUM(RetainedLoss) as RT FROM ' \
+                         '[' + resultDB + '].dbo.t' + str(resultSID) + '_LOSS_ByEvent WHERE CatalogTypeCode = ' + "'STC'" + \
+                         ' Group By YearID, ModelCode, PerilSetCode ORDER By RT DESC'
+        return copy.deepcopy(pd.read_sql(script, self.connection))
+
+
+
+    def _get_rei_loss_ep(self, resultDB, resultSID, financial_prsp, type):
+
+        if financial_prsp == 'GU':
+
+            if type == 'OCC':
+
+                script = 'SELECT ModelCode, YearID, PerilSetCode, MAX(GroundUpLoss) as GU FROM ' \
+                         '[' + resultDB + '].dbo.t' + str(resultSID) + '_LOSS_ByReinsurance WHERE CatalogTypeCode = ' + "'STC'" + \
+                         ' Group By YearID, ModelCode, PerilSetCode ORDER By GU DESC'
+
+            elif type == 'AGG':
+
+                script = 'SELECT ModelCode, YearID, PerilSetCode, SUM(GroundUpLoss) as GU FROM ' \
+                         '[' + resultDB + '].dbo.t' + str(resultSID) + '_LOSS_ByReinsurance WHERE CatalogTypeCode = ' + "'STC'" + \
+                         ' Group By YearID, ModelCode, PerilSetCode ORDER By GU DESC'
+
+        elif financial_prsp == 'GR':
+
+            if type == 'OCC':
+
+                script = 'SELECT ModelCode, YearID, PerilSetCode, MAX(GrossLoss) as GR FROM ' \
+                         '[' + resultDB + '].dbo.t' + str(resultSID) + '_LOSS_ByReinsurance WHERE CatalogTypeCode = ' + "'STC'" + \
+                         ' Group By YearID, ModelCode, PerilSetCode ORDER By GR DESC'
+
+            elif type == 'AGG':
+
+                script = 'SELECT ModelCode, YearID, PerilSetCode, SUM(GrossLoss) as GR FROM ' \
+                         '[' + resultDB + '].dbo.t' + str(resultSID) + '_LOSS_ByReinsurance WHERE CatalogTypeCode = ' + "'STC'" + \
+                         ' Group By YearID, ModelCode, PerilSetCode ORDER By GR DESC'
+
+        return copy.deepcopy(pd.read_sql(script, self.connection))
+
+    def _get_ep_points(self, analysisSID):
+
+        script = 'SELECT EP1, EP2, EP3, EP4, EP5, EP6, EP7, EP8, EP9, EP10, EP11, EP12, EP13, ' \
+                 'EP14, EP15 FROM [AIRProject].[dbo].[tLossAnalysisOption] ' \
+                 'WHERE AnalysisSID = ' + str(analysisSID)
+        self.cursor.execute(script)
+        info = copy.deepcopy(self.cursor.fetchall())
+        return info[0]
+
+    def _get_ep_summary(self, resultDB, resultSID):
+
+        script = 'SELECT * from [' + resultDB + '].dbo.t' + str(resultSID) + '_LOSS_AnnualEPSummary'
+        return copy.deepcopy(pd.read_sql(script, self.connection))
