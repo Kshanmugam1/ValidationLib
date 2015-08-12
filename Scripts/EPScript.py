@@ -20,7 +20,7 @@ if __name__ == '__main__':
     server = 'QAWUDB2\SQL2012'
     result_Db = 'SkResult'
     outfile = 'C:\Users\i56228\Documents\Python\Git\ValidationLib\EPValidation.csv'
-    analysisSID = 939
+    analysisSID = 944
     type = 'debug'
 
     validation = dbConnection(server)
@@ -59,7 +59,7 @@ if __name__ == '__main__':
     result_ep_detail = pd.DataFrame()
     result_ep_summary = pd.DataFrame()
 
-    financial_perspective = ['GU', 'GR', 'NT']
+    financial_perspective = ['GR', 'GU', 'NT', 'POST']
     ep_type_code = ['AGG', 'OCC']
     columns_summary = ['EPAnnualTypeCode', 'EPCurveTypeCode', 'EPTypeCode',
                        'FinancialPerspective', 'ExpectedValue', 'StandardDeviation']
@@ -70,9 +70,13 @@ if __name__ == '__main__':
     print('Step 4. Get Loss By Event for different Financial Persp')
     for i in ep_type_code:
         for j in financial_perspective:
+
+            print(i, j)
             loss_by_event = validation._get_event_loss_ep(result_Db, resultSID, j, i)
+            loss_by_event = loss_by_event.loc[loss_by_event[j] > 0, :]
             result_ep_df = ep_lossDf.loc[(ep_lossDf['EPCurveTypeCode'] == 'STD') &
                                          (ep_lossDf['FinancialPerspectiveCode'] == j) &
+                                         (ep_lossDf['EPTargetTypeCode'] == 'EVNT') &
                                          (ep_lossDf['EPAnnualTypeCode'] == i), columns_detail]
             result_ep_df['CalcLoss'] = loss_by_event[j].values
             result_ep_df['CalcModelCode'] = loss_by_event['ModelCode'].values
@@ -107,15 +111,18 @@ if __name__ == '__main__':
             result_ep_summary = pd.concat([result_ep_summary, result_ep_summary_df], axis=0)
 
     ep_summary = validation._get_ep_summary(result_Db, resultSID)
+    print(ep_summary)
     ep_summary = ep_summary.loc[(ep_summary['EPCurveTypeCode'] == 'STD') &
                                 (ep_summary['EPTypeCode'] == 'EP') &
+                                (ep_summary['EPTargetTypeCode'] == 'EVNT') &
                                 (ep_summary['FinancialPerspectiveCode'].isin(financial_perspective))].iloc[:,
                  [0, 1, 2, 3, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]].reset_index()
     ep_summary = ep_summary.drop('index', axis=1)
     result_ep_summary = result_ep_summary.reset_index()
     result_ep_summary = result_ep_summary.drop('index', axis=1)
-    summary_output = pd.concat(dict(Source=ep_summary, Calculated=result_ep_summary), axis=1).fillna('-')
 
+    summary_output = pd.concat(dict(Source=ep_summary, Calculated=result_ep_summary), axis=1).fillna('-')
+    print(summary_output.to_csv('Ouput.csv'))
     print('**********************************************************************************************************')
     print('********** Process Complete: ' + str(time.time() - start) + ' Seconds **********')
 
