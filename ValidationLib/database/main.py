@@ -303,6 +303,20 @@ class dbConnection:
                          '[' + resultDB + '].dbo.t' + str(resultSID) + '_LOSS_ByEvent WHERE CatalogTypeCode = ' + "'STC'" + \
                          ' Group By YearID, ModelCode, PerilSetCode ORDER By NT DESC'
 
+        elif financial_prsp == 'POST':
+
+            if type == 'OCC':
+
+                script = 'SELECT ModelCode, YearID, PerilSetCode, MAX(PostCATNetLoss) as POST FROM ' \
+                         '[' + resultDB + '].dbo.t' + str(resultSID) + '_LOSS_ByEvent WHERE CatalogTypeCode = ' + "'STC'" + \
+                         ' Group By YearID, ModelCode, PerilSetCode ORDER By POST DESC'
+
+            elif type == 'AGG':
+
+                script = 'SELECT ModelCode, YearID, PerilSetCode, SUM(PostCATNetLoss) as POST FROM ' \
+                         '[' + resultDB + '].dbo.t' + str(resultSID) + '_LOSS_ByEvent WHERE CatalogTypeCode = ' + "'STC'" + \
+                         ' Group By YearID, ModelCode, PerilSetCode ORDER By POST DESC'
+        print(script)
         return copy.deepcopy(pd.read_sql(script, self.connection))
 
     def _get_ep_points(self, analysisSID):
