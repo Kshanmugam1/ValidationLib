@@ -316,6 +316,20 @@ class dbConnection:
                 script = 'SELECT ModelCode, YearID, PerilSetCode, SUM(PostCATNetLoss) as POST FROM ' \
                          '[' + resultDB + '].dbo.t' + str(resultSID) + '_LOSS_ByEvent WHERE CatalogTypeCode = ' + "'STC'" + \
                          ' Group By YearID, ModelCode, PerilSetCode ORDER By POST DESC'
+
+        elif financial_prsp == 'RT':
+
+            if type == 'OCC':
+
+                script = 'SELECT ModelCode, YearID, PerilSetCode, MAX(RetainedLoss) as RT FROM ' \
+                         '[' + resultDB + '].dbo.t' + str(resultSID) + '_LOSS_ByEvent WHERE CatalogTypeCode = ' + "'STC'" + \
+                         ' Group By YearID, ModelCode, PerilSetCode ORDER By RT DESC'
+
+            elif type == 'AGG':
+
+                script = 'SELECT ModelCode, YearID, PerilSetCode, SUM(RetainedLoss) as RT FROM ' \
+                         '[' + resultDB + '].dbo.t' + str(resultSID) + '_LOSS_ByEvent WHERE CatalogTypeCode = ' + "'STC'" + \
+                         ' Group By YearID, ModelCode, PerilSetCode ORDER By RT DESC'
         return copy.deepcopy(pd.read_sql(script, self.connection))
 
 

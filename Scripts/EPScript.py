@@ -20,7 +20,7 @@ if __name__ == '__main__':
     server = 'QAWUDB2\SQL2012'
     result_Db = 'SkResult'
     outfile = 'C:\Users\i56228\Documents\Python\Git\ValidationLib\EPValidation.csv'
-    analysisSID = 944
+    analysisSID = 946
     type = 'debug'
 
     validation = dbConnection(server)
@@ -59,7 +59,7 @@ if __name__ == '__main__':
     result_ep_detail = pd.DataFrame()
     result_ep_summary = pd.DataFrame()
 
-    financial_perspective = ['GR', 'GU', 'NT', 'POST']
+    financial_perspective = ['GR', 'GU', 'NT', 'POST', 'RT']
     ep_type_code = ['AGG', 'OCC']
     ep_target_type = ['EVNT', 'REI']
     columns_summary = ['EPAnnualTypeCode', 'EPCurveTypeCode', 'EPTypeCode',
@@ -77,7 +77,7 @@ if __name__ == '__main__':
                     loss_by_event = validation._get_event_loss_ep(result_Db, resultSID, j, i)
                     loss_by_event = loss_by_event.loc[loss_by_event[j] > 0, :]
                 else:
-                    if not (l == 'REI' and j in ['NT', 'POST']):
+                    if not (l == 'REI' and j in ['NT', 'POST', 'RT']):
                         loss_by_event = validation._get_rei_loss_ep(result_Db, resultSID, j, i)
                     else:
                         break
