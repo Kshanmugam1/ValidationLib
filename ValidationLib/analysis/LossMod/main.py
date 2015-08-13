@@ -1,36 +1,79 @@
-__author__ = 'Shashank Kapadia'
-__copyright__ = '2015 AIR Worldwide, Inc.. All rights reserved'
-__version__ = '1.0'
-__interpreter__ = 'Python 2.7.10'
-__maintainer__ = 'Shashank kapadia'
-__email__ = 'skapadia@air-worldwide.com'
-__status__ = 'Complete'
-
 # ToDo-Shashank: Add option for Location and Contract Summary
+
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+"""
+******************************************************
+Loss Mod Validation
+******************************************************
+
+"""
 
 # Import standard Python packages
 import sys
 import logging
 
+# Import external Python libraries
+import pandas as pd
+
 # Import internal packages
 from ValidationLib.database.main import *
 from ValidationLib.general.main import *
 
-# Import external Python libraries
-import pandas as pd
+
+__author__ = 'Shashank Kapadia'
+__copyright__ = '2015 AIR Worldwide, Inc.. All rights reserved'
+__version__ = '1.0'
+__interpreter__ = 'Anaconda - Python 2.7.10 64 bit'
+__maintainer__ = 'Shashank kapadia'
+__email__ = 'skapadia@air-worldwide.com'
+__status__ = 'Complete'
 
 
 class LossModValidation:
 
     def __init__(self, server):
 
+        """Initialize the LossModValidation class
+
+        Establish a connection with an input server
+
+        Parameters
+        ----------
+        server: string
+            For example: 'QAWUDB2\SQL2012'
+
+        Returns
+        -------
+
+        Raises
+        ------
+
+        """
         self.setup = dbConnection(server)
         self.connection = self.setup.connection
         self.cursor = self.setup.cursor
 
     def _check_rule(self, mod_analysis_sid, perils_analysis_grouped, coverage, lob, occupancy, construction,
                     year_built, stories, contract_id, location_id, factor, mod_result_sid, result_db):
+        """Validates the Analsis SaveBy option against information from Loss Mod Template
 
+        For certain information in a Loss Mod template, it is required to save your analysis by certain option.
+        This function validates for those rules
+
+        Parameters
+        ----------
+        mod_analysis_sid: int
+            The Analysis SID of a MOD analysis
+        perils_analysis_grouped: list
+        coverage: list
+        lob: list
+        occupancy: list
+        construction: list
+        year_built: list
+
+        """
         info_analysis = self.setup._getAnalysisInfo(mod_analysis_sid)
 
         ############################################################################################################
