@@ -439,7 +439,7 @@ class LossModValidation:
         #         template_info = zip(perils_analysis_grouped, factor, coverage)
         #     else:
         #         template_info = zip(perils_analysis_grouped, factor)
-        print(template_info)
+
         return template_info
 
     def getLossDF(self, ModAnalysisSID, resultDB, BaseResultSID, ModResultSID, coverage):
