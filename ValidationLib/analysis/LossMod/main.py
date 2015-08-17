@@ -76,7 +76,7 @@ class LossModValidation:
         self.cursor = self.setup.cursor
 
     def check_rule(self, mod_analysis_sid, perils_analysis_grouped, coverage, lob,
-                   occupancy, construction,
+                   admin_boundary, occupancy, construction,
                    year_built, stories, contract_id, location_id,
                    factor, mod_result_sid, result_db):
 
@@ -124,7 +124,7 @@ class LossModValidation:
 
         # if the the Contract ID parameter is not empty, check if the analysis was saved by
         # Contract, Location or Layer
-        if any(contract_id) and not info_analysis[0][7] in ['CON', 'LOC', 'LYR']:
+        if any(contract_id) and not info_analysis[0][7] in ['CON', 'LOC', 'LYR', 'GEOL']:
 
             logging.error('Invalid Parameter + SaveBy option: '
                           'Please save the analysis with the Contract, '
@@ -136,7 +136,7 @@ class LossModValidation:
         # is not empty, check if analysis was saved by Location
         if (any(location_id) or any(year_built) or any(stories) or
                 any(construction) or any(occupancy)) and not \
-                        info_analysis[0][7] in ['LOC']:
+                        info_analysis[0][7] in ['LOC', 'GEOL']:
 
             logging.error('Invalid Parameter + SaveBy option: Please save the analysis with the '
                           'Location as a Save by option')
@@ -145,7 +145,7 @@ class LossModValidation:
 
         # if the LOB parameter is not empty, check if the analysis was saved by
         # LOB, Contract, Location or Layer
-        if any(lob) and not info_analysis[0][7] in ['EA', 'CON', 'LOC', 'LYR']:
+        if any(lob) and not info_analysis[0][7] in ['EA', 'CON', 'LOC', 'LYR', 'GEOL']:
 
             logging.error('Invalid Parameter + SaveBy option: Please save the analysis with the LOB, '
                           'Contract, Location, or Layer')
@@ -350,6 +350,13 @@ class LossModValidation:
                     else:
                         template_info = zip(perils_analysis_grouped, location_id_update, factor)
 
+        if info_analysis[0][7] == 'GEOL':
+            if not any(coverage):
+
+                template_info = zip(perils_analysis_grouped, admin_boundary, factor)
+            else:
+
+                template_info = zip(perils_analysis_grouped, admin_boundary, factor, coverage)
 
         if (info_analysis[0][7] == 'PORT') and (info_analysis[0][8] in ['LOCSUM', 'CONSUM']):
 
@@ -432,6 +439,7 @@ class LossModValidation:
         #         template_info = zip(perils_analysis_grouped, factor, coverage)
         #     else:
         #         template_info = zip(perils_analysis_grouped, factor)
+        print(template_info)
         return template_info
 
     def getLossDF(self, ModAnalysisSID, resultDB, BaseResultSID, ModResultSID, coverage):
@@ -479,6 +487,11 @@ class LossModValidation:
 
             resultDF_Base = self.setup._getLossDF(resultDB, BaseResultSID, 'LYR')
             resultDF_Mod = self.setup._getLossDF(resultDB, ModResultSID, 'LYR')
+
+        elif info_analysis[0][7] == 'GEOL':
+
+            resultDF_Base = self.setup._getLossDF(resultDB, BaseResultSID, 'GEOL')
+            resultDF_Mod = self.setup._getLossDF(resultDB, ModResultSID, 'GEOL')
 
         # PerilSet Code as key only if the analysis wasn't run by LocSummary or ConSummary
         if not info_analysis[0][8] in ['LOCSUM', 'CONSUM']:
