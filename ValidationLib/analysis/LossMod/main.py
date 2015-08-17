@@ -33,6 +33,26 @@ __status__ = 'Complete'
 
 class LossModValidation:
 
+    """
+    Loss Mod Validation
+
+    ...
+
+    Methods
+    -------
+    check_rule(mod_analysis_sid, perils_analysis_grouped, coverage, lob, occupancy,
+    construction, year_built, stories, contract_id, location_id, factor, mod_result_sid, result_db)
+        Validates Loss Mod template information against the analysis option.
+        That is, for certain information in a loss mod template, it validates whether the analysis
+        was run with a correct set of option
+
+    getLossDF(ModAnalysisSID, resultDB, BaseResultSID, ModResultSID, coverage)
+        Returns the loss dataframe from a given loss mod information and analysis option
+
+    validate(resultDF, template_info, coverage, ModAnalysisSID, tolerance)
+        Validates the loss number against loss mod factor for a given set of information in loss mod
+
+    """
     def __init__(self, server):
 
         """Initialize the LossModValidation class
@@ -55,19 +75,24 @@ class LossModValidation:
         self.connection = self.setup.connection
         self.cursor = self.setup.cursor
 
-    def _check_rule(self, mod_analysis_sid, perils_analysis_grouped, coverage, lob, occupancy, construction,
-                    year_built, stories, contract_id, location_id, factor, mod_result_sid, result_db):
+    def check_rule(self, mod_analysis_sid, perils_analysis_grouped, coverage, lob,
+                   occupancy, construction,
+                   year_built, stories, contract_id, location_id,
+                   factor, mod_result_sid, result_db):
+
         """Validates the Analsis SaveBy option against information from Loss Mod Template
 
-        For certain information in a Loss Mod template, it is required to save your analysis by certain option.
-        This function validates for those rules
+        For certain information in a Loss Mod template, it is required to save your
+        analysis by certain option. This function validates for those rules
 
         Parameters
         ----------
         mod_analysis_sid: int
             The Analysis SID of a MOD analysis
         perils_analysis_grouped: list
+            The peril codes used in analysis but grouped.
         coverage: list
+            Coverage type
         lob: list
         occupancy: list
         construction: list
@@ -76,35 +101,41 @@ class LossModValidation:
         """
         info_analysis = self.setup._getAnalysisInfo(mod_analysis_sid)
 
-        ############################################################################################################
+        #######################################################################################
         """
         In the following section, we test for the valid parameter and save by option.
 
-        For example, if the Loss Mod template contains information regarding LOB, then in order to validate it,
-        the analysis needs to be saved by either LOB, Contract, Location or Layer
+        For example, if the Loss Mod template contains information regarding LOB,
+        then in order to validate it, the analysis needs to be saved by either
+        LOB, Contract, Location or Layer
 
         """
-        ############################################################################################################
+        #######################################################################################
 
-        # if the Coverage parameter is not empty, check if 'Coverage' option is checked in a result option. Also,
-        # if the Layer + Coverage option is not supported
-        if any(coverage) and ((not (info_analysis[0][24])) or (info_analysis[0][7] == 'LYR')):
+        # if the Coverage parameter is not empty, check if 'Coverage' option is checked
+        # in a result option. Also, if the Layer + Coverage option is not supported
+        if any(coverage) and ((not (info_analysis[0][24])) or
+                                  (info_analysis[0][7] == 'LYR')):
 
-            logging.error('Invalid Parameter + SaveBy option: Coverage Option unchecked or Saved by Layer')
+            logging.error('Invalid Parameter + SaveBy option: '
+                          'Coverage Option unchecked or Saved by Layer')
             logging.info('..........Validation Stopped..........')
             sys.exit()
 
-        # if the the Contract ID parameter is not empty, check if the analysis was saved by Contract, Location or Layer
+        # if the the Contract ID parameter is not empty, check if the analysis was saved by
+        # Contract, Location or Layer
         if any(contract_id) and not info_analysis[0][7] in ['CON', 'LOC', 'LYR']:
 
-            logging.error('Invalid Parameter + SaveBy option: Please save the analysis with the Contract, '
-                  'Location or Layer as a Save by option')
+            logging.error('Invalid Parameter + SaveBy option: '
+                          'Please save the analysis with the Contract, '
+                          'Location or Layer as a Save by option')
             logging.info('..........Validation Stopped..........')
             sys.exit()
 
-        # if the Location ID, yearBuilt, Stories, Construction or Occupancy parameter is not empty, check if analysis
-        # was saved by Location
-        if (any(location_id) or any(year_built) or any(stories) or any(construction) or any(occupancy)) and not \
+        # if the Location ID, yearBuilt, Stories, Construction or Occupancy parameter
+        # is not empty, check if analysis was saved by Location
+        if (any(location_id) or any(year_built) or any(stories) or
+                any(construction) or any(occupancy)) and not \
                         info_analysis[0][7] in ['LOC']:
 
             logging.error('Invalid Parameter + SaveBy option: Please save the analysis with the '
@@ -112,30 +143,33 @@ class LossModValidation:
             logging.info('..........Validation Stopped..........')
             sys.exit()
 
-        # if the LOB parameter is not empty, check if the analysis was saved by LOB, Contract, Location or Layer
+        # if the LOB parameter is not empty, check if the analysis was saved by
+        # LOB, Contract, Location or Layer
         if any(lob) and not info_analysis[0][7] in ['EA', 'CON', 'LOC', 'LYR']:
 
             logging.error('Invalid Parameter + SaveBy option: Please save the analysis with the LOB, '
                           'Contract, Location, or Layer')
             logging.info('..........Validation Stopped..........')
             sys.exit()
-        ############################################################################################################
+        #######################################################################################
         """
-        In the following section, we formulate the lists of necessary information, called template_info, based on the
-        save by option. The formulated template info is then used to validate the loss numbers
+        In the following section, we formulate the lists of necessary information,
+        called template_info, based on the save by option. The formulated template info
+        is then used to validate the loss numbers
 
-        For example: if analysis was saved by the LOB, then the template info will contain Perils, LOB, Factor.
+        For example: if analysis was saved by the LOB, then the template info
+        will contain Perils, LOB, Factor.
 
         """
-        ############################################################################################################
+        #######################################################################################
 
         """
         Option 1:   EA
 
         Output:     template_info = (Perils, LOB, Factor)
 
-        1. Check if LOB parameter in the template, if not empty, extract the ExposureAttributeSID for a given LOB, else,
-        consider all the ExposureAttributeSID
+        1. Check if LOB parameter in the template, if not empty, extract the ExposureAttributeSID
+        for a given LOB, else, consider all the ExposureAttributeSID
 
         2. If coverage, add the coverage info to template_info, template_info = (Perils, LOB, Factor, Coverage)
 
@@ -222,7 +256,7 @@ class LossModValidation:
                     try:
                         self.cursor.execute('Select ContractSID, ContractID from [' + result_db + '].dbo.t' +
                                             str(mod_result_sid) + '_LOSS_DimContract WHERE ContractID in ' + str(
-                            tuple(contract_id[i].split(','))))
+                                            tuple(contract_id[i].split(','))))
                     except:
                         self.cursor.execute('Select ContractSID, COntractID from [' + result_db + '].dbo.t' +
                                             str(mod_result_sid) + '_LOSS_DimContract WHERE ContractID  = ' + "'" +
@@ -267,7 +301,7 @@ class LossModValidation:
                             template_info = zip(perils_analysis_grouped, location_id_update, factor)
                 else: # 6.
                     script = ('Select * from [' + result_db + '].dbo.t' + str(mod_result_sid) +
-                                  '_LOSS_DimLocation')
+                              '_LOSS_DimLocation')
                     dimLocation_DF = pd.read_sql(script, self.connection)
                     location_sid_update = []
                     for i in range(len(perils_analysis_grouped)):
@@ -285,13 +319,14 @@ class LossModValidation:
                             info = copy.deepcopy(self.cursor.fetchall())
                             location_sid = [info[j][0] for j in range(len(info))]
                             dimLocation_DF = copy.deepcopy(
-                                            dimLocation_DF.loc[dimLocation_DF['LocationSID'].isin(location_sid), :])
+                                dimLocation_DF.loc[dimLocation_DF['LocationSID'].isin(location_sid), :])
                         if any(construction):
                             try:
                                 if not construction[i] == None:
-                                    dimLocation_DF = copy.deepcopy(
-                                        dimLocation_DF.loc[dimLocation_DF['AIRConstructionCode'] == construction[i],
-                                        :])
+                                    dimLocation_DF = \
+                                        copy.deepcopy(dimLocation_DF.loc
+                                                      [dimLocation_DF['AIRConstructionCode'] ==
+                                                       construction[i], :])
                             except:
                                 dimLocation_DF = copy.deepcopy(dimLocation_DF)
                         if any(occupancy):
@@ -399,7 +434,7 @@ class LossModValidation:
         #         template_info = zip(perils_analysis_grouped, factor)
         return template_info
 
-    def _getLossDF(self, ModAnalysisSID, resultDB, BaseResultSID, ModResultSID, coverage):
+    def getLossDF(self, ModAnalysisSID, resultDB, BaseResultSID, ModResultSID, coverage):
 
         info_analysis = self.setup._getAnalysisInfo(ModAnalysisSID)
         resultDF = pd.DataFrame()
@@ -484,9 +519,8 @@ class LossModValidation:
             for i in coverages:
                 resultDF['GroundUpLoss' + i + '_Base'] = resultDF_Base.loc[:, 'GroundUpLoss_' + i]
                 resultDF['GroundUpLoss' + i + '_Mod'] = resultDF_Mod.loc[:, 'GroundUpLoss_' + i]
-                resultDF['GroundUpLoss' + i + '_Ratio'] = resultDF_Mod.loc[:, 'GroundUpLoss_' + i] / resultDF_Base.loc[
-                                                                                                     :,
-                                                                                                     'GroundUpLoss_' + i]
+                resultDF['GroundUpLoss' + i + '_Ratio'] = resultDF_Mod.loc[:, 'GroundUpLoss_' + i] / \
+                                                          resultDF_Base.loc[:, 'GroundUpLoss_' + i]
         else:
             coverages = ['A', 'B', 'C', 'D']
             for i in coverages:
@@ -497,7 +531,7 @@ class LossModValidation:
 
         return resultDF
 
-    def _validate(self, resultDF, template_info, coverage, ModAnalysisSID, tolerance):
+    def validate(self, resultDF, template_info, coverage, ModAnalysisSID, tolerance):
 
         info_analysis = self.setup._getAnalysisInfo(ModAnalysisSID)
 
@@ -519,8 +553,8 @@ class LossModValidation:
                                 - if the absolute difference is less than 0.001, Pass, else, Fail
 
                             PART 2:
-                                - For all other rows, for which the status column won't be updated, given Factor is assumed
-                                to be 1
+                                - For all other rows, for which the status column won't be updated, given Factor is
+                                assumed to be 1
                                 - Calculate the difference between given ratio and calculated ratio (also should be 1)
                                 - if the absolute difference is less than 0.001, Pass, else, Fail
                         else if the analysis was saved byDefault:
@@ -547,15 +581,16 @@ class LossModValidation:
                     if info_analysis[0][7] != 'PORT':
 
                         resultDF.loc[(resultDF['PerilSetCode'].isin(template_info[i][0])) &
-                                     (resultDF.iloc[:, 2].isin(template_info[i][1])), 'Input_Ratio'] = float(
-                            template_info[i][2])
+                                     (resultDF.iloc[:, 2].isin(template_info[i][1])), 'Input_Ratio'] = \
+                            float(template_info[i][2])
                         resultDF.loc[(resultDF['PerilSetCode'].isin(template_info[i][0])) &
                                      (resultDF.iloc[:, 2].isin(template_info[i][1])), 'Difference'] = \
                             resultDF.loc[(resultDF['PerilSetCode'].isin(template_info[i][0])) & (
                                 resultDF.iloc[:, 2].isin(template_info[i][1])), 'Ratio'] - float(template_info[i][2])
 
-                        if (abs(resultDF[(resultDF['PerilSetCode'].isin(template_info[i][0])) &
-                            (resultDF.iloc[:, 2].isin(template_info[i][1]))]['Difference']) < (tolerance/100.0)).all():
+                        if (abs(resultDF[(resultDF['PerilSetCode'].isin(template_info[i][0])) & (
+                                resultDF.iloc[:, 2].isin(template_info[i][1]))]['Difference']) <
+                                (tolerance/100.0)).all():
                             resultDF.loc[(resultDF['PerilSetCode'].isin(template_info[i][0])) &
                                          (resultDF.iloc[:, 2].isin(template_info[i][1])), 'Status'] = 'Pass'
                         else:
@@ -564,8 +599,8 @@ class LossModValidation:
 
                         if ((resultDF[resultDF['Status'] == 1.0]['Ratio'] - 1.0).all() < (tolerance/100.0)).all():
                             resultDF.loc[resultDF['Status'] == 1.0, 'Input_Ratio'] = 1.0
-                            resultDF.loc[resultDF['Status'] == 1.0, 'Difference'] = resultDF.loc[resultDF[
-                                                                                                     'Status'] == 1.0, 'Ratio'] - 1.0
+                            resultDF.loc[resultDF['Status'] == 1.0, 'Difference'] = \
+                                resultDF.loc[resultDF['Status'] == 1.0, 'Ratio'] - 1.0
                             resultDF.loc[resultDF['Status'] == 1.0, 'Status'] = 'Pass'
 
                     else:
@@ -576,16 +611,16 @@ class LossModValidation:
                             resultDF.loc[(resultDF['PerilSetCode'].isin(template_info[i][0])), 'Ratio'] - float(
                                 template_info[i][1])
 
-                        if (abs(resultDF[(resultDF['PerilSetCode'].isin(template_info[i][0]))][
-                                    'Difference']) < 0.001).all():
+                        if (abs(resultDF[(resultDF['PerilSetCode'].isin(template_info[i][0]))]
+                                ['Difference']) < 0.001).all():
                             resultDF.loc[(resultDF['PerilSetCode'].isin(template_info[i][0])), 'Status'] = 'Pass'
                         else:
                             resultDF.loc[(resultDF['PerilSetCode'].isin(template_info[i][0])), 'Status'] = 'Fail'
 
                         if ((resultDF[resultDF['Status'] == 1.0]['Ratio'] - 1.0).all() < (tolerance/100.0)).all():
                             resultDF.loc[resultDF['Status'] == 1.0, 'Input_Ratio'] = 1.0
-                            resultDF.loc[resultDF['Status'] == 1.0, 'Difference'] = resultDF.loc[resultDF[
-                                                                                                     'Status'] == 1.0, 'Ratio'] - 1.0
+                            resultDF.loc[resultDF['Status'] == 1.0, 'Difference'] = \
+                                resultDF.loc[resultDF['Status'] == 1.0, 'Ratio'] - 1.0
                             resultDF.loc[abs(resultDF['Difference']) < (tolerance/100.0), 'Status'] = 'Pass'
                             resultDF.loc[abs(resultDF['Difference']) > (tolerance/100.0), 'Status'] = 'Fail'
                 else:
@@ -601,15 +636,15 @@ class LossModValidation:
 
                             resultDF.loc[(resultDF['PerilSetCode'].isin(template_info[i][0])) &
                                          (resultDF.iloc[:, 2].isin(template_info[i][1])) & (
-                                             resultDF['GroundUpLoss' + j + '_Ratio'] != 1), 'Input_Ratio_' + j] = float(
-                                template_info[i][2])
+                                             resultDF['GroundUpLoss' + j + '_Ratio'] != 1), 'Input_Ratio_' + j] = \
+                                float(template_info[i][2])
                             resultDF.loc[(resultDF['PerilSetCode'].isin(template_info[i][0])) &
                                          (resultDF.iloc[:, 2].isin(template_info[i][1])) & (
                                              resultDF['GroundUpLoss' + j + '_Ratio'] != 1), 'Difference_' + j] = \
                                 resultDF.loc[(resultDF['PerilSetCode'].isin(template_info[i][0])) & (
-                                    resultDF.iloc[:, 2].isin(template_info[i][1])) & (resultDF[
-                                                                                          'GroundUpLoss' + j + '_Ratio'] != 1), 'GroundUpLoss' + j + '_Ratio'] - float(
-                                    template_info[i][2])
+                                    resultDF.iloc[:, 2].isin(template_info[i][1])) & (
+                                    resultDF['GroundUpLoss' + j + '_Ratio'] != 1),
+                                             'GroundUpLoss' + j + '_Ratio'] - float(template_info[i][2])
 
                             if (abs(resultDF[(resultDF['PerilSetCode'].isin(template_info[i][0])) &
                                 (resultDF.iloc[:, 2].isin(template_info[i][1])) & (
@@ -621,8 +656,8 @@ class LossModValidation:
 
                             resultDF = resultDF.fillna(1)
 
-                            resultDF.loc[:, 'Difference_' + j] = resultDF.loc[:, 'GroundUpLoss' + j + '_Ratio'] - resultDF.loc[:,
-                                                                                                  'Input_Ratio_' + j]
+                            resultDF.loc[:, 'Difference_' + j] = resultDF.loc[:, 'GroundUpLoss' + j + '_Ratio'] - \
+                                                                 resultDF.loc[:, 'Input_Ratio_' + j]
                             resultDF.loc[abs(resultDF['Difference_' + j]) < (tolerance/100.0), 'Status'] = 'Pass'
 
                             resultDF.loc[abs(resultDF['Difference_' + j]) > (tolerance/100.0), 'Status'] = 'Fail'
@@ -660,7 +695,8 @@ class LossModValidation:
                     resultDF.loc[(resultDF['LocationSID'].isin(template_info[i][0])), 'Ratio'] - float(
                         template_info[i][1])
 
-                if (abs(resultDF[(resultDF['LocationSID'].isin(template_info[i][0]))]['Difference']) < (tolerance/100.0)).all():
+                if (abs(resultDF[(resultDF['LocationSID'].isin(template_info[i][0]))]['Difference']) <
+                        (tolerance/100.0)).all():
                     resultDF.loc[(resultDF['LocationSID'].isin(template_info[i][0])), 'Status'] = 'Pass'
                 else:
                     resultDF.loc[(resultDF['LocationSID'].isin(template_info[i][0])), 'Status'] = 'Fail'
@@ -721,8 +757,8 @@ class LossModValidation:
                                                   'GroundUpLossD_Base', 'GroundUpLossD_Ratio', 'Input_Ratio_D',
                                                   'Difference_D'])
         resultDF.loc[:, ['Difference', 'Difference_A',
-                                          'Difference_B', 'Difference_C', 'Difference_D']] = \
+                         'Difference_B', 'Difference_C', 'Difference_D']] = \
             resultDF.loc[:, ['Difference', 'Difference_A',
-                                          'Difference_B', 'Difference_C', 'Difference_D']].values.round(2)
+                             'Difference_B', 'Difference_C', 'Difference_D']].values.round(2)
 
         return resultDF

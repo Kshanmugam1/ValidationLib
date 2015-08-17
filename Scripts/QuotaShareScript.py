@@ -125,7 +125,7 @@ if __name__ == '__main__':
 
     # logger.info('*****************************************************************************************************')
     # logger.info('Step 6.Validating Result dF')
-    # resultDF = Program._validate(lossDF)
+    # resultDF = Program.validate(lossDF)
 
     logger.info('*****************************************************************************************************')
     logger.info('Ste 7. Saving the results')

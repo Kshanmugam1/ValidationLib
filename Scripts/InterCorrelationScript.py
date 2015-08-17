@@ -52,19 +52,19 @@ if __name__ == '__main__':
     2. Detailed File
 
     '''
-    server = sys.argv[3]
-    result_Db = sys.argv[4]
-    optlist, args = getopt.getopt(sys.argv[1:], [''], ['outfile='])
+    server = 'QAWUDB2\SQL2012'
+    result_Db = 'SkResult'
+    # optlist, args = getopt.getopt(sys.argv[1:], [''], ['outfile='])
 
-    outfile = None
-    for o, a in optlist:
-        if o == "--outfile":
-            outfile = a
-        print ("Outfile: " + outfile)
-    if outfile is None:
-        raise Exception("outfile not passed into script")
-    contract_analysisSID = sys.argv[6]
-    tolerance = sys.argv[7]
+    outfile = 'C:\Users\i56228\Documents\Python\Git\ValidationLib\EPValidation.csv'
+    # for o, a in optlist:
+    #     if o == "--outfile":
+    #         outfile = a
+    #     print ("Outfile: " + outfile)
+    # if outfile is None:
+    #     raise Exception("outfile not passed into script")
+    contract_analysisSID = 951
+    tolerance = 1
 
     handler_info = logging.FileHandler(outfile[:-4] + 'info.log')
     handler_info.setLevel(logging.INFO)
@@ -95,8 +95,7 @@ if __name__ == '__main__':
     logger.info('**********************************************************************************************************')
     logger.info('Step 3. Getting the loss numbers and validating them')
     # Validate the correlation equation
-    resultDF_detailed, resultDF_summary = corrValidation._get_sd(contractResultSID, result_Db, 'Inter',
-                                                                 interCorrelation=intraCorrelation, tolerance=tolerance)
+    resultDF_detailed, resultDF_summary = corrValidation._get_sd(contractResultSID, result_Db, 'Inter', inter_correlation=interCorrelation, tolerance=tolerance)
     logger.info('**********************************************************************************************************')
 
     logger.info('**********************************************************************************************************')

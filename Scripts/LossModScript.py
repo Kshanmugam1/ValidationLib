@@ -103,7 +103,7 @@ if __name__ == '__main__':
 
     print('**********************************************************************************************************')
     print('Step 5. Checking rule')
-    template_info = LossModValidation._check_rule(analysis_SID, perilsAnalysisGrouped, coverage,
+    template_info = LossModValidation.check_rule(analysis_SID, perilsAnalysisGrouped, coverage,
                                                   LOB, occupancy, construction, yearBuilt,
                                                   stories, contractID, locationID, factor, modResultSID, result_Db)
     print('Rule Validated!!')
@@ -111,12 +111,12 @@ if __name__ == '__main__':
 
     print('**********************************************************************************************************')
     print('Step 6. Getting the loss numbers')
-    resultDF = LossModValidation._getLossDF(analysis_SID, result_Db, baseResultSID, modResultSID, coverage)
+    resultDF = LossModValidation.getLossDF(analysis_SID, result_Db, baseResultSID, modResultSID, coverage)
     print('**********************************************************************************************************')
 
     print('**********************************************************************************************************')
     print('Step 7. Validating the results')
-    validatedDF = LossModValidation._validate(resultDF, template_info, coverage, analysis_SID, tolerance)
+    validatedDF = LossModValidation.validate(resultDF, template_info, coverage, analysis_SID, tolerance)
     print('**********************************************************************************************************')
 
     print('**********************************************************************************************************')
