@@ -42,20 +42,20 @@ if __name__ == '__main__':
 
     '''
 
-    server = sys.argv[3]
-    result_Db = sys.argv[4]
+    server = 'QAWUDB2\SQL2012'
+    result_Db = 'SKResult'
 
-    optlist, args = getopt.getopt(sys.argv[1:], [''], ['outfile='])
-    outfile = None
-    for o, a in optlist:
-        if o == "--outfile":
-            outfile = a
-        print ("Outfile: " + outfile)
-    if outfile is None:
-        raise Exception("outfile not passed into script")
-
-    analysis_SID = sys.argv[6]
-    tolerance = sys.argv[7]
+    # optlist, args = getopt.getopt(sys.argv[1:], [''], ['outfile='])
+    # outfile = None
+    # for o, a in optlist:
+    #     if o == "--outfile":
+    #         outfile = a
+    #     print ("Outfile: " + outfile)
+    # if outfile is None:
+    #     raise Exception("outfile not passed into script")
+    outfile = 'C:\Users\i56228\Documents\Python\Git\ValidationLib\LossModValidation.csv'
+    analysis_SID = 993
+    tolerance = 1
 
     # Initialize the connection with the server
     validation = dbConnection(server)
@@ -73,18 +73,19 @@ if __name__ == '__main__':
 
     print('**********************************************************************************************************')
     print('Step 2. Getting the information from the loss mod template')
-    perilsTemp, coverage, LOB, occupancy, construction, \
+    perilsTemp, coverage, LOB, admin_boundary, occupancy, construction, \
     yearBuilt, stories, contractID, locationID, factor = validation._getLossModInfo(templateID)
     print('1. Perils: ' + str(perilsTemp))
     print('2. Coverage: ' + str(coverage))
     print('3. LOB: ' + str(LOB))
-    print('4. Occupancy Code: ' + str(occupancy))
-    print('5. Construction Code: ' + str(construction))
-    print('6. Year Built: ' + str(yearBuilt))
-    print('7. Stories: ' + str(stories))
-    print('8. ContractIDs: ' + str(contractID))
-    print('9. LocationIDs: ' + str(locationID))
-    print('10. Factor: ' + str(factor))
+    print('4. Admin Boundaries: ' + str(admin_boundary))
+    print('5. Occupancy Code: ' + str(occupancy))
+    print('6. Construction Code: ' + str(construction))
+    print('7. Year Built: ' + str(yearBuilt))
+    print('8. Stories: ' + str(stories))
+    print('9. ContractIDs: ' + str(contractID))
+    print('10. LocationIDs: ' + str(locationID))
+    print('11. Factor: ' + str(factor))
     print('**********************************************************************************************************')
 
     print('**********************************************************************************************************')
@@ -104,7 +105,7 @@ if __name__ == '__main__':
     print('**********************************************************************************************************')
     print('Step 5. Checking rule')
     template_info = LossModValidation.check_rule(analysis_SID, perilsAnalysisGrouped, coverage,
-                                                  LOB, occupancy, construction, yearBuilt,
+                                                  LOB, admin_boundary, occupancy, construction, yearBuilt,
                                                   stories, contractID, locationID, factor, modResultSID, result_Db)
     print('Rule Validated!!')
     print('**********************************************************************************************************')

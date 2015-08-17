@@ -116,6 +116,11 @@ class dbConnection:
             script = 'SELECT * FROM [' + resultDB + '].dbo.t' + str(resultSID) + '_LOSS_AnnualEP'
             return copy.deepcopy(pd.read_sql(script, self.connection))
 
+        if type in ['GEOL']:
+
+            script = 'SELECT * FROM [' + resultDB + '].dbo.t' + str(resultSID) + '_LOSS_ByGeo'
+            return copy.deepcopy(pd.read_sql(script, self.connection))
+
     def _getLossModInfo(self, LossModTempID):
 
         script = 'SELECT * FROM AIRUserSetting.dbo.tLossModTemplateRule ' \
@@ -126,6 +131,8 @@ class dbConnection:
         coverage = []
         factor = []
         LOB = []
+        admin_boundary = []
+        admin_boundary_temp = []
         contractID = []
         locationID = []
         yearBuilt = []
@@ -161,7 +168,25 @@ class dbConnection:
             for i in range (len(info)):
                 construction.append(info[i][0])
 
-        return perilsTemp, coverage, LOB, occupancy, construction, yearBuilt, stories, contractID, locationID, factor
+        script = 'SELECT AdminBoundarySID FROM AIRUserSetting.dbo.tLossModTemplateRule ' \
+                 'WHERE LossModTemplateSID = ' + str(LossModTempID)
+        self.cursor.execute(script)
+        info = copy.deepcopy(self.cursor.fetchall())
+        if info:
+            for i in range(len(info)):
+                if not info[i][0] == "":
+                    script = 'Select GeographySID from ' \
+                             '[AIRUserSetting].[dbo].[tAdminBoundaryDetail] ' \
+                             'Where [AdminBoundarySID] = ' + str(info[i][0])
+                    self.cursor.execute(script)
+                    info = copy.deepcopy(self.cursor.fetchall())
+                    for i in range(len(info)):
+                        admin_boundary_temp.append(info[i][0])
+                else:
+                    admin_boundary_temp = []
+                admin_boundary.append(admin_boundary_temp)
+
+        return perilsTemp, coverage, LOB, admin_boundary, occupancy, construction, yearBuilt, stories, contractID, locationID, factor
 
     def _groupAnalysisPerils(self, AnalysisSID, perilsTemp):
 
@@ -331,8 +356,6 @@ class dbConnection:
                          '[' + resultDB + '].dbo.t' + str(resultSID) + '_LOSS_ByEvent WHERE CatalogTypeCode = ' + "'STC'" + \
                          ' Group By YearID, ModelCode, PerilSetCode ORDER By RT DESC'
         return copy.deepcopy(pd.read_sql(script, self.connection))
-
-
 
     def _get_rei_loss_ep(self, resultDB, resultSID, financial_prsp, type):
 
