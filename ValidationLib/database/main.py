@@ -15,6 +15,13 @@ class dbConnection:
         self.connection = pyodbc.connect('DRIVER={SQL Server};SERVER=' + server)
         self.cursor = self.connection.cursor()
 
+    def _getAnaysisSID(self, analysisName):
+
+        script = 'SELECT AnalysisSID from AIRProject.dbo.tAnalysis WHERE AnalysisName = ' + "'" + str(analysisName) + "'"
+        self.cursor.execute(script)
+        info = copy.deepcopy(self.cursor.fetchall())
+        return info[0][0]
+
     def _getResultSID(self, AnalysisSID):
 
         """
