@@ -28,7 +28,7 @@ import logging
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
 
-HANDLER_INF0 = logging.FileHandler(OUTFILE[:-4] + 'info.log')
+HANDLER_INF0 = logging.FileHandler(OUTFILE[:-4] + '-info.log')
 HANDLER_INF0.setLevel(logging.INFO)
 LOGGER.addHandler(HANDLER_INF0)
 
