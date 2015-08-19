@@ -2,33 +2,46 @@
 # -*- coding: utf-8 -*-
 
 """
+
+******************************************************
 CATXOL Validation Script
-~~~~~~~~~~~~~~~~~~~~~~~~
-This script demonstrates the flow of logic to validate Catastrophe Excess of Loss Treaty.
+******************************************************
 
-:copyright: (c) 2015 by Shashank Kapadia for AIR Worldwide
 """
-
-# Import standard Python packages
-import time
-import multiprocessing as mp
-import sys
+# Import standard Python packages and read outfile
 import getopt
+import sys
+
+OPTLIST, ARGS = getopt.getopt(sys.argv[1:], [''], ['outfile='])
+
+OUTFILE = None
+for o, a in OPTLIST:
+    if o == "--outfile":
+        OUTFILE = a
+    print "Outfile: " + OUTFILE
+# OUTFILE = 'C:\Users\i56228\Documents\Python\Git\catxol.csv'
+if OUTFILE is None:
+    print ('Outfile is not passed')
+    sys.exit()
+
+# Import standard Python packages and read outfile
+import time
 import logging
+import multiprocessing as mp
 
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.INFO)
 
-handler_info = logging.FileHandler('CATXOL_info.log')
-handler_info.setLevel(logging.INFO)
-# formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-# handler_info.setFormatter(formatter)
-logger.addHandler(handler_info)
+HANDLER_INFO = logging.FileHandler(OUTFILE[:-4] + '-info.log')
+HANDLER_INFO.setLevel(logging.INFO)
+LOGGER.addHandler(HANDLER_INFO)
 
 # Import internal packages
 from ValidationLib.financials.Catxol.main import *
 from ValidationLib.financials.Catxol.main import _getRecovery
-from ValidationLib.general.CsvTools.main import _saveDFCsv
+from ValidationLib.general.main import *
+from ValidationLib.database.main import *
+
 
 __author__ = 'Shashank Kapadia'
 __copyright__ = '2015 AIR Worldwide, Inc.. All rights reserved'
@@ -38,69 +51,70 @@ __maintainer__ = 'Shashank kapadia'
 __email__ = 'skapadia@air-worldwide.com'
 __status__ = 'Complete'
 
-if __name__ == '__main__':
 
-    '''
+def file_skeleton(outfile):
 
-    Input:
+    pd.DataFrame(columns=['CatalogTypeCode', 'ModelCode', 'YearID', 'EventID', 'NetOfPreCATLoss', 'Recovery',
+                'PostCATNetLoss', 'CalculatedPostCATNetLoss', 'DifferencePercent', 'Status']).to_csv(outfile, index=False)
 
-    :param server: Server which was used to run analysis
-    :param result_Db: Database where the result was saved
-    :param outfile: Path the save the output
-    :param analysis_SID: Analysis SID
+start = time.time()
 
-    Output:
-
-    :return resultDF: Comparison between the given and calculated Post-CAT net loss
-    :rtype: CSV file.
-    '''
-    start = time.time()
-
-    logger.info('**********************************************************************************')
-    logger.info('                          CATXOL Validation Tool                                  ')
-    logger.info('**********************************************************************************')
-    # Extract the given arguments
+# Extract the given arguments
+try:
     server = sys.argv[3]
-    result_Db = sys.argv[4]
+    result_db = sys.argv[4]
+    analysis_name = sys.argv[5]
+except:
+    LOGGER.error('Please verify the inputs')
+    file_skeleton(OUTFILE)
+    sys.exit()
 
-    optlist, args = getopt.getopt(sys.argv[1:], [''], ['outfile='])
-    outfile = None
-    for o, a in optlist:
-        if o == "--outfile":
-            outfile = a
-        print ("Outfile: " + outfile)
-    if outfile is None:
-        raise Exception("outfile not passed into script")
+if __name__ == "__main__":
 
-    analysis_SID = sys.argv[6]
+    LOGGER.info('**********************************************************************************')
+    LOGGER.info('                          CATXOL Validation Tool                                  ')
+    LOGGER.info('**********************************************************************************')
 
     # Initialize the connection with the server
-    validation = Database(server)
-    Program = CatxolValidation(server)
+    LOGGER.info('**********************************************************************************')
+    LOGGER.info('Step 1. Establishing the connection with database and initialize the Correlation class')
+    try:
+        db = Database(server)
+        catxol = Catxol(server)
+    except:
+        LOGGER.error('Invalid server information')
+        file_skeleton(OUTFILE)
+        sys.exit()
+    LOGGER.info('Connection Established with server: ' + str(server))
 
-    logger.info('*****************************************************************************************************')
-    logger.info('Step 1. Getting result SID')
-    resultSID = validation._getResultSID(analysis_SID)
-    logger.info('Result SID: ' + str(resultSID))
+    LOGGER.info('**********************************************************************************')
+    LOGGER.info('Step 2. Get analysis sid')
+    analysis_sid = db._getAnaysisSID(analysis_name)
+    LOGGER.info('Analysis SID for analysis ' + str(analysis_name) + ' is ' + str(analysis_sid))
 
-    logger.info('*****************************************************************************************************')
-    logger.info('Step 2. Getting Program ID')
-    programSID = validation._getProgramID(analysis_SID)
-    logger.info('Program ID: ' + str(programSID))
+    LOGGER.info('**********************************************************************************')
+    LOGGER.info('Step 3. Get result SID')
+    resultSID = db._getResultSID(analysis_sid)
+    LOGGER.info('1. Contract Result SID: ' + str(resultSID))
 
-    logger.info('*****************************************************************************************************')
-    logger.info('Step 3. Program Info')
-    programInfo = validation._getProgramInfo(programSID, 'catxol')
+    LOGGER.info('**********************************************************************************')
+    LOGGER.info('Step 4. Get program ID')
+    programSID = db._getProgramID(analysis_sid)
+    LOGGER.info('Program ID: ' + str(programSID))
+
+    LOGGER.info('**********************************************************************************')
+    LOGGER.info('Step 5. Get program information')
+    programInfo = db._getProgramInfo(programSID, 'catxol')
     programInfo = pd.DataFrame(data=zip(*programInfo), columns=['Occ_Limit', 'Occ_Ret', 'Agg_Limit',
-                                                                'Agg_Ret', '%Placed', 'Ins_CoIns', 'Inuring'])
-    logger.info(programInfo)
+                                                                'Agg_Ret', '%Placed', 'Ins_CoIns',
+                                                                'Inuring'])
+    LOGGER.info(programInfo)
 
-    logger.info('*****************************************************************************************************')
-    logger.info('Step 4. Getting the task list')
-    tasks, lossDF = Program._GetTasks(result_Db, resultSID)
-
-    logger.info('*****************************************************************************************************')
-    logger.info('Step 5. Getting result DF')
+    LOGGER.info('**********************************************************************************')
+    LOGGER.info('Step 6. Get the chunks of tasks to be performed')
+    tasks, lossDF = catxol._GetTasks(result_db, resultSID)
+    LOGGER.info('**********************************************************************************')
+    LOGGER.info('Step 7. Get the result data frame')
     '''
     Pseudo Algorithm:
         1. Get the max inuring order
@@ -129,16 +143,21 @@ if __name__ == '__main__':
             lossDF['NetOfPreCATLoss'] = lossDF['NetOfPreCATLoss'] - lossDF['Recovery']
         recovery = []
 
-    logger.info('*****************************************************************************************************')
-    logger.info('Step 6.Validating Result dF')
-    resultDF = Program._validate(lossDF)
+    LOGGER.info('**********************************************************************************')
+    LOGGER.info('Step 7. Validate the numbers')
+    resultDF = catxol._validate(lossDF)
 
-    logger.info('*****************************************************************************************************')
-    logger.info('Ste 7. Saving the results')
-    _saveDFCsv(resultDF, outfile)
+    LOGGER.info('**********************************************************************************')
+    LOGGER.info('Step 8. Save the results')
+    sequence = ['CatalogTypeCode', 'ModelCode', 'YearID', 'EventID', 'NetOfPreCATLoss', 'Recovery',
+                'PostCATNetLoss', 'CalculatedPostCATNetLoss', 'DifferencePercent', 'Status']
+    resultDF = set_column_sequence(resultDF, sequence)
 
-    logger.info('----------------------------------------------------------------------------------')
-    logger.info('                          CATXOL Validation Completed                             ')
-    logger.info('----------------------------------------------------------------------------------')
+    resultDF.to_csv(OUTFILE, index=False)
 
-    logger.info('********** Process Complete: ' + str(time.time() - start) + ' Seconds **********')
+    LOGGER.info('----------------------------------------------------------------------------------')
+    LOGGER.info('              CATXOL Validation Completed Successfully                            ')
+    LOGGER.info('----------------------------------------------------------------------------------')
+
+    LOGGER.info('********** Process Complete Time: ' + str(time.time() - start) + ' Seconds **********')
+

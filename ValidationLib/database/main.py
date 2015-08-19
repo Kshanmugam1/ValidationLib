@@ -254,7 +254,6 @@ class Database:
 
         script = 'SELECT * FROM AIRReinsurance.dbo.tReinsurance '  \
                  'WHERE ProgramSID = ' + str(program_id)
-        print(script)
         self.cursor.execute(script)
         info = copy.deepcopy(self.cursor.fetchall())
         occ_limit = []

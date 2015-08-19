@@ -46,7 +46,7 @@ if __name__ == '__main__':
     Input:
 
     :param server: Server which was used to run analysis
-    :param result_Db: Database where the result was saved
+    :param result_db: Database where the result was saved
     :param outfile: Path the save the output
     :param analysis_SID: Analysis SID
 

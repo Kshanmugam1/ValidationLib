@@ -4,7 +4,6 @@ import time
 import sys
 
 # Import internal packages
-from ValidationLib.general.CsvTools.main import _saveDFCsv
 from ValidationLib.database.main import *
 from ValidationLib.analysis.LossMod.main import *
 
@@ -122,7 +121,7 @@ if __name__ == '__main__':
 
     print('**********************************************************************************************************')
     print('Step 8. Saving the results')
-    _saveDFCsv(validatedDF, outfile)
+    validatedDF.to_csv(outfile, index=False)
     print('**********************************************************************************************************')
 
     print('----------------------------------------------------------------------------------------------------------')
