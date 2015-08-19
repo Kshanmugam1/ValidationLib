@@ -71,7 +71,7 @@ class LossModValidation:
         ------
 
         """
-        self.setup = dbConnection(server)
+        self.setup = Database(server)
         self.connection = self.setup.connection
         self.cursor = self.setup.cursor
 

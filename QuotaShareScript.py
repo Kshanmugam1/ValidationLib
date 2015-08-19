@@ -73,7 +73,7 @@ if __name__ == '__main__':
     analysis_SID = 862
 
     # Initialize the connection with the server
-    validation = dbConnection(server)
+    validation = Database(server)
     Program = QSValidation(server)
 
     logger.info('*****************************************************************************************************')

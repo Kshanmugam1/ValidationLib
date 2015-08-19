@@ -7,7 +7,7 @@ import copy
 import pandas as pd
 
 
-class dbConnection:
+class Database:
 
     def __init__(self, server):
 

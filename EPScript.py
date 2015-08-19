@@ -23,7 +23,7 @@ if __name__ == '__main__':
     analysisSID = 946
     type = 'debug'
 
-    validation = dbConnection(server)
+    validation = Database(server)
 
     print('**********************************************************************************************************')
     print('Step 1. Getting the result SID')

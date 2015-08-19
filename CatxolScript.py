@@ -75,7 +75,7 @@ if __name__ == '__main__':
     analysis_SID = sys.argv[6]
 
     # Initialize the connection with the server
-    validation = dbConnection(server)
+    validation = Database(server)
     Program = CatxolValidation(server)
 
     logger.info('*****************************************************************************************************')

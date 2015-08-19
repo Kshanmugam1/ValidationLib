@@ -58,7 +58,7 @@ if __name__ == '__main__':
     tolerance = 1
 
     # Initialize the connection with the server
-    validation = dbConnection(server)
+    validation = Database(server)
     LossModValidation = LossModValidation(server)
 
     print('**********************************************************************************************************')

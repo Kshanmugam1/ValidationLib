@@ -59,8 +59,8 @@ if __name__ == '__main__':
     tolerance = sys.argv[8]
 
     # Initialize the connection with the server
-    validation = dbConnection(server)
-    corrValidation = CorrValidation(server)
+    validation = Database(server)
+    corrValidation = Correlation(server)
 
     print('**********************************************************************************')
     print('Step 1. Getting the Intra and Inter Correlation Factors')

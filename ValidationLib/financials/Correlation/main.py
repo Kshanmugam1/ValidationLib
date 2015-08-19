@@ -4,11 +4,11 @@ from ValidationLib.database.main import *
 import pandas as pd
 
 
-class CorrValidation:
+class Correlation:
 
     def __init__(self, server):
 
-        setup = dbConnection(server)
+        setup = Database(server)
         self.connection = setup.connection
         self.cursor = setup.cursor
 

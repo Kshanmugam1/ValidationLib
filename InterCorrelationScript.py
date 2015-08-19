@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
+
 ******************************************************
 Inter Correlation Validation Script
 ******************************************************
@@ -12,28 +13,30 @@ Inter Correlation Validation Script
 import getopt
 import sys
 
-optlist, args = getopt.getopt(sys.argv[1:], [''], ['outfile='])
+OPTLIST, ARGS = getopt.getopt(sys.argv[1:], [''], ['outfile='])
 
-outfile = None
-for o, a in optlist:
+OUTFILE = None
+for o, a in OPTLIST:
     if o == "--outfile":
-        outfile = a
-    print ("Outfile: " + outfile)
-if outfile is None:
-    raise Exception("outfile not passed into script")
+        OUTFILE = a
+    print "Outfile: " + OUTFILE
 
+# Import standard Python packages and read outfile
 import time
 import logging
 
-logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.INFO)
 
-handler_info = logging.FileHandler(outfile[:-4] + 'info.log')
-handler_info.setLevel(logging.INFO)
-logger.addHandler(handler_info)
+HANDLER_INF0 = logging.FileHandler(OUTFILE[:-4] + 'info.log')
+HANDLER_INF0.setLevel(logging.INFO)
+LOGGER.addHandler(HANDLER_INF0)
+
+if OUTFILE is None:
+    LOGGER.error('Outfile is not passed')
+    sys.exit()
 
 # Import internal packages
-from ValidationLib.general.CsvTools.main import _saveDFCsv
 from ValidationLib.general.main import *
 from ValidationLib.database.main import *
 from ValidationLib.financials.Correlation.main import *
@@ -47,56 +50,77 @@ __maintainer__ = 'Shashank kapadia'
 __email__ = 'skapadia@air-worldwide.com'
 __status__ = 'Complete'
 
+
+def file_skeleton(outfile):
+
+    pd.DataFrame(columns=['CatalogTypeCode', 'ModelCode', 'PortGuSD', 'CalculatedPortGuSD',
+                          'DifferencePortGuSD_Percent', 'PortGrSD', 'CalculatedPortGrSD',
+                          'DifferencePortGrSD_Percent', 'Status']).to_csv(outfile, index=False)
+
 start = time.time()
 
 # Extract the given arguments
-server = sys.argv[3]
-result_Db = sys.argv[4]
-contract_analysisName = sys.argv[5]
-tolerance = sys.argv[6]
+try:
+    server = sys.argv[3]
+    result_db = sys.argv[4]
+    contract_analysis_name = sys.argv[5]
+    tolerance = sys.argv[6]
+except:
+    LOGGER.error('Please verify the inputs')
+    file_skeleton(OUTFILE)
+    sys.exit()
 
-logger.info('**********************************************************************************')
-logger.info('                     Correlation Validation Tool                                  ')
-logger.info('**********************************************************************************')
+LOGGER.info('**********************************************************************************')
+LOGGER.info('                     Correlation Validation Tool                                  ')
+LOGGER.info('**********************************************************************************')
 
 # Initialize the connection with the server
-validation = dbConnection(server)
-corrValidation = CorrValidation(server)
-contract_analysisSID = validation._getAnaysisSID(contract_analysisName)
+LOGGER.info('**********************************************************************************')
+LOGGER.info('Step 1. Establishing the connection with database and initialize the Correlation class')
+try:
+    db = Database(server)
+    inter_correlation = Correlation(server)
+except:
+    LOGGER.error('Invalid server information')
+    file_skeleton(OUTFILE)
+    sys.exit()
+LOGGER.info('Connection Established with server: ' + str(server))
 
-logger.info('**********************************************************************************************************')
-logger.info('Step 1. Getting the Intra and Inter Correlation Factors')
-# Extract the correlation factors using Contract Analtsis SID
-intraCorrelation, interCorrelation = corrValidation._get_correlation_factor(contract_analysisSID)
-logger.info('1. Intra Correlation Factor: ' + str(intraCorrelation))
-logger.info('2. Inter Correlation Factor: ' + str(interCorrelation))
-logger.info('**********************************************************************************************************')
+LOGGER.info('**********************************************************************************')
+LOGGER.info('Step 2. Get analysis sid')
+contract_analysis_sid = db._getAnaysisSID(contract_analysis_name)
+LOGGER.info('Analysis SID for analysis ' + str(contract_analysis_name) + ' is ' + str(contract_analysis_sid))
 
-logger.info('**********************************************************************************************************')
-logger.info('Step 2. Getting the contract result SID')
-# Get the result SID using Location and Contract Analysis SID
-contractResultSID = validation._getResultSID(contract_analysisSID)
-logger.info('1. Contract Result SID: ' + str(contractResultSID))
-logger.info('**********************************************************************************************************')
+LOGGER.info('**********************************************************************************')
+LOGGER.info('Step 3. Get inter and intra correlation factor')
+intra_correlation_fac, inter_correlation_fac = inter_correlation._get_correlation_factor(contract_analysis_sid)
+LOGGER.info('1. Intra Correlation Factor: ' + str(intra_correlation_fac))
+LOGGER.info('2. Inter Correlation Factor: ' + str(inter_correlation_fac))
 
-logger.info('**********************************************************************************************************')
-logger.info('Step 3. Getting the loss numbers and validating them')
-# Validate the correlation equation
-resultDF_detailed, resultDF_summary = corrValidation._get_sd(contractResultSID, result_Db, 'Inter', inter_correlation=interCorrelation, tolerance=tolerance)
-logger.info('**********************************************************************************************************')
+LOGGER.info('**********************************************************************************')
+LOGGER.info('Step 4. Get result SID')
+contractResultSID = db._getResultSID(contract_analysis_sid)
+LOGGER.info('1. Contract Result SID: ' + str(contractResultSID))
 
-logger.info('**********************************************************************************************************')
-logger.info('Ste 4. Saving the results')
-sequence = ['CatalogTypeCode', 'ModelCode', 'PortGuSD', 'CalculatedPortGuSD', 'DifferencePortGuSD_Percent',
-            'PortGrSD', 'CalculatedPortGrSD', 'DifferencePortGrSD_Percent', 'Status']
+LOGGER.info('**********************************************************************************')
+LOGGER.info('Step 5. Get the numbers and validate')
+resultDF_detailed, resultDF_summary = inter_correlation._get_sd(contractResultSID, result_db, 'Inter',
+                                                             inter_correlation=inter_correlation_fac,
+                                                             tolerance=tolerance)
+
+LOGGER.info('**********************************************************************************')
+LOGGER.info('Step 6. Save the results')
+sequence = ['CatalogTypeCode', 'ModelCode', 'PortGuSD', 'CalculatedPortGuSD',
+            'DifferencePortGuSD_Percent', 'PortGrSD', 'CalculatedPortGrSD',
+            'DifferencePortGrSD_Percent', 'Status']
 resultDF_summary = set_column_sequence(resultDF_summary, sequence)
-_saveDFCsv(resultDF_detailed, outfile[:-4] + '-Detailed.csv')
-_saveDFCsv(resultDF_summary, outfile)
-logger.info('**********************************************************************************************************')
 
-logger.info('----------------------------------------------------------------------------------')
-logger.info('                     Correlation Validation Completed                             ')
-logger.info('----------------------------------------------------------------------------------')
+resultDF_summary.to_csv(OUTFILE, index=False)
+resultDF_detailed.to_csv(OUTFILE[:-4] + '-Detailed.csv', index=False)
 
-logger.info('********** Process Complete: ' + str(time.time() - start) + ' Seconds **********')
+LOGGER.info('----------------------------------------------------------------------------------')
+LOGGER.info('         Correlation Validation Completed Successfully                            ')
+LOGGER.info('----------------------------------------------------------------------------------')
+
+LOGGER.info('********** Process Complete Time: ' + str(time.time() - start) + ' Seconds **********')
 

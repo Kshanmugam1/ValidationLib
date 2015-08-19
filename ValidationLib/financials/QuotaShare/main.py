@@ -42,7 +42,7 @@ class QSValidation:
 
         # Initializing the connection and cursor
         self.server = server
-        self.setup = dbConnection(server)
+        self.setup = Database(server)
         self.connection = self.setup.connection
         self.cursor = self.setup.cursor
 
