@@ -58,9 +58,9 @@ def file_skeleton(outfile):
 
 # Extract the given arguments
 try:
-    server = 'QAWUDB2\SQL2012'
-    result_db = 'SkResult'
-    analysis_name = 'Can_allLOB - Loss Analysis-Contract'
+    server = sys.argv[3]
+    result_db = sys.argv[4]
+    analysis_name = sys.argv[5]
 except:
     LOGGER.error('Please verify the inputs')
     file_skeleton(OUTFILE)
@@ -139,12 +139,17 @@ if __name__ == '__main__':
                     try:
                         loss_by_event = db.event_loss_ep(result_db, result_sid, j, i)
                         loss_by_event = loss_by_event.loc[loss_by_event[j] > 0, :]
+                        if len(loss_by_event) == 0:
+                            break
                     except:
                         break
                 else:
                     if not (l == 'REI' and j in ['NT', 'POST', 'RT']):
                         try:
                             loss_by_event = db.rei_loss_ep(result_db, result_sid, j, i)
+                            loss_by_event = loss_by_event.loc[loss_by_event[j] > 0, :]
+                            if len(loss_by_event) == 0:
+                                break
                         except:
                             break
                     else:
@@ -202,7 +207,7 @@ if __name__ == '__main__':
     result_ep_summary = result_ep_summary.drop('index', axis=1)
     result_ep_summary = set_column_sequence(result_ep_summary, columns_summary)
 
-    for count in range(len(result_ep_summary)):
+    for count in range(len(result_ep_summary.iloc[:, 1])):
         result_ep_summary.loc[count, 'CalcEPSum'] = result_ep_summary.iloc[count, 7:22].sum()
         ep_summary.loc[count, 'EPSum'] = ep_summary.iloc[count, 7:22].sum()
 
