@@ -296,71 +296,71 @@ class Database:
 
             if type == 'OCC':
 
-                script = 'SELECT ModelCode, YearID, PerilSetCode, MAX(GroundUpLoss) as GU FROM ' \
+                script = 'SELECT YearID, MAX(GroundUpLoss) as GU FROM ' \
                          '[' + resultDB + '].dbo.t' + str(resultSID) + '_LOSS_ByEvent WHERE CatalogTypeCode = ' + "'STC'" + \
-                         ' Group By YearID, ModelCode, PerilSetCode ORDER By GU DESC'
+                         ' Group By YearID ORDER By GU DESC'
 
             elif type == 'AGG':
 
-                script = 'SELECT ModelCode, YearID, PerilSetCode, SUM(GroundUpLoss) as GU FROM ' \
+                script = 'SELECT YearID, SUM(GroundUpLoss) as GU FROM ' \
                          '[' + resultDB + '].dbo.t' + str(resultSID) + '_LOSS_ByEvent WHERE CatalogTypeCode = ' + "'STC'" + \
-                         ' Group By YearID, ModelCode, PerilSetCode ORDER By GU DESC'
+                         ' Group By YearID ORDER By GU DESC'
 
         elif financial_prsp == 'GR':
 
             if type == 'OCC':
 
-                script = 'SELECT ModelCode, YearID, PerilSetCode, MAX(GrossLoss) as GR FROM ' \
+                script = 'SELECT YearID, MAX(GrossLoss) as GR FROM ' \
                          '[' + resultDB + '].dbo.t' + str(resultSID) + '_LOSS_ByEvent WHERE CatalogTypeCode = ' + "'STC'" + \
-                         ' Group By YearID, ModelCode, PerilSetCode ORDER By GR DESC'
+                         ' Group By YearID ORDER By GR DESC'
 
             elif type == 'AGG':
 
-                script = 'SELECT ModelCode, YearID, PerilSetCode, SUM(GrossLoss) as GR FROM ' \
+                script = 'SELECT YearID, SUM(GrossLoss) as GR FROM ' \
                          '[' + resultDB + '].dbo.t' + str(resultSID) + '_LOSS_ByEvent WHERE CatalogTypeCode = ' + "'STC'" + \
-                         ' Group By YearID, ModelCode, PerilSetCode ORDER By GR DESC'
+                         ' Group By YearID ORDER By GR DESC'
 
         elif financial_prsp == 'NT':
 
             if type == 'OCC':
 
-                script = 'SELECT ModelCode, YearID, PerilSetCode, MAX(NetOfPreCATLoss) as NT FROM ' \
+                script = 'SELECT YearID, MAX(NetOfPreCATLoss) as NT FROM ' \
                          '[' + resultDB + '].dbo.t' + str(resultSID) + '_LOSS_ByEvent WHERE CatalogTypeCode = ' + "'STC'" + \
-                         ' Group By YearID, ModelCode, PerilSetCode ORDER By NT DESC'
+                         ' Group By YearID ORDER By NT DESC'
 
             elif type == 'AGG':
 
-                script = 'SELECT ModelCode, YearID, PerilSetCode, SUM(NetOfPreCATLoss) as NT FROM ' \
+                script = 'SELECT YearID, SUM(NetOfPreCATLoss) as NT FROM ' \
                          '[' + resultDB + '].dbo.t' + str(resultSID) + '_LOSS_ByEvent WHERE CatalogTypeCode = ' + "'STC'" + \
-                         ' Group By YearID, ModelCode, PerilSetCode ORDER By NT DESC'
+                         ' Group By YearID ORDER By NT DESC'
 
         elif financial_prsp == 'POST':
 
             if type == 'OCC':
 
-                script = 'SELECT ModelCode, YearID, PerilSetCode, MAX(PostCATNetLoss) as POST FROM ' \
+                script = 'SELECT YearID, MAX(PostCATNetLoss) as POST FROM ' \
                          '[' + resultDB + '].dbo.t' + str(resultSID) + '_LOSS_ByEvent WHERE CatalogTypeCode = ' + "'STC'" + \
-                         ' Group By YearID, ModelCode, PerilSetCode ORDER By POST DESC'
+                         ' Group By YearID ORDER By POST DESC'
 
             elif type == 'AGG':
 
-                script = 'SELECT ModelCode, YearID, PerilSetCode, SUM(PostCATNetLoss) as POST FROM ' \
+                script = 'SELECT YearID, SUM(PostCATNetLoss) as POST FROM ' \
                          '[' + resultDB + '].dbo.t' + str(resultSID) + '_LOSS_ByEvent WHERE CatalogTypeCode = ' + "'STC'" + \
-                         ' Group By YearID, ModelCode, PerilSetCode ORDER By POST DESC'
+                         ' Group By YearID ORDER By POST DESC'
 
         elif financial_prsp == 'RT':
 
             if type == 'OCC':
 
-                script = 'SELECT ModelCode, YearID, PerilSetCode, MAX(RetainedLoss) as RT FROM ' \
+                script = 'SELECT YearID, MAX(RetainedLoss) as RT FROM ' \
                          '[' + resultDB + '].dbo.t' + str(resultSID) + '_LOSS_ByEvent WHERE CatalogTypeCode = ' + "'STC'" + \
-                         ' Group By YearID, ModelCode, PerilSetCode ORDER By RT DESC'
+                         ' Group By YearID ORDER By RT DESC'
 
             elif type == 'AGG':
 
-                script = 'SELECT ModelCode, YearID, PerilSetCode, SUM(RetainedLoss) as RT FROM ' \
+                script = 'SELECT YearID, SUM(RetainedLoss) as RT FROM ' \
                          '[' + resultDB + '].dbo.t' + str(resultSID) + '_LOSS_ByEvent WHERE CatalogTypeCode = ' + "'STC'" + \
-                         ' Group By YearID, ModelCode, PerilSetCode ORDER By RT DESC'
+                         ' Group By YearID ORDER By RT DESC'
         return copy.deepcopy(pd.read_sql(script, self.connection))
 
     def rei_loss_ep(self, resultDB, resultSID, financial_prsp, type):
