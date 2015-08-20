@@ -59,12 +59,12 @@ try:
     server = sys.argv[3]
     result_db = sys.argv[4]
     analysis_name = sys.argv[5]
-    tolerance = sys.argv[6]
+    tolerance = float(sys.argv[6])
 except:
     LOGGER.error('Please verify the inputs')
     file_skeleton(OUTFILE)
     sys.exit()
-
+print(sys.argv)
 if __name__ == '__main__':
 
     start = time.time()

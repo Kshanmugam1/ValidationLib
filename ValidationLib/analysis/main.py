@@ -742,10 +742,10 @@ class loss_mod:
 
         resultDF.loc[resultDF['Status'] == 1.0, 'Status'] = 'Fail'
         if info_analysis[0][7] == 'PORT':
-            resultDF.rename(columns={str(resultDF.columns.values[1]): 'ID'}, inplace=True)
+            resultDF.rename(columns={str(resultDF.columns.values[1]): 'CustomID'}, inplace=True)
 
         else:
-            resultDF.insert(1, "ID",
+            resultDF.insert(1, "CustomID",
                             [str(resultDF.iloc[:, 1].values[i]) + '_' + str(resultDF.iloc[:, 2].values[i]) for i in
                              range(len(resultDF.iloc[:, 1]))])
             resultDF.drop(resultDF.columns[[2, 3]], axis=1, inplace=True)
@@ -759,7 +759,7 @@ class loss_mod:
                 resultDF['Difference_' + i] = -1.0
                 resultDF['Input_Ratio_' + i] = -1.0
 
-        resultDF = set_column_sequence(resultDF, ['ID', 'GroundUpLoss_Mod', 'GroundUpLoss_Base',
+        resultDF = set_column_sequence(resultDF, ['CustomID', 'GroundUpLoss_Mod', 'GroundUpLoss_Base',
                                                   'Ratio', 'Input_Ratio', 'Difference',
                                                   'GroundUpLossA_Mod', 'GroundUpLossA_Base',
                                                   'GroundUpLossA_Ratio', 'Input_Ratio_A',
