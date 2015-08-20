@@ -31,7 +31,7 @@ __email__ = 'skapadia@air-worldwide.com'
 __status__ = 'Complete'
 
 
-class LossMod:
+class loss_mod:
 
     """
     Loss Mod Validation
@@ -53,6 +53,7 @@ class LossMod:
         Validates the loss number against loss mod factor for a given set of information in loss mod
 
     """
+
     def __init__(self, server):
 
         """Initialize the LossModValidation class
@@ -758,7 +759,7 @@ class LossMod:
                 resultDF['Difference_' + i] = -1.0
                 resultDF['Input_Ratio_' + i] = -1.0
 
-        resultDF = set_column_sequence(resultDF, ['Status', 'ID', 'GroundUpLoss_Mod', 'GroundUpLoss_Base',
+        resultDF = set_column_sequence(resultDF, ['ID', 'GroundUpLoss_Mod', 'GroundUpLoss_Base',
                                                   'Ratio', 'Input_Ratio', 'Difference',
                                                   'GroundUpLossA_Mod', 'GroundUpLossA_Base',
                                                   'GroundUpLossA_Ratio', 'Input_Ratio_A',
@@ -768,7 +769,7 @@ class LossMod:
                                                   'GroundUpLossC_Base', 'GroundUpLossC_Ratio', 'Input_Ratio_C',
                                                   'Difference_C', 'GroundUpLossD_Mod',
                                                   'GroundUpLossD_Base', 'GroundUpLossD_Ratio', 'Input_Ratio_D',
-                                                  'Difference_D'])
+                                                  'Difference_D', 'Status'])
         resultDF.loc[:, ['Difference', 'Difference_A',
                          'Difference_B', 'Difference_C', 'Difference_D']] = \
             resultDF.loc[:, ['Difference', 'Difference_A',

@@ -20,7 +20,7 @@ class Database:
         script = 'SELECT AnalysisSID from AIRProject.dbo.tAnalysis WHERE AnalysisName = ' + "'" + str(analysisName) + "'"
         self.cursor.execute(script)
         info = copy.deepcopy(self.cursor.fetchall())
-        return info[0][0]
+        return info[-1][0]
 
     def result_sid(self, AnalysisSID):
 
