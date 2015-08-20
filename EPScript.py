@@ -20,7 +20,7 @@ for o, a in OPTLIST:
     if o == "--outfile":
         OUTFILE = a
     print "Outfile: " + OUTFILE
-OUTFILE = 'C:\Users\i56228\Documents\Python\Git\ValidationLib\EPValidation.csv'
+# OUTFILE = 'C:\Users\i56228\Documents\Python\Git\ValidationLib\EPValidation.csv'
 if OUTFILE is None:
     print ('Outfile is not passed')
     sys.exit()
@@ -213,11 +213,11 @@ if __name__ == '__main__':
     detailed_output = pd.concat([ep_summary, result_ep_summary], axis=1).fillna('-')
 
     summary_output['Status'] = -1
-    summary_output.loc[(summary_output['EPSum'] - summary_output['CalcEPSum']) &
+    summary_output.loc[(summary_output['EPSum'] == summary_output['CalcEPSum']) &
                        (summary_output['ExpectedValue'] == summary_output['CalcExpectedValue']) &
                        (summary_output['StandardDeviation'] == summary_output['CalcStandardDeviation']),
                        'Status'] = 'Pass'
-    # summary_output.loc[summary_output['Status'] == -1, 'Status'] = 'Fail'
+    summary_output.loc[summary_output['Status'] == -1, 'Status'] = 'Fail'
 
     summary_output.to_csv(OUTFILE, index=False)
     detailed_output.to_csv(OUTFILE[:-4] + '-Detailed.csv', index=False)
