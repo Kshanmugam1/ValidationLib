@@ -39,7 +39,7 @@ LOGGER.addHandler(HANDLER_INF0)
 # Import internal packages
 from ValidationLib.general.main import *
 from ValidationLib.database.main import *
-from ValidationLib.financials.Correlation.main import *
+from ValidationLib.financials.main import *
 
 
 __author__ = 'Shashank Kapadia'
@@ -90,23 +90,23 @@ if __name__ == "__main__":
 
     LOGGER.info('**********************************************************************************')
     LOGGER.info('Step 2. Get analysis sid')
-    contract_analysis_sid = db._getAnaysisSID(contract_analysis_name)
+    contract_analysis_sid = db.analysis_sid(contract_analysis_name)
     LOGGER.info('Analysis SID for analysis ' + str(contract_analysis_name) + ' is ' + str(contract_analysis_sid))
 
     LOGGER.info('**********************************************************************************')
     LOGGER.info('Step 3. Get inter and intra correlation factor')
-    intra_correlation_fac, inter_correlation_fac = inter_correlation._get_correlation_factor(contract_analysis_sid)
+    intra_correlation_fac, inter_correlation_fac = inter_correlation.correlation_factor(contract_analysis_sid)
     LOGGER.info('1. Intra Correlation Factor: ' + str(intra_correlation_fac))
     LOGGER.info('2. Inter Correlation Factor: ' + str(inter_correlation_fac))
 
     LOGGER.info('**********************************************************************************')
     LOGGER.info('Step 4. Get result SID')
-    contractResultSID = db._getResultSID(contract_analysis_sid)
+    contractResultSID = db.result_sid(contract_analysis_sid)
     LOGGER.info('1. Contract Result SID: ' + str(contractResultSID))
 
     LOGGER.info('**********************************************************************************')
     LOGGER.info('Step 5. Get the numbers and validate')
-    resultDF_detailed, resultDF_summary = inter_correlation._get_sd(contractResultSID, result_db, 'Inter',
+    resultDF_detailed, resultDF_summary = inter_correlation.loss_sd(contractResultSID, result_db, 'Inter',
                                                                  inter_correlation=inter_correlation_fac,
                                                                  tolerance=tolerance)
 

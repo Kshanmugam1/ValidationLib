@@ -28,13 +28,13 @@ if __name__ == '__main__':
     print('**********************************************************************************************************')
     print('Step 1. Getting the result SID')
     # Get the result SID using Analysis SID
-    resultSID = validation._getResultSID(analysisSID)
+    resultSID = validation.result_sid(analysisSID)
     print('1. Result SID: ' + str(resultSID))
     print('**********************************************************************************************************')
 
     print('**********************************************************************************************************')
     print('Step 2. Get Annual EP Loss')
-    ep_lossDf = validation._getLossDF(result_Db, resultSID, 'EP').iloc[:, :14]
+    ep_lossDf = validation.loss_df(result_Db, resultSID, 'EP').iloc[:, :14]
     columns_detail = ['EPAnnualTypeCode', 'EPCurveTypeCode', 'FinancialPerspectiveCodeCode', 'Rank',
                'ModelCode', 'YearID', 'PerilSetCode', 'ExceedanceProbability', 'EPLoss']
     print('**********************************************************************************************************')
@@ -52,7 +52,7 @@ if __name__ == '__main__':
 
     print('**********************************************************************************************************')
     print('Step 4. Get EP points')
-    ep_points = validation._get_ep_points(analysisSID)
+    ep_points = validation.ep_points(analysisSID)
     print('**********************************************************************************************************')
 
     loss_by_event = pd.DataFrame()
@@ -74,11 +74,11 @@ if __name__ == '__main__':
             for j in financial_perspective:
                 print(i,j,l)
                 if l == 'EVNT':
-                    loss_by_event = validation._get_event_loss_ep(result_Db, resultSID, j, i)
+                    loss_by_event = validation.event_loss_ep(result_Db, resultSID, j, i)
                     loss_by_event = loss_by_event.loc[loss_by_event[j] > 0, :]
                 else:
                     if not (l == 'REI' and j in ['NT', 'POST', 'RT']):
-                        loss_by_event = validation._get_rei_loss_ep(result_Db, resultSID, j, i)
+                        loss_by_event = validation.rei_loss_ep(result_Db, resultSID, j, i)
                     else:
                         break
                 result_ep_df = ep_lossDf.loc[(ep_lossDf['EPCurveTypeCode'] == 'STD') &
@@ -117,7 +117,7 @@ if __name__ == '__main__':
                     math.sqrt(((result_ep_df['CalcLoss']**2).sum() - (result_ep_df['CalcLoss'].sum())**2/10000.0)/9999.0)
                 result_ep_summary = pd.concat([result_ep_summary, result_ep_summary_df], axis=0)
     result_ep_summary.to_csv('sample.csv')
-    ep_summary = validation._get_ep_summary(result_Db, resultSID)
+    ep_summary = validation.ep_summary(result_Db, resultSID)
     ep_summary = ep_summary.loc[(ep_summary['EPCurveTypeCode'] == 'STD') &
                                 (ep_summary['EPTypeCode'] == 'EP') &
                                 (ep_summary['EPTargetTypeCode'].isin(ep_target_type)) &

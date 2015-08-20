@@ -39,7 +39,7 @@ LOGGER.addHandler(HANDLER_INF0)
 # Import internal packages
 from ValidationLib.general.main import *
 from ValidationLib.database.main import *
-from ValidationLib.financials.Correlation.main import *
+from ValidationLib.financials.main import *
 
 
 __author__ = 'Shashank Kapadia'
@@ -93,27 +93,29 @@ if __name__ == "__main__":
 
     LOGGER.info('**********************************************************************************')
     LOGGER.info('Step 2. Get analysis sid')
-    contract_analysis_sid = db._getAnaysisSID(contract_analysis_name)
-    location_analysis_sid = db._getAnaysisSID(location_analysis_name)
-    LOGGER.info('Analysis SID for Contract analysis ' + str(contract_analysis_name) + ' is ' + str(contract_analysis_sid))
-    LOGGER.info('Analysis SID for Location analysis ' + str(location_analysis_name) + ' is ' + str(location_analysis_sid))
+    contract_analysis_sid = db.analysis_sid(contract_analysis_name)
+    location_analysis_sid = db.analysis_sid(location_analysis_name)
+    LOGGER.info('Analysis SID for Contract analysis ' +
+                str(contract_analysis_name) + ' is ' + str(contract_analysis_sid))
+    LOGGER.info('Analysis SID for Location analysis ' +
+                str(location_analysis_name) + ' is ' + str(location_analysis_sid))
 
     LOGGER.info('**********************************************************************************')
     LOGGER.info('Step 3. Get inter and intra correlation factor')
-    intra_correlation_fac, inter_correlation_fac = intra_correlation._get_correlation_factor(contract_analysis_sid)
+    intra_correlation_fac, inter_correlation_fac = intra_correlation.correlation_factor(contract_analysis_sid)
     LOGGER.info('1. Intra Correlation Factor: ' + str(intra_correlation_fac))
     LOGGER.info('2. Inter Correlation Factor: ' + str(inter_correlation_fac))
 
     LOGGER.info('**********************************************************************************')
     LOGGER.info('Step 4. Get result SID')
-    contract_result_sid = db._getResultSID(contract_analysis_sid)
-    location_result_sid = db._getResultSID(location_analysis_sid)
+    contract_result_sid = db.result_sid(contract_analysis_sid)
+    location_result_sid = db.result_sid(location_analysis_sid)
     LOGGER.info('Contract Result SID: ' + str(contract_result_sid))
     LOGGER.info('Location Result SID: ' + str(location_result_sid))
 
     LOGGER.info('**********************************************************************************')
     LOGGER.info('Step 5. Get the numbers and validate')
-    resultDF_detailed, resultDF_summary = intra_correlation._get_sd(contract_result_sid, result_db, 'Intra',
+    resultDF_detailed, resultDF_summary = intra_correlation.loss_sd(contract_result_sid, result_db, 'Intra',
                                                                     location_result_sid=location_result_sid,
                                                                     intra_correlation=intra_correlation_fac,
                                                                     tolerance=tolerance)

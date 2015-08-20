@@ -31,7 +31,7 @@ __email__ = 'skapadia@air-worldwide.com'
 __status__ = 'Complete'
 
 
-class LossModValidation:
+class LossMod:
 
     """
     Loss Mod Validation
@@ -99,7 +99,7 @@ class LossModValidation:
         year_built: list
 
         """
-        info_analysis = self.setup._getAnalysisInfo(mod_analysis_sid)
+        info_analysis = self.setup.analysis_info(mod_analysis_sid)
 
         #######################################################################################
         """
@@ -442,56 +442,56 @@ class LossModValidation:
 
         return template_info
 
-    def getLossDF(self, ModAnalysisSID, resultDB, BaseResultSID, ModResultSID, coverage):
+    def get_loss_df(self, ModAnalysisSID, resultDB, BaseResultSID, ModResultSID, coverage):
 
-        info_analysis = self.setup._getAnalysisInfo(ModAnalysisSID)
+        info_analysis = self.setup.analysis_info(ModAnalysisSID)
         resultDF = pd.DataFrame()
         resultDF['Status'] = 1
         # In the case where analysis is saved by LOB, get the loss numbers from Loss By Exposure Attribute
         if info_analysis[0][7] == 'EA':
-            resultDF_Base = self.setup._getLossDF(resultDB, BaseResultSID, 'LOB')
-            resultDF_Mod = self.setup._getLossDF(resultDB, ModResultSID, 'LOB')
+            resultDF_Base = self.setup.loss_df(resultDB, BaseResultSID, 'LOB')
+            resultDF_Mod = self.setup.loss_df(resultDB, ModResultSID, 'LOB')
 
         # In the case where analysis is saved by Default, get the loss numbers from Loss By Event
         if info_analysis[0][7] == 'PORT':
 
             if info_analysis[0][8] == 'CONSUM':
 
-                resultDF_Base = self.setup._getLossDF(resultDB, BaseResultSID, 'CONSUM')
-                resultDF_Mod = self.setup._getLossDF(resultDB, ModResultSID, 'CONSUM')
+                resultDF_Base = self.setup.loss_df(resultDB, BaseResultSID, 'CONSUM')
+                resultDF_Mod = self.setup.loss_df(resultDB, ModResultSID, 'CONSUM')
 
             elif info_analysis[0][8] == 'LOCSUM':
 
-                resultDF_Base = self.setup._getLossDF(resultDB, BaseResultSID, 'LOCSUM')
-                resultDF_Mod = self.setup._getLossDF(resultDB, ModResultSID, 'LOCSUM')
+                resultDF_Base = self.setup.loss_df(resultDB, BaseResultSID, 'LOCSUM')
+                resultDF_Mod = self.setup.loss_df(resultDB, ModResultSID, 'LOCSUM')
 
             else:
 
-                resultDF_Base = self.setup._getLossDF(resultDB, BaseResultSID, 'Event')
-                resultDF_Mod = self.setup._getLossDF(resultDB, ModResultSID, 'Event')
+                resultDF_Base = self.setup.loss_df(resultDB, BaseResultSID, 'Event')
+                resultDF_Mod = self.setup.loss_df(resultDB, ModResultSID, 'Event')
 
         # In the case where analysis is saved by Contract, get the loss numbers from Loss By Contract
         if info_analysis[0][7] == 'CON':
 
-            resultDF_Base = self.setup._getLossDF(resultDB, BaseResultSID, 'CON')
-            resultDF_Mod = self.setup._getLossDF(resultDB, ModResultSID, 'CON')
+            resultDF_Base = self.setup.loss_df(resultDB, BaseResultSID, 'CON')
+            resultDF_Mod = self.setup.loss_df(resultDB, ModResultSID, 'CON')
 
         # In the case where analysis is saved by Location, get the loss numbers from Loss By Location
         elif info_analysis[0][7] == 'LOC':
 
-            resultDF_Base = self.setup._getLossDF(resultDB, BaseResultSID, 'LOC')
-            resultDF_Mod = self.setup._getLossDF(resultDB, ModResultSID, 'LOC')
+            resultDF_Base = self.setup.loss_df(resultDB, BaseResultSID, 'LOC')
+            resultDF_Mod = self.setup.loss_df(resultDB, ModResultSID, 'LOC')
 
         # In the case where analysis is saved by Layer, get the loss numbers from Loss By Layer
         elif info_analysis[0][7] == 'LYR':
 
-            resultDF_Base = self.setup._getLossDF(resultDB, BaseResultSID, 'LYR')
-            resultDF_Mod = self.setup._getLossDF(resultDB, ModResultSID, 'LYR')
+            resultDF_Base = self.setup.loss_df(resultDB, BaseResultSID, 'LYR')
+            resultDF_Mod = self.setup.loss_df(resultDB, ModResultSID, 'LYR')
 
         elif info_analysis[0][7] == 'GEOL':
 
-            resultDF_Base = self.setup._getLossDF(resultDB, BaseResultSID, 'GEOL')
-            resultDF_Mod = self.setup._getLossDF(resultDB, ModResultSID, 'GEOL')
+            resultDF_Base = self.setup.loss_df(resultDB, BaseResultSID, 'GEOL')
+            resultDF_Mod = self.setup.loss_df(resultDB, ModResultSID, 'GEOL')
 
         # PerilSet Code as key only if the analysis wasn't run by LocSummary or ConSummary
         if not info_analysis[0][8] in ['LOCSUM', 'CONSUM']:
@@ -546,7 +546,7 @@ class LossModValidation:
 
     def validate(self, resultDF, template_info, coverage, ModAnalysisSID, tolerance):
 
-        info_analysis = self.setup._getAnalysisInfo(ModAnalysisSID)
+        info_analysis = self.setup.analysis_info(ModAnalysisSID)
 
         ############################################################################################################
         '''

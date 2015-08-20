@@ -15,14 +15,14 @@ class Database:
         self.connection = pyodbc.connect('DRIVER={SQL Server};SERVER=' + server)
         self.cursor = self.connection.cursor()
 
-    def _getAnaysisSID(self, analysisName):
+    def analysis_sid(self, analysisName):
 
         script = 'SELECT AnalysisSID from AIRProject.dbo.tAnalysis WHERE AnalysisName = ' + "'" + str(analysisName) + "'"
         self.cursor.execute(script)
         info = copy.deepcopy(self.cursor.fetchall())
         return info[0][0]
 
-    def _getResultSID(self, AnalysisSID):
+    def result_sid(self, AnalysisSID):
 
         """
         The function _getResultSID is a method of class dbConnection. Given the analysis_sid, it returns the associated
@@ -37,7 +37,7 @@ class Database:
 
         return resultSID
 
-    def _getBaseAnalysisSID(self, ModAnalysisSID):
+    def mod_analysis_sid(self, ModAnalysisSID):
 
         script = 'SELECT BaseAnalysisSID FROM AIRProject.dbo.tLossAnalysisOption ' \
                  'WHERE AnalysisSID = ' + str(ModAnalysisSID)
@@ -47,7 +47,7 @@ class Database:
 
         return baseAnalysisSID
 
-    def _getLossModTemID(self, ModAnalysisSID):
+    def loss_mod_temp_id(self, ModAnalysisSID):
 
         script = 'SELECT LossModTemplateSID FROM AIRProject.dbo.tLossAnalysisOption ' \
                  'WHERE AnalysisSID = ' + str(ModAnalysisSID)
@@ -57,7 +57,7 @@ class Database:
 
         return LossModTempID
 
-    def _getPerilsAnalysis(self, ModAnalysisSID):
+    def perils_analysis(self, ModAnalysisSID):
 
         script = 'SELECT PerilSetCode FROM AIRProject.dbo.tLossAnalysisOption ' \
                  'WHERE AnalysisSID = ' + str(ModAnalysisSID)
@@ -67,7 +67,7 @@ class Database:
 
         return PerilsAnalysis
 
-    def _getAnalysisInfo(self, AnalysisSID):
+    def analysis_info(self, AnalysisSID):
 
         script =  'SELECT * FROM AIRProject.dbo.tLossAnalysisOption ' \
                   'WHERE AnalysisSID = ' + str(AnalysisSID)
@@ -75,7 +75,7 @@ class Database:
 
         return (copy.deepcopy(self.cursor.fetchall()))
 
-    def _getLossDF(self, resultDB, resultSID, type):
+    def loss_df(self, resultDB, resultSID, type):
 
         if type in ['EA', 'LOB']:
 
@@ -128,7 +128,7 @@ class Database:
             script = 'SELECT * FROM [' + resultDB + '].dbo.t' + str(resultSID) + '_LOSS_ByGeo'
             return copy.deepcopy(pd.read_sql(script, self.connection))
 
-    def _getLossModInfo(self, LossModTempID):
+    def loss_mod_info(self, LossModTempID):
 
         script = 'SELECT * FROM AIRUserSetting.dbo.tLossModTemplateRule ' \
                  'WHERE LossModTemplateSID = ' + str(LossModTempID)
@@ -195,9 +195,9 @@ class Database:
 
         return perilsTemp, coverage, LOB, admin_boundary, occupancy, construction, yearBuilt, stories, contractID, locationID, factor
 
-    def _groupAnalysisPerils(self, AnalysisSID, perilsTemp):
+    def group_analysis_perils(self, AnalysisSID, perilsTemp):
 
-        perilsAnalysis = self._getPerilsAnalysis(AnalysisSID)
+        perilsAnalysis = self.perils_analysis(AnalysisSID)
 
         script = 'Select PerilSet FROM AIRReference.dbo.tPerilSet WHERE PerilSetCode = ' + str(perilsAnalysis)
         self.cursor.execute(script)
@@ -240,7 +240,7 @@ class Database:
 
         return perilsAnalysisGrouped
 
-    def _getProgramID(self, AnalysisSID):
+    def program_id(self, AnalysisSID):
 
         script = 'SELECT ProgramSID FROM AIRProject.dbo.tLossAnalysisOption ' \
                  'WHERE AnalysisSID = ' + str(AnalysisSID)
@@ -250,7 +250,7 @@ class Database:
 
         return programID
 
-    def _getProgramInfo(self, program_id, type):
+    def program_info(self, program_id, type):
 
         script = 'SELECT * FROM AIRReinsurance.dbo.tReinsurance '  \
                  'WHERE ProgramSID = ' + str(program_id)
@@ -290,7 +290,7 @@ class Database:
 
             return[occ_limit, agg_limit, ceded_amount, placed_percent, sequence_number]
 
-    def _get_event_loss_ep(self, resultDB, resultSID, financial_prsp, type):
+    def event_loss_ep(self, resultDB, resultSID, financial_prsp, type):
 
         if financial_prsp == 'GU':
 
@@ -363,7 +363,7 @@ class Database:
                          ' Group By YearID, ModelCode, PerilSetCode ORDER By RT DESC'
         return copy.deepcopy(pd.read_sql(script, self.connection))
 
-    def _get_rei_loss_ep(self, resultDB, resultSID, financial_prsp, type):
+    def rei_loss_ep(self, resultDB, resultSID, financial_prsp, type):
 
         if financial_prsp == 'GU':
 
@@ -395,7 +395,7 @@ class Database:
 
         return copy.deepcopy(pd.read_sql(script, self.connection))
 
-    def _get_ep_points(self, analysisSID):
+    def ep_points(self, analysisSID):
 
         script = 'SELECT EP1, EP2, EP3, EP4, EP5, EP6, EP7, EP8, EP9, EP10, EP11, EP12, EP13, ' \
                  'EP14, EP15 FROM [AIRProject].[dbo].[tLossAnalysisOption] ' \
@@ -404,7 +404,7 @@ class Database:
         info = copy.deepcopy(self.cursor.fetchall())
         return info[0]
 
-    def _get_ep_summary(self, resultDB, resultSID):
+    def ep_summary(self, resultDB, resultSID):
 
         script = 'SELECT * from [' + resultDB + '].dbo.t' + str(resultSID) + '_LOSS_AnnualEPSummary'
         return copy.deepcopy(pd.read_sql(script, self.connection))

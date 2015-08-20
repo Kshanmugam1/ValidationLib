@@ -19,7 +19,7 @@ for o, a in OPTLIST:
     if o == "--outfile":
         OUTFILE = a
     print "Outfile: " + OUTFILE
-# OUTFILE = 'C:\Users\i56228\Documents\Python\Git\catxol.csv'
+
 if OUTFILE is None:
     print ('Outfile is not passed')
     sys.exit()
@@ -37,8 +37,8 @@ HANDLER_INFO.setLevel(logging.INFO)
 LOGGER.addHandler(HANDLER_INFO)
 
 # Import internal packages
-from ValidationLib.financials.Catxol.main import *
-from ValidationLib.financials.Catxol.main import _getRecovery
+from ValidationLib.financials.main import *
+from ValidationLib.financials.main import recovery_catxol
 from ValidationLib.general.main import *
 from ValidationLib.database.main import *
 
@@ -54,8 +54,9 @@ __status__ = 'Complete'
 
 def file_skeleton(outfile):
 
-    pd.DataFrame(columns=['CatalogTypeCode', 'ModelCode', 'YearID', 'EventID', 'NetOfPreCATLoss', 'Recovery',
-                'PostCATNetLoss', 'CalculatedPostCATNetLoss', 'DifferencePercent', 'Status']).to_csv(outfile, index=False)
+    pd.DataFrame(columns=['CatalogTypeCode', 'ModelCode', 'YearID', 'EventID', 'NetOfPreCATLoss',
+                          'Recovery', 'PostCATNetLoss', 'CalculatedPostCATNetLoss',
+                          'DifferencePercent', 'Status']).to_csv(outfile, index=False)
 
 start = time.time()
 
@@ -89,22 +90,22 @@ if __name__ == "__main__":
 
     LOGGER.info('**********************************************************************************')
     LOGGER.info('Step 2. Get analysis sid')
-    analysis_sid = db._getAnaysisSID(analysis_name)
+    analysis_sid = db.analysis_sid(analysis_name)
     LOGGER.info('Analysis SID for analysis ' + str(analysis_name) + ' is ' + str(analysis_sid))
 
     LOGGER.info('**********************************************************************************')
     LOGGER.info('Step 3. Get result SID')
-    resultSID = db._getResultSID(analysis_sid)
+    resultSID = db.result_sid(analysis_sid)
     LOGGER.info('1. Contract Result SID: ' + str(resultSID))
 
     LOGGER.info('**********************************************************************************')
     LOGGER.info('Step 4. Get program ID')
-    programSID = db._getProgramID(analysis_sid)
+    programSID = db.program_id(analysis_sid)
     LOGGER.info('Program ID: ' + str(programSID))
 
     LOGGER.info('**********************************************************************************')
     LOGGER.info('Step 5. Get program information')
-    programInfo = db._getProgramInfo(programSID, 'catxol')
+    programInfo = db.program_info(programSID, 'catxol')
     programInfo = pd.DataFrame(data=zip(*programInfo), columns=['Occ_Limit', 'Occ_Ret', 'Agg_Limit',
                                                                 'Agg_Ret', '%Placed', 'Ins_CoIns',
                                                                 'Inuring'])
@@ -112,7 +113,7 @@ if __name__ == "__main__":
 
     LOGGER.info('**********************************************************************************')
     LOGGER.info('Step 6. Get the chunks of tasks to be performed')
-    tasks, lossDF = catxol._GetTasks(result_db, resultSID)
+    tasks, lossDF = catxol.get_tasks(result_db, resultSID)
     LOGGER.info('**********************************************************************************')
     LOGGER.info('Step 7. Get the result data frame')
     '''
@@ -130,7 +131,7 @@ if __name__ == "__main__":
 
         for j in range(len(program_infos)):
             pool = mp.Pool()
-            results = [pool.apply_async(_getRecovery, args=(tasks[i], lossDF, program_infos[j]))
+            results = [pool.apply_async(recovery_catxol, args=(tasks[i], lossDF, program_infos[j]))
                        for i in range(len(tasks))]
             output = [p.get() for p in results]
             recovery.append([item for sublist in output for item in sublist])
@@ -145,7 +146,7 @@ if __name__ == "__main__":
 
     LOGGER.info('**********************************************************************************')
     LOGGER.info('Step 7. Validate the numbers')
-    resultDF = catxol._validate(lossDF)
+    resultDF = catxol.validate(lossDF)
 
     LOGGER.info('**********************************************************************************')
     LOGGER.info('Step 8. Save the results')

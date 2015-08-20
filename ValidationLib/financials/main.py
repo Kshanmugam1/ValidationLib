@@ -1,7 +1,123 @@
+__author__ = 'Shashank Kapadia'
+__copyright__ = '2015 AIR Worldwide, Inc.. All rights reserved'
+__version__ = '1.0'
+__interpreter__ = 'Python 2.7.9'
+__maintainer__ = 'Shashank kapadia'
+__email__ = 'skapadia@air-worldwide.com'
+__status__ = 'Production'
+
 # Import internal packages
 from ValidationLib.database.main import *
-# Import external Python libraries
-import pandas as pd
+
+
+def chunks(l, n):
+    """Yield successive n-sized chunks from l."""
+    n = max(1, n)
+    return [l[i:i + n] for i in range(0, len(l), n)]
+
+
+def recovery_catxol(tuple, lossDF, programInfo):
+
+    agg_limit_temp = copy.deepcopy(programInfo[2])
+    agg_ret_temp = copy.deepcopy(programInfo[3])
+    sample_lossDF = lossDF.loc[(lossDF['CatalogTypeCode'] == tuple[0]) & (lossDF['ModelCode'] == tuple[1]) &
+                                       (lossDF['YearID'] == tuple[2])][['CatalogTypeCode', 'ModelCode',
+                                                                 'YearID', 'EventID', 'NetOfPreCATLoss',
+                                                                 'PostCATNetLoss']].reset_index().drop('index', axis=1)
+    sample_lossDF['Recovery'] = sample_lossDF['NetOfPreCATLoss'] - programInfo[1]
+
+    sample_lossDF.loc[sample_lossDF['Recovery']<0, 'Recovery'] = 0
+    sample_lossDF.loc[sample_lossDF['Recovery']>programInfo[0], 'Recovery'] = programInfo[0]
+
+    if len(sample_lossDF['Recovery']) == 1:
+        sample_lossDF['Recovery'] = min(max(sample_lossDF['Recovery'].values[0] - agg_ret_temp, 0), agg_limit_temp)
+
+    else:
+        for i in range(len(sample_lossDF['Recovery'])):
+
+            if sample_lossDF['Recovery'][i] - agg_ret_temp < 0:
+                temp_agg_ret = agg_ret_temp - sample_lossDF['Recovery'][i]
+            else:
+                temp_agg_ret = 0
+
+            sample_lossDF['Recovery'][i] = min(max(sample_lossDF['Recovery'][i] -
+                                                   agg_ret_temp, 0), agg_limit_temp)
+            agg_ret_temp = copy.deepcopy(temp_agg_ret)
+            agg_limit_temp -= copy.deepcopy(sample_lossDF['Recovery'][i])
+
+    sample_lossDF['Recovery'] = sample_lossDF['Recovery'] * (1 - (programInfo[5]))
+    sample_lossDF['Recovery'] = sample_lossDF['Recovery'] * programInfo[4]
+
+    return sample_lossDF['Recovery'].values
+
+
+def recovery_quota_share(tuple, lossDF, programInfo):
+
+    agg_limit_temp = copy.deepcopy(programInfo[1])
+
+    sample_lossDF = lossDF.loc[(lossDF['CatalogTypeCode'] == tuple[0]) & (lossDF['ModelCode'] == tuple[1]) &
+                                       (lossDF['YearID'] == tuple[2])][['CatalogTypeCode', 'ModelCode',
+                                                                 'YearID', 'EventID', 'GrossLoss',
+                                                                 'NetOfPreCATLoss', 'TotalPerRiskReRecoveryLoss']].reset_index().drop('index', axis=1)
+
+    sample_lossDF['CalculatedTotalPerRiskReRecoveryLoss'] = sample_lossDF['GrossLoss'] * programInfo[2] * programInfo[3]
+    sample_lossDF['CalculatedRecovery'] = copy.deepcopy(sample_lossDF['CalculatedTotalPerRiskReRecoveryLoss'])
+
+    sample_lossDF.loc[sample_lossDF['CalculatedRecovery']>programInfo[0], 'CalculatedRecovery'] = programInfo[0]
+
+    if len(sample_lossDF['CalculatedRecovery']) == 1:
+
+        sample_lossDF['CalculatedRecovery'] = min(sample_lossDF['CalculatedRecovery'].values[0], agg_limit_temp)
+
+    else:
+        for i in range(len(sample_lossDF['CalculatedRecovery'])):
+
+            sample_lossDF['CalculatedRecovery'][i] = min(sample_lossDF['CalculatedRecovery'][i], agg_limit_temp)
+            agg_limit_temp -= copy.deepcopy(sample_lossDF['CalculatedRecovery'][i])
+    sample_lossDF['CalculatedRecovery'] = copy.deepcopy(sample_lossDF['CalculatedRecovery'] * programInfo[3])
+    return sample_lossDF[['CalculatedTotalPerRiskReRecoveryLoss', 'CalculatedRecovery']].values.tolist()
+
+
+class Catxol:
+
+    def __init__(self, server):
+
+        # Initializing the connection and cursor
+        self.server = server
+        self.setup = Database(server)
+        self.connection = self.setup.connection
+        self.cursor = self.setup.cursor
+
+    def get_tasks(self, resultDB, resultSID):
+
+        lossDF = self.setup.loss_df(resultDB, resultSID, 'PORT')
+        lossDF.sort(['CatalogTypeCode', 'ModelCode', 'YearID', 'EventID'], inplace=True)
+
+        lossDF = lossDF[['CatalogTypeCode', 'ModelCode', 'YearID', 'EventID', 'NetOfPreCATLoss', 'PostCATNetLoss']]
+
+        Catalogtypes = lossDF.loc[:, 'CatalogTypeCode'].unique()
+        task_list = []
+        for c in Catalogtypes:
+            ModelCode = lossDF.loc[lossDF['CatalogTypeCode'] == c, 'ModelCode'].unique()
+            for m in ModelCode:
+                yearID = lossDF.loc[(lossDF['CatalogTypeCode'] == c) & (lossDF['ModelCode'] == m) , 'YearID'].unique()
+                for y in yearID:
+                    task_list.append(tuple([c,m,y]))
+
+        return task_list, lossDF
+
+    def validate(self, result):
+
+
+        result.insert(0, 'Status', '-')
+
+        result['DifferencePercent'] = (result['CalculatedPostCATNetLoss'] - result['PostCATNetLoss'])/result['PostCATNetLoss']
+        result = result.fillna(0)
+        result['DifferencePercent'] = result['DifferencePercent'].astype(int)
+        result.loc[abs(result['DifferencePercent']) < 0.1, 'Status'] = 'Pass'
+        result.loc[result['Status'] == '-', 'Status'] = 'Fail'
+
+        return result
 
 
 class Correlation:
@@ -12,7 +128,7 @@ class Correlation:
         self.connection = setup.connection
         self.cursor = setup.cursor
 
-    def _get_correlation_factor(self, analysis_sid):
+    def correlation_factor(self, analysis_sid):
 
         if analysis_sid > 0:
             sql_script = 'SELECT * FROM AIRProject.dbo.tLossAnalysisOption WHERE AnalysisSID = {0}'.format(
@@ -31,7 +147,7 @@ class Correlation:
         else:
             raise Exception('Analysis SID should be greater than or equal to zero')
 
-    def _get_sd(self, contract_result_sid, result_db, sd_type, tolerance, intra_correlation=None,
+    def loss_sd(self, contract_result_sid, result_db, sd_type, tolerance, intra_correlation=None,
                 location_result_sid=None,
                 inter_correlation=None):
 
@@ -170,3 +286,33 @@ class Correlation:
             result_df_summary.loc[result_df_summary['Status'] == '', 'Status'] = 'Pass'
 
         return result_df_detailed, result_df_summary
+
+
+class QSValidation:
+
+    def __init__(self, server):
+
+        # Initializing the connection and cursor
+        self.server = server
+        self.setup = Database(server)
+        self.connection = self.setup.connection
+        self.cursor = self.setup.cursor
+
+    def get_tasks(self, resultDB, resultSID):
+
+        lossDF = self.setup.loss_df(resultDB, resultSID, 'PORT')
+        lossDF.sort(['CatalogTypeCode', 'ModelCode', 'YearID', 'EventID'], inplace=True)
+
+        lossDF = lossDF[['CatalogTypeCode', 'ModelCode', 'YearID', 'EventID',
+                         'GrossLoss', 'NetOfPreCATLoss', 'TotalPerRiskReRecoveryLoss']]
+
+        Catalogtypes = lossDF.loc[:, 'CatalogTypeCode'].unique()
+        task_list = []
+        for c in Catalogtypes:
+            ModelCode = lossDF.loc[lossDF['CatalogTypeCode'] == c, 'ModelCode'].unique()
+            for m in ModelCode:
+                yearID = lossDF.loc[(lossDF['CatalogTypeCode'] == c) & (lossDF['ModelCode'] == m) , 'YearID'].unique()
+                for y in yearID:
+                    task_list.append(tuple([c,m,y]))
+
+        return task_list, lossDF

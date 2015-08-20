@@ -27,9 +27,7 @@ logger.addHandler(handler_info)
 
 # Import internal packages
 from ValidationLib.database.main import *
-from ValidationLib.financials.QuotaShare.main import *
-from ValidationLib.financials.QuotaShare.main import _getRecovery
-from ValidationLib.general.CsvTools.main import _saveDFCsv
+from ValidationLib.financials.main import *
 
 __author__ = 'Shashank Kapadia'
 __copyright__ = '2015 AIR Worldwide, Inc.. All rights reserved'
@@ -78,24 +76,24 @@ if __name__ == '__main__':
 
     logger.info('*****************************************************************************************************')
     logger.info('Step 1. Getting result SID')
-    resultSID = validation._getResultSID(analysis_SID)
+    resultSID = validation.result_sid(analysis_SID)
     logger.info('Result SID: ' + str(resultSID))
 
     logger.info('*****************************************************************************************************')
     logger.info('Step 2. Getting Program ID')
-    programSID = validation._getProgramID(analysis_SID)
+    programSID = validation.program_id(analysis_SID)
     logger.info('Program ID: ' + str(programSID))
 
     logger.info('*****************************************************************************************************')
     logger.info('Step 3. Program Info')
-    programInfo = validation._getProgramInfo(programSID, 'qs')
+    programInfo = validation.program_info(programSID, 'qs')
     programInfo = pd.DataFrame(data=zip(*programInfo), columns=['Occ_Limit', 'Agg_Limit',
                                                                 '%Ceded', '%Placed', 'Inuring'])
     logger.info(programInfo)
 
     logger.info('*****************************************************************************************************')
     logger.info('Step 4. Getting the task list')
-    tasks, lossDF = Program._GetTasks(result_Db, resultSID)
+    tasks, lossDF = Program.get_tasks(result_Db, resultSID)
 
     max_inuring = max(programInfo['Inuring'].values)
     recovery = []
@@ -105,7 +103,7 @@ if __name__ == '__main__':
         program_infos = programInfo.loc[programInfo['Inuring'] == k + 1, :].values
         for j in range(len(program_infos)):
             pool = mp.Pool()
-            results = [pool.apply_async(_getRecovery, args=(tasks[i], lossDF, program_infos[j]))
+            results = [pool.apply_async(recovery_quota_share, args=(tasks[i], lossDF, program_infos[j]))
                        for i in range(len(tasks))]
             output = [p.get() for p in results]
 
