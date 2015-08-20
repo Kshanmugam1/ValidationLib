@@ -57,7 +57,6 @@ def file_skeleton(outfile):
                           'DifferencePortGuSD_Percent', 'PortGrSD', 'CalculatedPortGrSD',
                           'DifferencePortGrSD_Percent', 'Status']).to_csv(outfile, index=False)
 
-start = time.time()
 
 # Extract the given arguments
 try:
@@ -71,6 +70,8 @@ except:
     sys.exit()
 
 if __name__ == "__main__":
+
+    start = time.time()
 
     LOGGER.info('**********************************************************************************')
     LOGGER.info('                     Correlation Validation Tool                                  ')
