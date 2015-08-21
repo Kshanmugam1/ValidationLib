@@ -181,7 +181,7 @@ class Database:
         info = copy.deepcopy(self.cursor.fetchall())
         if info:
             for i in range(len(info)):
-                if not info[i][0] == "":
+                if not info[i][0] == None:
                     script = 'Select GeographySID from ' \
                              '[AIRUserSetting].[dbo].[tAdminBoundaryDetail] ' \
                              'Where [AdminBoundarySID] = ' + str(info[i][0])
