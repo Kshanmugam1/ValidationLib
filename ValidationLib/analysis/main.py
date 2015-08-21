@@ -1,5 +1,3 @@
-# ToDo-Shashank: Add option for Location and Contract Summary
-
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 

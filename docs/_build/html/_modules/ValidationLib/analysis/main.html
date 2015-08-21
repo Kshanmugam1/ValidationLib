@@ -1,0 +1,868 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>ValidationLib.analysis.main &mdash; ValidationLib  documentation</title>
+    
+    <link rel="stylesheet" href="../../../_static/classic.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="ValidationLib  documentation" href="../../../index.html" />
+    <link rel="up" title="Module code" href="../../index.html" /> 
+  </head>
+  <body role="document">
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">ValidationLib  documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <h1>Source code for ValidationLib.analysis.main</h1><div class="highlight"><pre>
+<span class="c">#!/usr/bin/env python</span>
+<span class="c"># -*- coding: utf-8 -*-</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">******************************************************</span>
+<span class="sd">Analysis Package</span>
+<span class="sd">******************************************************</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="c"># Import standard Python packages</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">logging</span>
+
+<span class="c"># Import external Python libraries</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="kn">as</span> <span class="nn">pd</span>
+
+<span class="c"># Import internal packages</span>
+<span class="kn">from</span> <span class="nn">ValidationLib.database.main</span> <span class="kn">import</span> <span class="o">*</span>
+<span class="kn">from</span> <span class="nn">ValidationLib.general.main</span> <span class="kn">import</span> <span class="o">*</span>
+
+
+<span class="n">__author__</span> <span class="o">=</span> <span class="s">&#39;Shashank Kapadia&#39;</span>
+<span class="n">__copyright__</span> <span class="o">=</span> <span class="s">&#39;2015 AIR Worldwide, Inc.. All rights reserved&#39;</span>
+<span class="n">__version__</span> <span class="o">=</span> <span class="s">&#39;1.0&#39;</span>
+<span class="n">__interpreter__</span> <span class="o">=</span> <span class="s">&#39;Anaconda - Python 2.7.10 64 bit&#39;</span>
+<span class="n">__maintainer__</span> <span class="o">=</span> <span class="s">&#39;Shashank kapadia&#39;</span>
+<span class="n">__email__</span> <span class="o">=</span> <span class="s">&#39;skapadia@air-worldwide.com&#39;</span>
+<span class="n">__status__</span> <span class="o">=</span> <span class="s">&#39;Complete&#39;</span>
+
+
+<div class="viewcode-block" id="loss_mod"><a class="viewcode-back" href="../../../ValidationLib.analysis.html#ValidationLib.analysis.main.loss_mod">[docs]</a><span class="k">class</span> <span class="nc">loss_mod</span><span class="p">:</span>
+
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Loss Mod Validation</span>
+
+<span class="sd">    ...</span>
+
+<span class="sd">    Methods</span>
+<span class="sd">    -------</span>
+<span class="sd">    check_rule(mod_analysis_sid, perils_analysis_grouped, coverage, lob, occupancy,</span>
+<span class="sd">    construction, year_built, stories, contract_id, location_id, factor, mod_result_sid, result_db)</span>
+<span class="sd">        Validates Loss Mod template information against the analysis option.</span>
+<span class="sd">        That is, for certain information in a loss mod template, it validates whether the analysis</span>
+<span class="sd">        was run with a correct set of option</span>
+
+<span class="sd">    getLossDF(ModAnalysisSID, resultDB, BaseResultSID, ModResultSID, coverage)</span>
+<span class="sd">        Returns the loss dataframe from a given loss mod information and analysis option</span>
+
+<span class="sd">    validate(resultDF, template_info, coverage, ModAnalysisSID, tolerance)</span>
+<span class="sd">        Validates the loss number against loss mod factor for a given set of information in loss mod</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">server</span><span class="p">):</span>
+
+        <span class="sd">&quot;&quot;&quot;Initialize the LossModValidation class</span>
+
+<span class="sd">        Establish a connection with an input server</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        server: string</span>
+<span class="sd">            For example: &#39;QAWUDB2\SQL2012&#39;</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">setup</span> <span class="o">=</span> <span class="n">Database</span><span class="p">(</span><span class="n">server</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">connection</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">connection</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">cursor</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">cursor</span>
+
+<div class="viewcode-block" id="loss_mod.check_rule"><a class="viewcode-back" href="../../../ValidationLib.analysis.html#ValidationLib.analysis.main.loss_mod.check_rule">[docs]</a>    <span class="k">def</span> <span class="nf">check_rule</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mod_analysis_sid</span><span class="p">,</span> <span class="n">perils_analysis_grouped</span><span class="p">,</span> <span class="n">coverage</span><span class="p">,</span> <span class="n">lob</span><span class="p">,</span>
+                   <span class="n">admin_boundary</span><span class="p">,</span> <span class="n">occupancy</span><span class="p">,</span> <span class="n">construction</span><span class="p">,</span>
+                   <span class="n">year_built</span><span class="p">,</span> <span class="n">stories</span><span class="p">,</span> <span class="n">contract_id</span><span class="p">,</span> <span class="n">location_id</span><span class="p">,</span>
+                   <span class="n">factor</span><span class="p">,</span> <span class="n">mod_result_sid</span><span class="p">,</span> <span class="n">result_db</span><span class="p">):</span>
+
+        <span class="sd">&quot;&quot;&quot;Validates the Analsis SaveBy option against information from Loss Mod Template</span>
+
+<span class="sd">        For certain information in a Loss Mod template, it is required to save your</span>
+<span class="sd">        analysis by certain option. This function validates for those rules</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        mod_analysis_sid: int</span>
+<span class="sd">            The Analysis SID of a MOD analysis</span>
+<span class="sd">        perils_analysis_grouped: list</span>
+<span class="sd">            The peril codes used in analysis but grouped.</span>
+<span class="sd">        coverage: list</span>
+<span class="sd">            Coverage type</span>
+<span class="sd">        lob: list</span>
+<span class="sd">        occupancy: list</span>
+<span class="sd">        construction: list</span>
+<span class="sd">        year_built: list</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">info_analysis</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">analysis_info</span><span class="p">(</span><span class="n">mod_analysis_sid</span><span class="p">)</span>
+
+        <span class="c">#######################################################################################</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        In the following section, we test for the valid parameter and save by option.</span>
+
+<span class="sd">        For example, if the Loss Mod template contains information regarding LOB,</span>
+<span class="sd">        then in order to validate it, the analysis needs to be saved by either</span>
+<span class="sd">        LOB, Contract, Location or Layer</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c">#######################################################################################</span>
+
+        <span class="c"># if the Coverage parameter is not empty, check if &#39;Coverage&#39; option is checked</span>
+        <span class="c"># in a result option. Also, if the Layer + Coverage option is not supported</span>
+        <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">coverage</span><span class="p">)</span> <span class="ow">and</span> <span class="p">((</span><span class="ow">not</span> <span class="p">(</span><span class="n">info_analysis</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">24</span><span class="p">]))</span> <span class="ow">or</span>
+                                  <span class="p">(</span><span class="n">info_analysis</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">7</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;LYR&#39;</span><span class="p">)):</span>
+
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s">&#39;Invalid Parameter + SaveBy option: &#39;</span>
+                          <span class="s">&#39;Coverage Option unchecked or Saved by Layer&#39;</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;..........Validation Stopped..........&#39;</span><span class="p">)</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">()</span>
+
+        <span class="c"># if the the Contract ID parameter is not empty, check if the analysis was saved by</span>
+        <span class="c"># Contract, Location or Layer</span>
+        <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">contract_id</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">info_analysis</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">7</span><span class="p">]</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;CON&#39;</span><span class="p">,</span> <span class="s">&#39;LOC&#39;</span><span class="p">,</span> <span class="s">&#39;LYR&#39;</span><span class="p">,</span> <span class="s">&#39;GEOL&#39;</span><span class="p">]:</span>
+
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s">&#39;Invalid Parameter + SaveBy option: &#39;</span>
+                          <span class="s">&#39;Please save the analysis with the Contract, &#39;</span>
+                          <span class="s">&#39;Location or Layer as a Save by option&#39;</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;..........Validation Stopped..........&#39;</span><span class="p">)</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">()</span>
+
+        <span class="c"># if the Location ID, yearBuilt, Stories, Construction or Occupancy parameter</span>
+        <span class="c"># is not empty, check if analysis was saved by Location</span>
+        <span class="k">if</span> <span class="p">(</span><span class="nb">any</span><span class="p">(</span><span class="n">location_id</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">any</span><span class="p">(</span><span class="n">year_built</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">any</span><span class="p">(</span><span class="n">stories</span><span class="p">)</span> <span class="ow">or</span>
+                <span class="nb">any</span><span class="p">(</span><span class="n">construction</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">any</span><span class="p">(</span><span class="n">occupancy</span><span class="p">))</span> <span class="ow">and</span> <span class="ow">not</span> \
+                        <span class="n">info_analysis</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">7</span><span class="p">]</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;LOC&#39;</span><span class="p">,</span> <span class="s">&#39;GEOL&#39;</span><span class="p">]:</span>
+
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s">&#39;Invalid Parameter + SaveBy option: Please save the analysis with the &#39;</span>
+                          <span class="s">&#39;Location as a Save by option&#39;</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;..........Validation Stopped..........&#39;</span><span class="p">)</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">()</span>
+
+        <span class="c"># if the LOB parameter is not empty, check if the analysis was saved by</span>
+        <span class="c"># LOB, Contract, Location or Layer</span>
+        <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">lob</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">info_analysis</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">7</span><span class="p">]</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;EA&#39;</span><span class="p">,</span> <span class="s">&#39;CON&#39;</span><span class="p">,</span> <span class="s">&#39;LOC&#39;</span><span class="p">,</span> <span class="s">&#39;LYR&#39;</span><span class="p">,</span> <span class="s">&#39;GEOL&#39;</span><span class="p">]:</span>
+
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s">&#39;Invalid Parameter + SaveBy option: Please save the analysis with the LOB, &#39;</span>
+                          <span class="s">&#39;Contract, Location, or Layer&#39;</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;..........Validation Stopped..........&#39;</span><span class="p">)</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">()</span>
+        <span class="c">#######################################################################################</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        In the following section, we formulate the lists of necessary information,</span>
+<span class="sd">        called template_info, based on the save by option. The formulated template info</span>
+<span class="sd">        is then used to validate the loss numbers</span>
+
+<span class="sd">        For example: if analysis was saved by the LOB, then the template info</span>
+<span class="sd">        will contain Perils, LOB, Factor.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="c">#######################################################################################</span>
+
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Option 1:   EA</span>
+
+<span class="sd">        Output:     template_info = (Perils, LOB, Factor)</span>
+
+<span class="sd">        1. Check if LOB parameter in the template, if not empty, extract the ExposureAttributeSID</span>
+<span class="sd">        for a given LOB, else, consider all the ExposureAttributeSID</span>
+
+<span class="sd">        2. If coverage, add the coverage info to template_info, template_info = (Perils, LOB, Factor, Coverage)</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">info_analysis</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">7</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;EA&#39;</span><span class="p">:</span>
+            <span class="n">lob_update</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">lob</span><span class="p">):</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">lob</span><span class="p">)):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&#39;Select ExposureAttribute from [&#39;</span> <span class="o">+</span> <span class="n">result_db</span> <span class="o">+</span> <span class="s">&#39;].dbo.t&#39;</span> <span class="o">+</span>
+                                        <span class="nb">str</span><span class="p">(</span><span class="n">mod_result_sid</span><span class="p">)</span> <span class="o">+</span>
+                                        <span class="s">&#39;_LOSS_DimExposureAttribute WHERE ExposureAttribute &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">lob</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span>
+                    <span class="n">info</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">())</span>
+                    <span class="n">lob_update</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">info</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">info</span><span class="p">))])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">factor</span><span class="p">)):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&#39;Select ExposureAttribute from [&#39;</span> <span class="o">+</span> <span class="n">result_db</span> <span class="o">+</span> <span class="s">&#39;].dbo.t&#39;</span> <span class="o">+</span>
+                                        <span class="nb">str</span><span class="p">(</span><span class="n">mod_result_sid</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;_LOSS_DimExposureAttribute&#39;</span><span class="p">)</span>
+                    <span class="n">info</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">())</span>
+                    <span class="n">lob_update</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">info</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">info</span><span class="p">))])</span>
+            <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">coverage</span><span class="p">):</span>
+                <span class="n">template_info</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">perils_analysis_grouped</span><span class="p">,</span> <span class="n">lob_update</span><span class="p">,</span> <span class="n">factor</span><span class="p">,</span> <span class="n">coverage</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">template_info</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">perils_analysis_grouped</span><span class="p">,</span> <span class="n">lob_update</span><span class="p">,</span> <span class="n">factor</span><span class="p">)</span>
+
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Option 2:   Contract or Location</span>
+
+<span class="sd">        Output:     if Contract: template_info = (Factor, ContractID, Factor),</span>
+<span class="sd">                    else Location: template_info = (Factor, ContractID, Factor)</span>
+
+<span class="sd">        1. If both LOB and ContractID is present in template, use Loss_DimContract to extract ContractSID from given</span>
+<span class="sd">        LOB and ContractID</span>
+
+<span class="sd">        2. If only LOB or only ContractID is present, use them individually with the same table to extract info</span>
+
+<span class="sd">        3. If none is present, extract all the ContractSID; this will account for the case when a template has only</span>
+<span class="sd">        Peril anf Factor information and analysis was saved by Contract or by Location</span>
+
+<span class="sd">        4. If the analysis was run by Contract, update the template info, else, if the analysis was run by Location,</span>
+<span class="sd">        continue to step 5</span>
+
+<span class="sd">        5. If the no information related to LocationID, yearBuilt, Occupancy and stories, then extract the LocationSID</span>
+<span class="sd">        using the ContractSIDs determined from the above steps and update the template_info, else,</span>
+
+<span class="sd">        6.</span>
+<span class="sd">            1. If LocationID is present, filter the those locations and update the LocationID list</span>
+<span class="sd">            2. Repeat this process of elimination for Construction, Occupancy, yearBuilt ans stories.</span>
+
+<span class="sd">        7. return the updated template_info</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">info_analysis</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">7</span><span class="p">]</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;CON&#39;</span><span class="p">,</span> <span class="s">&#39;LOC&#39;</span><span class="p">]:</span>
+            <span class="n">contract_sid_update</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="n">contract_id_update</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">lob</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">any</span><span class="p">(</span><span class="n">contract_id</span><span class="p">):</span> <span class="c"># 1.</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">lob</span><span class="p">)):</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&#39;Select ContractSID, ContractID from [&#39;</span> <span class="o">+</span> <span class="n">result_db</span> <span class="o">+</span> <span class="s">&#39;].dbo.t&#39;</span> <span class="o">+</span>
+                                            <span class="nb">str</span><span class="p">(</span><span class="n">mod_result_sid</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;_LOSS_DimContract WHERE UserLineOfBusiness &#39;</span> <span class="o">+</span>
+                                            <span class="nb">str</span><span class="p">(</span><span class="n">lob</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="o">+</span> <span class="s">&#39;AND ContractID in &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="n">contract_id</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;,&#39;</span><span class="p">))))</span>
+                    <span class="k">except</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&#39;Select ContractSID, ContractID from [&#39;</span> <span class="o">+</span> <span class="n">result_db</span> <span class="o">+</span> <span class="s">&#39;].dbo.t&#39;</span> <span class="o">+</span>
+                                            <span class="nb">str</span><span class="p">(</span><span class="n">mod_result_sid</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;_LOSS_DimContract WHERE UserLineOfBusiness &#39;</span> <span class="o">+</span>
+                                            <span class="nb">str</span><span class="p">(</span><span class="n">lob</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="o">+</span> <span class="s">&#39;AND ContractID = &#39;</span> <span class="o">+</span> <span class="s">&quot;&#39;&quot;</span> <span class="o">+</span>
+                                            <span class="nb">str</span><span class="p">(</span><span class="n">contract_id</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="o">+</span> <span class="s">&quot;&#39;&quot;</span><span class="p">)</span>
+
+                    <span class="n">info</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">())</span>
+                    <span class="n">contract_id_update</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">info</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">info</span><span class="p">))])</span>
+                    <span class="n">contract_sid_update</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">info</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">info</span><span class="p">))])</span>
+
+            <span class="k">elif</span> <span class="nb">any</span><span class="p">(</span><span class="n">lob</span><span class="p">):</span> <span class="c"># 2.</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">lob</span><span class="p">)):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&#39;Select ContractSID, ContractID from [&#39;</span> <span class="o">+</span> <span class="n">result_db</span> <span class="o">+</span> <span class="s">&#39;].dbo.t&#39;</span> <span class="o">+</span>
+                                        <span class="nb">str</span><span class="p">(</span><span class="n">mod_result_sid</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;_LOSS_DimContract WHERE UserLineOfBusiness &#39;</span> <span class="o">+</span>
+                                        <span class="nb">str</span><span class="p">(</span><span class="n">lob</span><span class="p">[</span><span class="n">i</span><span class="p">]))</span>
+                    <span class="n">info</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">())</span>
+                    <span class="n">contract_id_update</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">info</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">info</span><span class="p">))])</span>
+                    <span class="n">contract_sid_update</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">info</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">info</span><span class="p">))])</span>
+
+            <span class="k">elif</span> <span class="nb">any</span><span class="p">(</span><span class="n">contract_id</span><span class="p">):</span> <span class="c"># 2.</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">contract_id</span><span class="p">)):</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&#39;Select ContractSID, ContractID from [&#39;</span> <span class="o">+</span> <span class="n">result_db</span> <span class="o">+</span> <span class="s">&#39;].dbo.t&#39;</span> <span class="o">+</span>
+                                            <span class="nb">str</span><span class="p">(</span><span class="n">mod_result_sid</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;_LOSS_DimContract WHERE ContractID in &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span>
+                                            <span class="nb">tuple</span><span class="p">(</span><span class="n">contract_id</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;,&#39;</span><span class="p">))))</span>
+                    <span class="k">except</span><span class="p">:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&#39;Select ContractSID, COntractID from [&#39;</span> <span class="o">+</span> <span class="n">result_db</span> <span class="o">+</span> <span class="s">&#39;].dbo.t&#39;</span> <span class="o">+</span>
+                                            <span class="nb">str</span><span class="p">(</span><span class="n">mod_result_sid</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;_LOSS_DimContract WHERE ContractID  = &#39;</span> <span class="o">+</span> <span class="s">&quot;&#39;&quot;</span> <span class="o">+</span>
+                                            <span class="nb">str</span><span class="p">(</span><span class="n">contract_id</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="o">+</span> <span class="s">&quot;&#39;&quot;</span><span class="p">)</span>
+
+                    <span class="n">info</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">())</span>
+                    <span class="n">contract_id_update</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">info</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">info</span><span class="p">))])</span>
+                    <span class="n">contract_sid_update</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">info</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">info</span><span class="p">))])</span>
+            <span class="k">else</span><span class="p">:</span> <span class="c"># 3.</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">perils_analysis_grouped</span><span class="p">)):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="s">&#39;Select ContractSID, ContractID from [&#39;</span> <span class="o">+</span> <span class="n">result_db</span> <span class="o">+</span> <span class="s">&#39;].dbo.t&#39;</span> <span class="o">+</span>
+                                        <span class="nb">str</span><span class="p">(</span><span class="n">mod_result_sid</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;_LOSS_DimContract&#39;</span><span class="p">)</span>
+                    <span class="n">info</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">())</span>
+                    <span class="n">contract_id_update</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">info</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">info</span><span class="p">))])</span>
+                    <span class="n">contract_sid_update</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">info</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">info</span><span class="p">))])</span>
+
+            <span class="k">if</span> <span class="n">info_analysis</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">7</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;CON&#39;</span><span class="p">:</span> <span class="c"># 4.</span>
+                <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">coverage</span><span class="p">):</span>
+                    <span class="n">template_info</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">perils_analysis_grouped</span><span class="p">,</span> <span class="n">contract_id_update</span><span class="p">,</span> <span class="n">factor</span><span class="p">,</span> <span class="n">coverage</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">template_info</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">perils_analysis_grouped</span><span class="p">,</span> <span class="n">contract_id_update</span><span class="p">,</span> <span class="n">factor</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span> <span class="c"># 4., 5.</span>
+                <span class="n">location_sid_update</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="n">location_id_update</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="nb">any</span><span class="p">(</span><span class="n">year_built</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">any</span><span class="p">(</span><span class="n">stories</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">any</span><span class="p">(</span><span class="n">construction</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">occupancy</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">any</span><span class="p">(</span><span class="n">location_id</span><span class="p">)):</span>
+                    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">contract_sid_update</span><span class="p">)):</span>
+                        <span class="k">try</span><span class="p">:</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+                                <span class="s">&#39;Select LocationSID, LocationID from [&#39;</span> <span class="o">+</span> <span class="n">result_db</span> <span class="o">+</span> <span class="s">&#39;].dbo.t&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">mod_result_sid</span><span class="p">)</span> <span class="o">+</span>
+                                <span class="s">&#39;_LOSS_DimLocation WHERE ContractSID in &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="n">contract_sid_update</span><span class="p">[</span><span class="n">i</span><span class="p">])))</span>
+                        <span class="k">except</span><span class="p">:</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+                                <span class="s">&#39;Select LocationSID, LocationID from [&#39;</span> <span class="o">+</span> <span class="n">result_db</span> <span class="o">+</span> <span class="s">&#39;].dbo.t&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">mod_result_sid</span><span class="p">)</span> <span class="o">+</span>
+                                <span class="s">&#39;_LOSS_DimLocation WHERE ContractSID = &#39;</span> <span class="o">+</span> <span class="s">&quot;&#39;&quot;</span> <span class="o">+</span>
+                                <span class="nb">str</span><span class="p">(</span><span class="n">contract_sid_update</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span> <span class="o">+</span> <span class="s">&quot;&#39;&quot;</span><span class="p">)</span>
+                        <span class="n">info</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">())</span>
+                        <span class="n">location_id_update</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">info</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">info</span><span class="p">))])</span>
+                        <span class="n">location_sid_update</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">info</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">info</span><span class="p">))])</span>
+                        <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">coverage</span><span class="p">):</span>
+                            <span class="n">template_info</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">perils_analysis_grouped</span><span class="p">,</span> <span class="n">location_id_update</span><span class="p">,</span> <span class="n">factor</span><span class="p">,</span> <span class="n">coverage</span><span class="p">)</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">template_info</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">perils_analysis_grouped</span><span class="p">,</span> <span class="n">location_id_update</span><span class="p">,</span> <span class="n">factor</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span> <span class="c"># 6.</span>
+                    <span class="n">script</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;Select * from [&#39;</span> <span class="o">+</span> <span class="n">result_db</span> <span class="o">+</span> <span class="s">&#39;].dbo.t&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">mod_result_sid</span><span class="p">)</span> <span class="o">+</span>
+                              <span class="s">&#39;_LOSS_DimLocation&#39;</span><span class="p">)</span>
+                    <span class="n">dimLocation_DF</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">read_sql</span><span class="p">(</span><span class="n">script</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">connection</span><span class="p">)</span>
+                    <span class="n">location_sid_update</span> <span class="o">=</span> <span class="p">[]</span>
+                    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">perils_analysis_grouped</span><span class="p">)):</span>
+                        <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">location_id</span><span class="p">):</span>
+                            <span class="k">try</span><span class="p">:</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+                                    <span class="s">&#39;Select LocationSID, LocationID from [&#39;</span> <span class="o">+</span> <span class="n">result_db</span> <span class="o">+</span> <span class="s">&#39;].dbo.t&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">mod_result_sid</span><span class="p">)</span> <span class="o">+</span>
+                                    <span class="s">&#39;_LOSS_DimLocation WHERE LocationID in &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span>
+                                        <span class="nb">tuple</span><span class="p">(</span><span class="n">location_id</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;,&#39;</span><span class="p">))))</span>
+                            <span class="k">except</span><span class="p">:</span>
+                                <span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span>
+                                    <span class="s">&#39;Select LocationSID, LocationID from [&#39;</span> <span class="o">+</span> <span class="n">result_db</span> <span class="o">+</span> <span class="s">&#39;].dbo.t&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">mod_result_sid</span><span class="p">)</span> <span class="o">+</span>
+                                    <span class="s">&#39;_LOSS_DimLocation WHERE LocationID = &#39;</span> <span class="o">+</span> <span class="s">&quot;&#39;&quot;</span> <span class="o">+</span>
+                                    <span class="nb">str</span><span class="p">(</span><span class="n">location_id</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;,&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span> <span class="o">+</span> <span class="s">&quot;&#39;&quot;</span><span class="p">)</span>
+                            <span class="n">info</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">cursor</span><span class="o">.</span><span class="n">fetchall</span><span class="p">())</span>
+                            <span class="n">location_sid</span> <span class="o">=</span> <span class="p">[</span><span class="n">info</span><span class="p">[</span><span class="n">j</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">info</span><span class="p">))]</span>
+                            <span class="n">dimLocation_DF</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span>
+                                <span class="n">dimLocation_DF</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">dimLocation_DF</span><span class="p">[</span><span class="s">&#39;LocationSID&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">location_sid</span><span class="p">),</span> <span class="p">:])</span>
+                        <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">construction</span><span class="p">):</span>
+                            <span class="k">try</span><span class="p">:</span>
+                                <span class="k">if</span> <span class="ow">not</span> <span class="n">construction</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span>
+                                    <span class="n">dimLocation_DF</span> <span class="o">=</span> \
+                                        <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">dimLocation_DF</span><span class="o">.</span><span class="n">loc</span>
+                                                      <span class="p">[</span><span class="n">dimLocation_DF</span><span class="p">[</span><span class="s">&#39;AIRConstructionCode&#39;</span><span class="p">]</span> <span class="o">==</span>
+                                                       <span class="n">construction</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="p">:])</span>
+                            <span class="k">except</span><span class="p">:</span>
+                                <span class="n">dimLocation_DF</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">dimLocation_DF</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">occupancy</span><span class="p">):</span>
+                            <span class="k">if</span> <span class="ow">not</span> <span class="n">occupancy</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span>
+                                <span class="n">dimLocation_DF</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span>
+                                    <span class="n">dimLocation_DF</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">dimLocation_DF</span><span class="p">[</span><span class="s">&#39;AIROccupancyCode&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">occupancy</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="p">:])</span>
+                        <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">year_built</span><span class="p">):</span>
+                            <span class="k">if</span> <span class="ow">not</span> <span class="n">year_built</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span>
+                                <span class="n">dimLocation_DF</span> <span class="o">=</span> <span class="n">dimLocation_DF</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">dimLocation_DF</span><span class="p">[</span><span class="s">&#39;YearBuilt&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">year_built</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="p">:]</span>
+                        <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">stories</span><span class="p">):</span>
+                            <span class="k">if</span> <span class="ow">not</span> <span class="n">stories</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span>
+                                <span class="n">dimLocation_DF</span> <span class="o">=</span> <span class="n">dimLocation_DF</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">dimLocation_DF</span><span class="p">[</span><span class="s">&#39;Stories&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">stories</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="p">:]</span>
+
+                        <span class="n">location_sid_update</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dimLocation_DF</span><span class="p">[</span><span class="s">&#39;LocationSID&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+                        <span class="n">location_id_update</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dimLocation_DF</span><span class="p">[</span><span class="s">&#39;LocationID&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+                        <span class="c"># script = (&#39;Select * from [&#39; + result_db + &#39;].dbo.t&#39; + str(mod_result_sid) +</span>
+                        <span class="c">#           &#39;_LOSS_DimLocation&#39;)</span>
+                        <span class="c"># dimLocation_DF = pd.read_sql(script, self.connection)</span>
+                    <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">coverage</span><span class="p">):</span> <span class="c"># 7.</span>
+                        <span class="n">template_info</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">perils_analysis_grouped</span><span class="p">,</span> <span class="n">location_id_update</span><span class="p">,</span> <span class="n">factor</span><span class="p">,</span> <span class="n">coverage</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">template_info</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">perils_analysis_grouped</span><span class="p">,</span> <span class="n">location_id_update</span><span class="p">,</span> <span class="n">factor</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">info_analysis</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">7</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;GEOL&#39;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">(</span><span class="n">coverage</span><span class="p">):</span>
+
+                <span class="n">template_info</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">perils_analysis_grouped</span><span class="p">,</span> <span class="n">admin_boundary</span><span class="p">,</span> <span class="n">factor</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+
+                <span class="n">template_info</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="n">perils_analysis_grouped</span><span class="p">,</span> <span class="n">admin_boundary</span><span class="p">,</span> <span class="n">factor</span><span class="p">,</span> <span class="n">coverage</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="p">(</span><span class="n">info_analysis</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">7</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;PORT&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">info_analysis</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">8</span><span class="p">]</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;LOCSUM&#39;</span><span class="p">,</span> <span class="s">&#39;CONSUM&#39;</span><span class="p">]):</span>
+
+            <span class="n">logging</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s">&#39;Invalid save by Option: Currently, it doesn&#39;&#39;t support the SaveBy Location Summary and&#39;</span>
+                          <span class="s">&#39; Contract Summary option&#39;</span><span class="p">)</span>
+            <span class="n">logging</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s">&#39;..........Validation Stopped..........&#39;</span><span class="p">)</span>
+            <span class="n">sys</span><span class="o">.</span><span class="n">exit</span><span class="p">()</span>
+        <span class="c">#     # The reason being, each contract may have multiple perils and it is difficult to track the factor</span>
+        <span class="c">#     if not len(perils_analysis_grouped) == 1:</span>
+        <span class="c">#         print(&#39;Currently, Peril+Factor template with save by Location Summary/Contract &#39;</span>
+        <span class="c">#               &#39;Summary is only available when analysis is run by single peril&#39;)</span>
+        <span class="c">#         sys.exit()</span>
+        <span class="c">#     else:</span>
+        <span class="c">#         if any(contract_id):</span>
+        <span class="c">#             contract_sid_update = []</span>
+        <span class="c">#             for i in range(len(contract_id)):</span>
+        <span class="c">#                 self.cursor.execute(&#39;Select ContractSID from [&#39; + result_db + &#39;].dbo.t&#39; + str(mod_result_sid) +</span>
+        <span class="c">#                                     &#39;_LOSS_DimContract where ContractID in &#39; + str(</span>
+        <span class="c">#                     tuple(contract_id[i].split(&#39;,&#39;))))</span>
+        <span class="c">#                 info = copy.deepcopy(self.cursor.fetchall())</span>
+        <span class="c">#                 contract_sid_update.append([info[i][0] for i in range(len(info))])</span>
+        <span class="c">#         else:</span>
+        <span class="c">#             self.cursor.execute(&#39;Select ContractSID from [&#39; + result_db + &#39;].dbo.t&#39; + str(mod_result_sid) +</span>
+        <span class="c">#                                 &#39;_LOSS_DimContract&#39;)</span>
+        <span class="c">#             info = copy.deepcopy(self.cursor.fetchall())</span>
+        <span class="c">#             contract_sid_update = [info[i][0] for i in range(len(info))]</span>
+        <span class="c">#         if info_analysis[0][8] == &#39;CONSUM&#39;:</span>
+        <span class="c">#             if any(coverage):</span>
+        <span class="c">#                 template_info = zip(perils_analysis_grouped, contract_sid_update, factor, coverage)</span>
+        <span class="c">#             else:</span>
+        <span class="c">#                 template_info = zip(perils_analysis_grouped, contract_sid_update, factor)</span>
+        <span class="c">#         else:</span>
+        <span class="c">#             if not (any(year_built) or any(stories) or (construction) or (occupancy)):</span>
+        <span class="c">#                 if any(location_id):</span>
+        <span class="c">#                     location_sid_update = []</span>
+        <span class="c">#                     for i in range(len(contract_sid_update)):</span>
+        <span class="c">#                         try:</span>
+        <span class="c">#                             self.cursor.execute(</span>
+        <span class="c">#                                 &#39;Select LocationSID from [&#39; + result_db + &#39;].dbo.t&#39; + str(mod_result_sid) +</span>
+        <span class="c">#                                 &#39;_LOSS_DimLocation WHERE ContractSID in &#39; + str(tuple(contract_sid_update[i])))</span>
+        <span class="c">#                         except:</span>
+        <span class="c">#                             self.cursor.execute(</span>
+        <span class="c">#                                 &#39;Select LocationSID from [&#39; + result_db + &#39;].dbo.t&#39; + str(mod_result_sid) +</span>
+        <span class="c">#                                 &#39;_LOSS_DimLocation WHERE ContractSID = &#39; + &quot;&#39;&quot; +</span>
+        <span class="c">#                                 str(contract_sid_update[i][0]) + &quot;&#39;&quot;)</span>
+        <span class="c">#                         info = copy.deepcopy(self.cursor.fetchall())</span>
+        <span class="c">#                         location_sid_update.append([info[i][0] for i in range(len(info))])</span>
+        <span class="c">#             else:</span>
+        <span class="c">#                 query = (&#39;Select * from [&#39; + result_db + &#39;].dbo.t&#39; + str(mod_result_sid) +</span>
+        <span class="c">#                          &#39;_LOSS_DimLocation&#39;)</span>
+        <span class="c">#                 dimLocation_DF = pd.read_sql(query, self.connection)</span>
+        <span class="c">#                 location_sid_update = []</span>
+        <span class="c">#                 for i in range(len(perils_analysis_grouped)):</span>
+        <span class="c">#                     if any(construction):</span>
+        <span class="c">#                         try:</span>
+        <span class="c">#                             if not construction[i] == None:</span>
+        <span class="c">#                                 dimLocation_DF = dimLocation_DF.loc[</span>
+        <span class="c">#                                                  dimLocation_DF[&#39;AIRConstructionCode&#39;] == construction[i], :]</span>
+        <span class="c">#                         except:</span>
+        <span class="c">#                             dimLocation_DF = dimLocation_DF</span>
+        <span class="c">#                     if any(occupancy):</span>
+        <span class="c">#                         if not occupancy[i] == None:</span>
+        <span class="c">#                             dimLocation_DF = dimLocation_DF.loc[</span>
+        <span class="c">#                                              dimLocation_DF[&#39;AIROccupancyCode&#39;] == occupancy[i], :]</span>
+        <span class="c">#                     if any(year_built):</span>
+        <span class="c">#                         if not year_built[i] == None:</span>
+        <span class="c">#                             dimLocation_DF = dimLocation_DF.loc[dimLocation_DF[&#39;YearBuilt&#39;] == year_built[i], :]</span>
+        <span class="c">#                     if any(stories):</span>
+        <span class="c">#                         if not stories[i] == None:</span>
+        <span class="c">#                             dimLocation_DF = dimLocation_DF.loc[dimLocation_DF[&#39;Stories&#39;] == stories[i], :]</span>
+        <span class="c">#</span>
+        <span class="c">#                     dimLocation_DF_copy = copy.deepcopy(dimLocation_DF)</span>
+        <span class="c">#                     location_sid_update.append(dimLocation_DF[&#39;LocationSID&#39;].values)</span>
+        <span class="c">#                 if any(coverage):</span>
+        <span class="c">#                     template_info = zip(perils_analysis_grouped, location_sid_update, factor)</span>
+        <span class="c">#                 else:</span>
+        <span class="c">#                     template_info = zip(perils_analysis_grouped, location_sid_update, factor, coverage)</span>
+        <span class="c"># if (info_analysis[0][7] == &#39;PORT&#39;):</span>
+        <span class="c">#     if any(coverage):</span>
+        <span class="c">#         template_info = zip(perils_analysis_grouped, factor, coverage)</span>
+        <span class="c">#     else:</span>
+        <span class="c">#         template_info = zip(perils_analysis_grouped, factor)</span>
+
+        <span class="k">return</span> <span class="n">template_info</span>
+</div>
+<div class="viewcode-block" id="loss_mod.get_loss_df"><a class="viewcode-back" href="../../../ValidationLib.analysis.html#ValidationLib.analysis.main.loss_mod.get_loss_df">[docs]</a>    <span class="k">def</span> <span class="nf">get_loss_df</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ModAnalysisSID</span><span class="p">,</span> <span class="n">resultDB</span><span class="p">,</span> <span class="n">BaseResultSID</span><span class="p">,</span> <span class="n">ModResultSID</span><span class="p">,</span> <span class="n">coverage</span><span class="p">):</span>
+
+        <span class="n">info_analysis</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">analysis_info</span><span class="p">(</span><span class="n">ModAnalysisSID</span><span class="p">)</span>
+        <span class="n">resultDF</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">()</span>
+        <span class="n">resultDF</span><span class="p">[</span><span class="s">&#39;Status&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="c"># In the case where analysis is saved by LOB, get the loss numbers from Loss By Exposure Attribute</span>
+        <span class="k">if</span> <span class="n">info_analysis</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">7</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;EA&#39;</span><span class="p">:</span>
+            <span class="n">resultDF_Base</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">loss_df</span><span class="p">(</span><span class="n">resultDB</span><span class="p">,</span> <span class="n">BaseResultSID</span><span class="p">,</span> <span class="s">&#39;LOB&#39;</span><span class="p">)</span>
+            <span class="n">resultDF_Mod</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">loss_df</span><span class="p">(</span><span class="n">resultDB</span><span class="p">,</span> <span class="n">ModResultSID</span><span class="p">,</span> <span class="s">&#39;LOB&#39;</span><span class="p">)</span>
+
+        <span class="c"># In the case where analysis is saved by Default, get the loss numbers from Loss By Event</span>
+        <span class="k">if</span> <span class="n">info_analysis</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">7</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;PORT&#39;</span><span class="p">:</span>
+
+            <span class="k">if</span> <span class="n">info_analysis</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">8</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;CONSUM&#39;</span><span class="p">:</span>
+
+                <span class="n">resultDF_Base</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">loss_df</span><span class="p">(</span><span class="n">resultDB</span><span class="p">,</span> <span class="n">BaseResultSID</span><span class="p">,</span> <span class="s">&#39;CONSUM&#39;</span><span class="p">)</span>
+                <span class="n">resultDF_Mod</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">loss_df</span><span class="p">(</span><span class="n">resultDB</span><span class="p">,</span> <span class="n">ModResultSID</span><span class="p">,</span> <span class="s">&#39;CONSUM&#39;</span><span class="p">)</span>
+
+            <span class="k">elif</span> <span class="n">info_analysis</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">8</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;LOCSUM&#39;</span><span class="p">:</span>
+
+                <span class="n">resultDF_Base</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">loss_df</span><span class="p">(</span><span class="n">resultDB</span><span class="p">,</span> <span class="n">BaseResultSID</span><span class="p">,</span> <span class="s">&#39;LOCSUM&#39;</span><span class="p">)</span>
+                <span class="n">resultDF_Mod</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">loss_df</span><span class="p">(</span><span class="n">resultDB</span><span class="p">,</span> <span class="n">ModResultSID</span><span class="p">,</span> <span class="s">&#39;LOCSUM&#39;</span><span class="p">)</span>
+
+            <span class="k">else</span><span class="p">:</span>
+
+                <span class="n">resultDF_Base</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">loss_df</span><span class="p">(</span><span class="n">resultDB</span><span class="p">,</span> <span class="n">BaseResultSID</span><span class="p">,</span> <span class="s">&#39;Event&#39;</span><span class="p">)</span>
+                <span class="n">resultDF_Mod</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">loss_df</span><span class="p">(</span><span class="n">resultDB</span><span class="p">,</span> <span class="n">ModResultSID</span><span class="p">,</span> <span class="s">&#39;Event&#39;</span><span class="p">)</span>
+
+        <span class="c"># In the case where analysis is saved by Contract, get the loss numbers from Loss By Contract</span>
+        <span class="k">if</span> <span class="n">info_analysis</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">7</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;CON&#39;</span><span class="p">:</span>
+
+            <span class="n">resultDF_Base</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">loss_df</span><span class="p">(</span><span class="n">resultDB</span><span class="p">,</span> <span class="n">BaseResultSID</span><span class="p">,</span> <span class="s">&#39;CON&#39;</span><span class="p">)</span>
+            <span class="n">resultDF_Mod</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">loss_df</span><span class="p">(</span><span class="n">resultDB</span><span class="p">,</span> <span class="n">ModResultSID</span><span class="p">,</span> <span class="s">&#39;CON&#39;</span><span class="p">)</span>
+
+        <span class="c"># In the case where analysis is saved by Location, get the loss numbers from Loss By Location</span>
+        <span class="k">elif</span> <span class="n">info_analysis</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">7</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;LOC&#39;</span><span class="p">:</span>
+
+            <span class="n">resultDF_Base</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">loss_df</span><span class="p">(</span><span class="n">resultDB</span><span class="p">,</span> <span class="n">BaseResultSID</span><span class="p">,</span> <span class="s">&#39;LOC&#39;</span><span class="p">)</span>
+            <span class="n">resultDF_Mod</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">loss_df</span><span class="p">(</span><span class="n">resultDB</span><span class="p">,</span> <span class="n">ModResultSID</span><span class="p">,</span> <span class="s">&#39;LOC&#39;</span><span class="p">)</span>
+
+        <span class="c"># In the case where analysis is saved by Layer, get the loss numbers from Loss By Layer</span>
+        <span class="k">elif</span> <span class="n">info_analysis</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">7</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;LYR&#39;</span><span class="p">:</span>
+
+            <span class="n">resultDF_Base</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">loss_df</span><span class="p">(</span><span class="n">resultDB</span><span class="p">,</span> <span class="n">BaseResultSID</span><span class="p">,</span> <span class="s">&#39;LYR&#39;</span><span class="p">)</span>
+            <span class="n">resultDF_Mod</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">loss_df</span><span class="p">(</span><span class="n">resultDB</span><span class="p">,</span> <span class="n">ModResultSID</span><span class="p">,</span> <span class="s">&#39;LYR&#39;</span><span class="p">)</span>
+
+        <span class="k">elif</span> <span class="n">info_analysis</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">7</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;GEOL&#39;</span><span class="p">:</span>
+
+            <span class="n">resultDF_Base</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">loss_df</span><span class="p">(</span><span class="n">resultDB</span><span class="p">,</span> <span class="n">BaseResultSID</span><span class="p">,</span> <span class="s">&#39;GEOL&#39;</span><span class="p">)</span>
+            <span class="n">resultDF_Mod</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">loss_df</span><span class="p">(</span><span class="n">resultDB</span><span class="p">,</span> <span class="n">ModResultSID</span><span class="p">,</span> <span class="s">&#39;GEOL&#39;</span><span class="p">)</span>
+
+        <span class="c"># PerilSet Code as key only if the analysis wasn&#39;t run by LocSummary or ConSummary</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">info_analysis</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">8</span><span class="p">]</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;LOCSUM&#39;</span><span class="p">,</span> <span class="s">&#39;CONSUM&#39;</span><span class="p">]:</span>
+            <span class="n">resultDF</span><span class="p">[</span><span class="s">&#39;PerilSetCode&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">resultDF_Mod</span><span class="p">[</span><span class="s">&#39;PerilSetCode&#39;</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">info_analysis</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">7</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;EA&#39;</span><span class="p">:</span>
+            <span class="n">resultDF</span><span class="p">[</span><span class="s">&#39;ExposureAttribute&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">resultDF_Mod</span><span class="p">[</span><span class="s">&#39;ExposureAttribute&#39;</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">info_analysis</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">7</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;CON&#39;</span><span class="p">:</span>
+            <span class="n">resultDF</span><span class="p">[</span><span class="s">&#39;ContractID&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">resultDF_Mod</span><span class="p">[</span><span class="s">&#39;ContractID&#39;</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">info_analysis</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">7</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;LOC&#39;</span><span class="p">:</span>
+            <span class="n">resultDF</span><span class="p">[</span><span class="s">&#39;LocationID&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">resultDF_Mod</span><span class="p">[</span><span class="s">&#39;LocationID&#39;</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">info_analysis</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">7</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;LYR&#39;</span><span class="p">:</span>
+            <span class="n">resultDF</span><span class="p">[</span><span class="s">&#39;LayerSID&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">resultDF_Mod</span><span class="p">[</span><span class="s">&#39;LayerSID&#39;</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">info_analysis</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">7</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;GEOL&#39;</span><span class="p">:</span>
+            <span class="n">resultDF</span><span class="p">[</span><span class="s">&#39;GeographySID&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">resultDF_Mod</span><span class="p">[</span><span class="s">&#39;GeographySID&#39;</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">info_analysis</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">7</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;CONGEOL&#39;</span><span class="p">:</span>
+            <span class="n">resultDF</span><span class="p">[</span><span class="s">&#39;ContractSID&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">resultDF_Mod</span><span class="p">[</span><span class="s">&#39;ContractSID&#39;</span><span class="p">]</span>
+            <span class="n">resultDF</span><span class="p">[</span><span class="s">&#39;GeographySID&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">resultDF_Mod</span><span class="p">[</span><span class="s">&#39;GeographySID&#39;</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">info_analysis</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">8</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;LOCSUM&#39;</span><span class="p">:</span>
+            <span class="n">resultDF</span><span class="p">[</span><span class="s">&#39;LocationSID&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">resultDF_Mod</span><span class="p">[</span><span class="s">&#39;LocationSID&#39;</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">info_analysis</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">8</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;CONSUM&#39;</span><span class="p">:</span>
+            <span class="n">resultDF</span><span class="p">[</span><span class="s">&#39;ContractSID&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">resultDF_Mod</span><span class="p">[</span><span class="s">&#39;ContractSID&#39;</span><span class="p">]</span>
+
+        <span class="n">resultDF</span><span class="p">[</span><span class="s">&#39;GroundUpLoss_Base&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">resultDF_Base</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="s">&#39;GroundUpLoss&#39;</span><span class="p">]</span>
+        <span class="n">resultDF</span><span class="p">[</span><span class="s">&#39;GroundUpLoss_Mod&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">resultDF_Mod</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="s">&#39;GroundUpLoss&#39;</span><span class="p">]</span>
+        <span class="n">resultDF</span><span class="p">[</span><span class="s">&#39;Ratio&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">resultDF_Mod</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="s">&#39;GroundUpLoss&#39;</span><span class="p">]</span> <span class="o">/</span> <span class="n">resultDF_Base</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="s">&#39;GroundUpLoss&#39;</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="nb">any</span><span class="p">(</span><span class="n">coverage</span><span class="p">):</span>
+
+            <span class="n">coverages</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;A&#39;</span><span class="p">,</span> <span class="s">&#39;B&#39;</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">,</span> <span class="s">&#39;D&#39;</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">coverages</span><span class="p">:</span>
+                <span class="n">resultDF</span><span class="p">[</span><span class="s">&#39;GroundUpLoss&#39;</span> <span class="o">+</span> <span class="n">i</span> <span class="o">+</span> <span class="s">&#39;_Base&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">resultDF_Base</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="s">&#39;GroundUpLoss_&#39;</span> <span class="o">+</span> <span class="n">i</span><span class="p">]</span>
+                <span class="n">resultDF</span><span class="p">[</span><span class="s">&#39;GroundUpLoss&#39;</span> <span class="o">+</span> <span class="n">i</span> <span class="o">+</span> <span class="s">&#39;_Mod&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">resultDF_Mod</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="s">&#39;GroundUpLoss_&#39;</span> <span class="o">+</span> <span class="n">i</span><span class="p">]</span>
+                <span class="n">resultDF</span><span class="p">[</span><span class="s">&#39;GroundUpLoss&#39;</span> <span class="o">+</span> <span class="n">i</span> <span class="o">+</span> <span class="s">&#39;_Ratio&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">resultDF_Mod</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="s">&#39;GroundUpLoss_&#39;</span> <span class="o">+</span> <span class="n">i</span><span class="p">]</span> <span class="o">/</span> \
+                                                          <span class="n">resultDF_Base</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="s">&#39;GroundUpLoss_&#39;</span> <span class="o">+</span> <span class="n">i</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">coverages</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;A&#39;</span><span class="p">,</span> <span class="s">&#39;B&#39;</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">,</span> <span class="s">&#39;D&#39;</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">coverages</span><span class="p">:</span>
+                <span class="n">resultDF</span><span class="p">[</span><span class="s">&#39;GroundUpLoss&#39;</span> <span class="o">+</span> <span class="n">i</span> <span class="o">+</span> <span class="s">&#39;_Base&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1.0</span>
+                <span class="n">resultDF</span><span class="p">[</span><span class="s">&#39;GroundUpLoss&#39;</span> <span class="o">+</span> <span class="n">i</span> <span class="o">+</span> <span class="s">&#39;_Mod&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1.0</span>
+                <span class="n">resultDF</span><span class="p">[</span><span class="s">&#39;GroundUpLoss&#39;</span> <span class="o">+</span> <span class="n">i</span> <span class="o">+</span> <span class="s">&#39;_Ratio&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1.0</span>
+        <span class="n">resultDF</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="s">&#39;Status&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+
+        <span class="k">return</span> <span class="n">resultDF</span>
+</div>
+<div class="viewcode-block" id="loss_mod.validate"><a class="viewcode-back" href="../../../ValidationLib.analysis.html#ValidationLib.analysis.main.loss_mod.validate">[docs]</a>    <span class="k">def</span> <span class="nf">validate</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">resultDF</span><span class="p">,</span> <span class="n">template_info</span><span class="p">,</span> <span class="n">coverage</span><span class="p">,</span> <span class="n">ModAnalysisSID</span><span class="p">,</span> <span class="n">tolerance</span><span class="p">):</span>
+
+        <span class="n">info_analysis</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="o">.</span><span class="n">analysis_info</span><span class="p">(</span><span class="n">ModAnalysisSID</span><span class="p">)</span>
+
+        <span class="c">############################################################################################################</span>
+        <span class="sd">&#39;&#39;&#39;</span>
+
+<span class="sd">        Validation Rule: In this module we validate the application of loss mod template.</span>
+
+<span class="sd">        Pseudo Algorithm:</span>
+<span class="sd">            1. For each template info:</span>
+<span class="sd">                if the analysis is not saved by Location Summary or Contract Summary</span>
+<span class="sd">                    if the Coverage is not present</span>
+<span class="sd">                        if the analysis wasn&#39;t saved ByDefault:</span>
+
+<span class="sd">                            PART 1:</span>
+<span class="sd">                                - For the given Key template info rows, the ratio should be equal to given Factor</span>
+<span class="sd">                                (Example: for selected ContractID 1, 2, 3, 4: Ratio should be 4)</span>
+<span class="sd">                                - Calculate the difference between given ratio and calculated ratio</span>
+<span class="sd">                                - if the absolute difference is less than 0.001, Pass, else, Fail</span>
+
+<span class="sd">                            PART 2:</span>
+<span class="sd">                                - For all other rows, for which the status column won&#39;t be updated, given Factor is</span>
+<span class="sd">                                assumed to be 1</span>
+<span class="sd">                                - Calculate the difference between given ratio and calculated ratio (also should be 1)</span>
+<span class="sd">                                - if the absolute difference is less than 0.001, Pass, else, Fail</span>
+<span class="sd">                        else if the analysis was saved byDefault:</span>
+
+<span class="sd">                            Everything is SAME but, in this case Key is different</span>
+
+<span class="sd">                    else if Coverage is present</span>
+
+<span class="sd">                        if the analysis wasn&#39;t saved ByDefault:</span>
+<span class="sd">                            Everything is SAME, but in this scenario, we also calcuate the ratio and difference for</span>
+<span class="sd">                            Coverage loss</span>
+
+<span class="sd">                        else if the analysis was saved byDefault:</span>
+<span class="sd">                            Same as Above</span>
+
+<span class="sd">        &#39;&#39;&#39;</span>
+        <span class="c">############################################################################################################</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">template_info</span><span class="p">)):</span>
+
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">info_analysis</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">8</span><span class="p">]</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;LOCSUM&#39;</span><span class="p">,</span> <span class="s">&#39;CONSUM&#39;</span><span class="p">]:</span>
+
+                <span class="k">if</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">(</span><span class="n">coverage</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="n">info_analysis</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">7</span><span class="p">]</span> <span class="o">!=</span> <span class="s">&#39;PORT&#39;</span><span class="p">:</span>
+
+                        <span class="n">resultDF</span><span class="o">.</span><span class="n">loc</span><span class="p">[(</span><span class="n">resultDF</span><span class="p">[</span><span class="s">&#39;PerilSetCode&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">template_info</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]))</span> <span class="o">&amp;</span>
+                                     <span class="p">(</span><span class="n">resultDF</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">template_info</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">])),</span> <span class="s">&#39;Input_Ratio&#39;</span><span class="p">]</span> <span class="o">=</span> \
+                            <span class="nb">float</span><span class="p">(</span><span class="n">template_info</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">2</span><span class="p">])</span>
+                        <span class="n">resultDF</span><span class="o">.</span><span class="n">loc</span><span class="p">[(</span><span class="n">resultDF</span><span class="p">[</span><span class="s">&#39;PerilSetCode&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">template_info</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]))</span> <span class="o">&amp;</span>
+                                     <span class="p">(</span><span class="n">resultDF</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">template_info</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">])),</span> <span class="s">&#39;Difference&#39;</span><span class="p">]</span> <span class="o">=</span> \
+                            <span class="n">resultDF</span><span class="o">.</span><span class="n">loc</span><span class="p">[(</span><span class="n">resultDF</span><span class="p">[</span><span class="s">&#39;PerilSetCode&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">template_info</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]))</span> <span class="o">&amp;</span> <span class="p">(</span>
+                                <span class="n">resultDF</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">template_info</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">])),</span> <span class="s">&#39;Ratio&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="nb">float</span><span class="p">(</span><span class="n">template_info</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">2</span><span class="p">])</span>
+
+                        <span class="k">if</span> <span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">resultDF</span><span class="p">[(</span><span class="n">resultDF</span><span class="p">[</span><span class="s">&#39;PerilSetCode&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">template_info</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]))</span> <span class="o">&amp;</span> <span class="p">(</span>
+                                <span class="n">resultDF</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">template_info</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]))][</span><span class="s">&#39;Difference&#39;</span><span class="p">])</span> <span class="o">&lt;</span>
+                                <span class="p">(</span><span class="n">tolerance</span><span class="o">/</span><span class="mf">100.0</span><span class="p">))</span><span class="o">.</span><span class="n">all</span><span class="p">():</span>
+                            <span class="n">resultDF</span><span class="o">.</span><span class="n">loc</span><span class="p">[(</span><span class="n">resultDF</span><span class="p">[</span><span class="s">&#39;PerilSetCode&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">template_info</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]))</span> <span class="o">&amp;</span>
+                                         <span class="p">(</span><span class="n">resultDF</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">template_info</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">])),</span> <span class="s">&#39;Status&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;Pass&#39;</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">resultDF</span><span class="o">.</span><span class="n">loc</span><span class="p">[(</span><span class="n">resultDF</span><span class="p">[</span><span class="s">&#39;PerilSetCode&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">template_info</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]))</span> <span class="o">&amp;</span>
+                                         <span class="p">(</span><span class="n">resultDF</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">template_info</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">])),</span> <span class="s">&#39;Status&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;Fail&#39;</span>
+
+                        <span class="k">if</span> <span class="p">((</span><span class="n">resultDF</span><span class="p">[</span><span class="n">resultDF</span><span class="p">[</span><span class="s">&#39;Status&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mf">1.0</span><span class="p">][</span><span class="s">&#39;Ratio&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="mf">1.0</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span> <span class="o">&lt;</span> <span class="p">(</span><span class="n">tolerance</span><span class="o">/</span><span class="mf">100.0</span><span class="p">))</span><span class="o">.</span><span class="n">all</span><span class="p">():</span>
+                            <span class="n">resultDF</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">resultDF</span><span class="p">[</span><span class="s">&#39;Status&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mf">1.0</span><span class="p">,</span> <span class="s">&#39;Input_Ratio&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span>
+                            <span class="n">resultDF</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">resultDF</span><span class="p">[</span><span class="s">&#39;Status&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mf">1.0</span><span class="p">,</span> <span class="s">&#39;Difference&#39;</span><span class="p">]</span> <span class="o">=</span> \
+                                <span class="n">resultDF</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">resultDF</span><span class="p">[</span><span class="s">&#39;Status&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mf">1.0</span><span class="p">,</span> <span class="s">&#39;Ratio&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="mf">1.0</span>
+                            <span class="n">resultDF</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">resultDF</span><span class="p">[</span><span class="s">&#39;Status&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mf">1.0</span><span class="p">,</span> <span class="s">&#39;Status&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;Pass&#39;</span>
+
+                    <span class="k">else</span><span class="p">:</span>
+
+                        <span class="n">resultDF</span><span class="o">.</span><span class="n">loc</span><span class="p">[(</span><span class="n">resultDF</span><span class="p">[</span><span class="s">&#39;PerilSetCode&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">template_info</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">])),</span> <span class="s">&#39;Input_Ratio&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span>
+                            <span class="n">template_info</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
+                        <span class="n">resultDF</span><span class="o">.</span><span class="n">loc</span><span class="p">[(</span><span class="n">resultDF</span><span class="p">[</span><span class="s">&#39;PerilSetCode&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">template_info</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">])),</span> <span class="s">&#39;Difference&#39;</span><span class="p">]</span> <span class="o">=</span> \
+                            <span class="n">resultDF</span><span class="o">.</span><span class="n">loc</span><span class="p">[(</span><span class="n">resultDF</span><span class="p">[</span><span class="s">&#39;PerilSetCode&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">template_info</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">])),</span> <span class="s">&#39;Ratio&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="nb">float</span><span class="p">(</span>
+                                <span class="n">template_info</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
+
+                        <span class="k">if</span> <span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">resultDF</span><span class="p">[(</span><span class="n">resultDF</span><span class="p">[</span><span class="s">&#39;PerilSetCode&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">template_info</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]))]</span>
+                                <span class="p">[</span><span class="s">&#39;Difference&#39;</span><span class="p">])</span> <span class="o">&lt;</span> <span class="mf">0.001</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">():</span>
+                            <span class="n">resultDF</span><span class="o">.</span><span class="n">loc</span><span class="p">[(</span><span class="n">resultDF</span><span class="p">[</span><span class="s">&#39;PerilSetCode&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">template_info</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">])),</span> <span class="s">&#39;Status&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;Pass&#39;</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">resultDF</span><span class="o">.</span><span class="n">loc</span><span class="p">[(</span><span class="n">resultDF</span><span class="p">[</span><span class="s">&#39;PerilSetCode&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">template_info</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">])),</span> <span class="s">&#39;Status&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;Fail&#39;</span>
+
+                        <span class="k">if</span> <span class="p">((</span><span class="n">resultDF</span><span class="p">[</span><span class="n">resultDF</span><span class="p">[</span><span class="s">&#39;Status&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mf">1.0</span><span class="p">][</span><span class="s">&#39;Ratio&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="mf">1.0</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">()</span> <span class="o">&lt;</span> <span class="p">(</span><span class="n">tolerance</span><span class="o">/</span><span class="mf">100.0</span><span class="p">))</span><span class="o">.</span><span class="n">all</span><span class="p">():</span>
+                            <span class="n">resultDF</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">resultDF</span><span class="p">[</span><span class="s">&#39;Status&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mf">1.0</span><span class="p">,</span> <span class="s">&#39;Input_Ratio&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span>
+                            <span class="n">resultDF</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">resultDF</span><span class="p">[</span><span class="s">&#39;Status&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mf">1.0</span><span class="p">,</span> <span class="s">&#39;Difference&#39;</span><span class="p">]</span> <span class="o">=</span> \
+                                <span class="n">resultDF</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">resultDF</span><span class="p">[</span><span class="s">&#39;Status&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mf">1.0</span><span class="p">,</span> <span class="s">&#39;Ratio&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="mf">1.0</span>
+                            <span class="n">resultDF</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="nb">abs</span><span class="p">(</span><span class="n">resultDF</span><span class="p">[</span><span class="s">&#39;Difference&#39;</span><span class="p">])</span> <span class="o">&lt;</span> <span class="p">(</span><span class="n">tolerance</span><span class="o">/</span><span class="mf">100.0</span><span class="p">),</span> <span class="s">&#39;Status&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;Pass&#39;</span>
+                            <span class="n">resultDF</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="nb">abs</span><span class="p">(</span><span class="n">resultDF</span><span class="p">[</span><span class="s">&#39;Difference&#39;</span><span class="p">])</span> <span class="o">&gt;</span> <span class="p">(</span><span class="n">tolerance</span><span class="o">/</span><span class="mf">100.0</span><span class="p">),</span> <span class="s">&#39;Status&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;Fail&#39;</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">info_analysis</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">7</span><span class="p">]</span> <span class="o">!=</span> <span class="s">&#39;PORT&#39;</span><span class="p">:</span>
+                        <span class="n">coverages</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">template_info</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">3</span><span class="p">])</span>
+                        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">coverages</span><span class="p">:</span>
+
+                            <span class="n">resultDF</span><span class="o">.</span><span class="n">loc</span><span class="p">[(</span><span class="n">resultDF</span><span class="p">[</span><span class="s">&#39;GroundUpLoss&#39;</span> <span class="o">+</span> <span class="n">j</span> <span class="o">+</span> <span class="s">&#39;_Mod&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span>
+                                <span class="n">resultDF</span><span class="p">[</span><span class="s">&#39;PerilSetCode&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">template_info</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]))</span> <span class="o">&amp;</span>
+                                         <span class="p">(</span><span class="n">resultDF</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span>
+                                             <span class="n">template_info</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">])),</span> <span class="s">&#39;GroundUpLoss&#39;</span> <span class="o">+</span> <span class="n">j</span> <span class="o">+</span> <span class="s">&#39;_Ratio&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span>
+                                <span class="n">template_info</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">2</span><span class="p">])</span>
+
+                            <span class="n">resultDF</span><span class="o">.</span><span class="n">loc</span><span class="p">[(</span><span class="n">resultDF</span><span class="p">[</span><span class="s">&#39;PerilSetCode&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">template_info</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]))</span> <span class="o">&amp;</span>
+                                         <span class="p">(</span><span class="n">resultDF</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">template_info</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]))</span> <span class="o">&amp;</span> <span class="p">(</span>
+                                             <span class="n">resultDF</span><span class="p">[</span><span class="s">&#39;GroundUpLoss&#39;</span> <span class="o">+</span> <span class="n">j</span> <span class="o">+</span> <span class="s">&#39;_Ratio&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">),</span> <span class="s">&#39;Input_Ratio_&#39;</span> <span class="o">+</span> <span class="n">j</span><span class="p">]</span> <span class="o">=</span> \
+                                <span class="nb">float</span><span class="p">(</span><span class="n">template_info</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">2</span><span class="p">])</span>
+                            <span class="n">resultDF</span><span class="o">.</span><span class="n">loc</span><span class="p">[(</span><span class="n">resultDF</span><span class="p">[</span><span class="s">&#39;PerilSetCode&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">template_info</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]))</span> <span class="o">&amp;</span>
+                                         <span class="p">(</span><span class="n">resultDF</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">template_info</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]))</span> <span class="o">&amp;</span> <span class="p">(</span>
+                                             <span class="n">resultDF</span><span class="p">[</span><span class="s">&#39;GroundUpLoss&#39;</span> <span class="o">+</span> <span class="n">j</span> <span class="o">+</span> <span class="s">&#39;_Ratio&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">),</span> <span class="s">&#39;Difference_&#39;</span> <span class="o">+</span> <span class="n">j</span><span class="p">]</span> <span class="o">=</span> \
+                                <span class="n">resultDF</span><span class="o">.</span><span class="n">loc</span><span class="p">[(</span><span class="n">resultDF</span><span class="p">[</span><span class="s">&#39;PerilSetCode&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">template_info</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]))</span> <span class="o">&amp;</span> <span class="p">(</span>
+                                    <span class="n">resultDF</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">template_info</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]))</span> <span class="o">&amp;</span> <span class="p">(</span>
+                                    <span class="n">resultDF</span><span class="p">[</span><span class="s">&#39;GroundUpLoss&#39;</span> <span class="o">+</span> <span class="n">j</span> <span class="o">+</span> <span class="s">&#39;_Ratio&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">),</span>
+                                             <span class="s">&#39;GroundUpLoss&#39;</span> <span class="o">+</span> <span class="n">j</span> <span class="o">+</span> <span class="s">&#39;_Ratio&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="nb">float</span><span class="p">(</span><span class="n">template_info</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">2</span><span class="p">])</span>
+
+                            <span class="k">if</span> <span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">resultDF</span><span class="p">[(</span><span class="n">resultDF</span><span class="p">[</span><span class="s">&#39;PerilSetCode&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">template_info</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]))</span> <span class="o">&amp;</span>
+                                <span class="p">(</span><span class="n">resultDF</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">template_info</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]))</span> <span class="o">&amp;</span> <span class="p">(</span>
+                                        <span class="n">resultDF</span><span class="p">[</span><span class="s">&#39;GroundUpLoss&#39;</span> <span class="o">+</span> <span class="n">j</span> <span class="o">+</span> <span class="s">&#39;_Ratio&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">)][</span><span class="s">&#39;Difference_&#39;</span> <span class="o">+</span> <span class="n">j</span><span class="p">]</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span>
+                                <span class="mi">0</span><span class="p">))</span> <span class="o">&lt;</span> <span class="p">(</span><span class="n">tolerance</span><span class="o">/</span><span class="mf">100.0</span><span class="p">))</span><span class="o">.</span><span class="n">all</span><span class="p">():</span>
+                                <span class="n">resultDF</span><span class="o">.</span><span class="n">loc</span><span class="p">[(</span><span class="n">resultDF</span><span class="p">[</span><span class="s">&#39;PerilSetCode&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">template_info</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]))</span> <span class="o">&amp;</span>
+                                             <span class="p">(</span><span class="n">resultDF</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">template_info</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">]))</span> <span class="o">&amp;</span> <span class="p">(</span>
+                                                 <span class="n">resultDF</span><span class="p">[</span><span class="s">&#39;GroundUpLoss&#39;</span> <span class="o">+</span> <span class="n">j</span> <span class="o">+</span> <span class="s">&#39;_Ratio&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">),</span> <span class="s">&#39;Status&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;Pass&#39;</span>
+
+                            <span class="n">resultDF</span> <span class="o">=</span> <span class="n">resultDF</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+                            <span class="n">resultDF</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="s">&#39;Difference_&#39;</span> <span class="o">+</span> <span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">resultDF</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="s">&#39;GroundUpLoss&#39;</span> <span class="o">+</span> <span class="n">j</span> <span class="o">+</span> <span class="s">&#39;_Ratio&#39;</span><span class="p">]</span> <span class="o">-</span> \
+                                                                 <span class="n">resultDF</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="s">&#39;Input_Ratio_&#39;</span> <span class="o">+</span> <span class="n">j</span><span class="p">]</span>
+                            <span class="n">resultDF</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="nb">abs</span><span class="p">(</span><span class="n">resultDF</span><span class="p">[</span><span class="s">&#39;Difference_&#39;</span> <span class="o">+</span> <span class="n">j</span><span class="p">])</span> <span class="o">&lt;</span> <span class="p">(</span><span class="n">tolerance</span><span class="o">/</span><span class="mf">100.0</span><span class="p">),</span> <span class="s">&#39;Status&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;Pass&#39;</span>
+
+                            <span class="n">resultDF</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="nb">abs</span><span class="p">(</span><span class="n">resultDF</span><span class="p">[</span><span class="s">&#39;Difference_&#39;</span> <span class="o">+</span> <span class="n">j</span><span class="p">])</span> <span class="o">&gt;</span> <span class="p">(</span><span class="n">tolerance</span><span class="o">/</span><span class="mf">100.0</span><span class="p">),</span> <span class="s">&#39;Status&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;Fail&#39;</span>
+
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">coverages</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">template_info</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">2</span><span class="p">])</span>
+                        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="n">coverages</span><span class="p">:</span>
+                            <span class="n">resultDF</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span>
+                                <span class="n">resultDF</span><span class="p">[</span><span class="s">&#39;GroundUpLoss&#39;</span> <span class="o">+</span> <span class="n">j</span> <span class="o">+</span> <span class="s">&#39;_Mod&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&#39;GroundUpLoss&#39;</span> <span class="o">+</span> <span class="n">j</span> <span class="o">+</span> <span class="s">&#39;_Ratio&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span>
+                                <span class="n">template_info</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
+                            <span class="n">resultDF</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span>
+                                <span class="p">(</span><span class="n">resultDF</span><span class="p">[</span><span class="s">&#39;PerilSetCode&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">template_info</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">])),</span> <span class="s">&#39;Input_Ratio_&#39;</span> <span class="o">+</span> <span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span>
+                                <span class="n">template_info</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
+
+                            <span class="n">resultDF</span><span class="o">.</span><span class="n">loc</span><span class="p">[(</span><span class="n">resultDF</span><span class="p">[</span><span class="s">&#39;PerilSetCode&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">template_info</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">])),</span> <span class="s">&#39;Difference_&#39;</span> <span class="o">+</span> <span class="n">j</span><span class="p">]</span> <span class="o">=</span> \
+                                <span class="n">resultDF</span><span class="o">.</span><span class="n">loc</span><span class="p">[(</span><span class="n">resultDF</span><span class="p">[</span><span class="s">&#39;PerilSetCode&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span>
+                                    <span class="n">template_info</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">])),</span> <span class="s">&#39;GroundUpLoss&#39;</span> <span class="o">+</span> <span class="n">j</span> <span class="o">+</span> <span class="s">&#39;_Ratio&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="nb">float</span><span class="p">(</span><span class="n">template_info</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
+
+                            <span class="k">if</span> <span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">resultDF</span><span class="p">[(</span><span class="n">resultDF</span><span class="p">[</span><span class="s">&#39;PerilSetCode&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">template_info</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]))][</span>
+                                            <span class="s">&#39;Difference_&#39;</span> <span class="o">+</span> <span class="n">j</span><span class="p">])</span> <span class="o">&lt;</span> <span class="p">(</span><span class="n">tolerance</span><span class="o">/</span><span class="mf">100.0</span><span class="p">))</span><span class="o">.</span><span class="n">all</span><span class="p">():</span>
+                                <span class="n">resultDF</span><span class="o">.</span><span class="n">loc</span><span class="p">[(</span><span class="n">resultDF</span><span class="p">[</span><span class="s">&#39;PerilSetCode&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">template_info</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">])),</span> <span class="s">&#39;Status&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;Pass&#39;</span>
+
+                            <span class="n">resultDF</span> <span class="o">=</span> <span class="n">resultDF</span><span class="o">.</span><span class="n">fillna</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+                            <span class="n">resultDF</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="s">&#39;Difference_&#39;</span> <span class="o">+</span> <span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">resultDF</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span>
+                                                                 <span class="s">&#39;GroundUpLoss&#39;</span> <span class="o">+</span> <span class="n">j</span> <span class="o">+</span> <span class="s">&#39;_Ratio&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="n">resultDF</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span>
+                                                                                                  <span class="s">&#39;Input_Ratio_&#39;</span> <span class="o">+</span> <span class="n">j</span><span class="p">]</span>
+                            <span class="n">resultDF</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="nb">abs</span><span class="p">(</span><span class="n">resultDF</span><span class="p">[</span><span class="s">&#39;Difference_&#39;</span> <span class="o">+</span> <span class="n">j</span><span class="p">])</span> <span class="o">&lt;</span> <span class="p">(</span><span class="n">tolerance</span><span class="o">/</span><span class="mf">100.0</span><span class="p">),</span> <span class="s">&#39;Status&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;Pass&#39;</span>
+                            <span class="n">resultDF</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="nb">abs</span><span class="p">(</span><span class="n">resultDF</span><span class="p">[</span><span class="s">&#39;Difference_&#39;</span> <span class="o">+</span> <span class="n">j</span><span class="p">])</span> <span class="o">&gt;</span> <span class="p">(</span><span class="n">tolerance</span><span class="o">/</span><span class="mf">100.0</span><span class="p">),</span> <span class="s">&#39;Status&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;Fail&#39;</span>
+
+            <span class="k">elif</span> <span class="n">info_analysis</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">8</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;LOCSUM&#39;</span><span class="p">:</span>
+
+                <span class="n">resultDF</span><span class="o">.</span><span class="n">loc</span><span class="p">[(</span><span class="n">resultDF</span><span class="p">[</span><span class="s">&#39;LocationSID&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">template_info</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">])),</span> <span class="s">&#39;Input_Ratio&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span>
+                    <span class="n">template_info</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
+                <span class="n">resultDF</span><span class="o">.</span><span class="n">loc</span><span class="p">[(</span><span class="n">resultDF</span><span class="p">[</span><span class="s">&#39;LocationSID&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">template_info</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">])),</span> <span class="s">&#39;Difference&#39;</span><span class="p">]</span> <span class="o">=</span> \
+                    <span class="n">resultDF</span><span class="o">.</span><span class="n">loc</span><span class="p">[(</span><span class="n">resultDF</span><span class="p">[</span><span class="s">&#39;LocationSID&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">template_info</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">])),</span> <span class="s">&#39;Ratio&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="nb">float</span><span class="p">(</span>
+                        <span class="n">template_info</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
+
+                <span class="k">if</span> <span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">resultDF</span><span class="p">[(</span><span class="n">resultDF</span><span class="p">[</span><span class="s">&#39;LocationSID&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">template_info</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]))][</span><span class="s">&#39;Difference&#39;</span><span class="p">])</span> <span class="o">&lt;</span>
+                        <span class="p">(</span><span class="n">tolerance</span><span class="o">/</span><span class="mf">100.0</span><span class="p">))</span><span class="o">.</span><span class="n">all</span><span class="p">():</span>
+                    <span class="n">resultDF</span><span class="o">.</span><span class="n">loc</span><span class="p">[(</span><span class="n">resultDF</span><span class="p">[</span><span class="s">&#39;LocationSID&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">template_info</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">])),</span> <span class="s">&#39;Status&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;Pass&#39;</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">resultDF</span><span class="o">.</span><span class="n">loc</span><span class="p">[(</span><span class="n">resultDF</span><span class="p">[</span><span class="s">&#39;LocationSID&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">template_info</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">])),</span> <span class="s">&#39;Status&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;Fail&#39;</span>
+
+                <span class="k">if</span> <span class="p">((</span><span class="n">resultDF</span><span class="p">[</span><span class="n">resultDF</span><span class="p">[</span><span class="s">&#39;Status&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mf">1.0</span><span class="p">][</span><span class="s">&#39;Ratio&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="mf">1.0</span> <span class="o">&lt;</span> <span class="p">(</span><span class="n">tolerance</span><span class="o">/</span><span class="mf">100.0</span><span class="p">))</span><span class="o">.</span><span class="n">all</span><span class="p">()):</span>
+                    <span class="n">resultDF</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">resultDF</span><span class="p">[</span><span class="s">&#39;Status&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mf">1.0</span><span class="p">,</span> <span class="s">&#39;Input_Ratio&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span>
+                    <span class="n">resultDF</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">resultDF</span><span class="p">[</span><span class="s">&#39;Status&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mf">1.0</span><span class="p">,</span> <span class="s">&#39;Difference&#39;</span><span class="p">]</span> <span class="o">=</span> \
+                        <span class="n">resultDF</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">resultDF</span><span class="p">[</span><span class="s">&#39;Status&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mf">1.0</span><span class="p">,</span> <span class="s">&#39;Ratio&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="mf">1.0</span>
+                    <span class="n">resultDF</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">resultDF</span><span class="p">[</span><span class="s">&#39;Status&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mf">1.0</span><span class="p">,</span> <span class="s">&#39;Status&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;Pass&#39;</span>
+
+            <span class="k">elif</span> <span class="n">info_analysis</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">8</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;CONSUM&#39;</span><span class="p">:</span>
+
+                <span class="n">resultDF</span><span class="o">.</span><span class="n">loc</span><span class="p">[(</span><span class="n">resultDF</span><span class="p">[</span><span class="s">&#39;ContractSID&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">template_info</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">])),</span> <span class="s">&#39;Input_Ratio&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span>
+                    <span class="n">template_info</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
+                <span class="n">resultDF</span><span class="o">.</span><span class="n">loc</span><span class="p">[(</span><span class="n">resultDF</span><span class="p">[</span><span class="s">&#39;ContractSID&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">template_info</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">])),</span> <span class="s">&#39;Difference&#39;</span><span class="p">]</span> <span class="o">=</span> \
+                    <span class="n">resultDF</span><span class="o">.</span><span class="n">loc</span><span class="p">[(</span><span class="n">resultDF</span><span class="p">[</span><span class="s">&#39;ContractSID&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">template_info</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">])),</span> <span class="s">&#39;Ratio&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="nb">float</span><span class="p">(</span>
+                        <span class="n">template_info</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">1</span><span class="p">])</span>
+
+                <span class="k">if</span> <span class="p">(</span><span class="nb">abs</span><span class="p">(</span><span class="n">resultDF</span><span class="p">[(</span><span class="n">resultDF</span><span class="p">[</span><span class="s">&#39;ContractSID&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">template_info</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]))][</span><span class="s">&#39;Difference&#39;</span><span class="p">])</span> <span class="o">&lt;</span> <span class="mf">0.001</span><span class="p">)</span><span class="o">.</span><span class="n">all</span><span class="p">():</span>
+                    <span class="n">resultDF</span><span class="o">.</span><span class="n">loc</span><span class="p">[(</span><span class="n">resultDF</span><span class="p">[</span><span class="s">&#39;ContractSID&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">template_info</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">])),</span> <span class="s">&#39;Status&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;Pass&#39;</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">resultDF</span><span class="o">.</span><span class="n">loc</span><span class="p">[(</span><span class="n">resultDF</span><span class="p">[</span><span class="s">&#39;ContractSID&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">template_info</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">])),</span> <span class="s">&#39;Status&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;Fail&#39;</span>
+
+                <span class="k">if</span> <span class="p">(</span><span class="n">resultDF</span><span class="p">[</span><span class="n">resultDF</span><span class="p">[</span><span class="s">&#39;Status&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mf">1.0</span><span class="p">][</span><span class="s">&#39;Ratio&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="mf">1.0</span> <span class="o">&lt;</span> <span class="p">(</span><span class="n">tolerance</span><span class="o">/</span><span class="mf">100.0</span><span class="p">))</span><span class="o">.</span><span class="n">all</span><span class="p">():</span>
+                    <span class="n">resultDF</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">resultDF</span><span class="p">[</span><span class="s">&#39;Status&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mf">1.0</span><span class="p">,</span> <span class="s">&#39;Input_Ratio&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span>
+                    <span class="n">resultDF</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">resultDF</span><span class="p">[</span><span class="s">&#39;Status&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mf">1.0</span><span class="p">,</span> <span class="s">&#39;Difference&#39;</span><span class="p">]</span> <span class="o">=</span> \
+                        <span class="n">resultDF</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">resultDF</span><span class="p">[</span><span class="s">&#39;Status&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mf">1.0</span><span class="p">,</span> <span class="s">&#39;Ratio&#39;</span><span class="p">]</span> <span class="o">-</span> <span class="mf">1.0</span>
+                    <span class="n">resultDF</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">resultDF</span><span class="p">[</span><span class="s">&#39;Status&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mf">1.0</span><span class="p">,</span> <span class="s">&#39;Status&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;Pass&#39;</span>
+
+        <span class="n">resultDF</span><span class="o">.</span><span class="n">loc</span><span class="p">[</span><span class="n">resultDF</span><span class="p">[</span><span class="s">&#39;Status&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mf">1.0</span><span class="p">,</span> <span class="s">&#39;Status&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;Fail&#39;</span>
+        <span class="k">if</span> <span class="n">info_analysis</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">7</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;PORT&#39;</span><span class="p">:</span>
+            <span class="n">resultDF</span><span class="o">.</span><span class="n">rename</span><span class="p">(</span><span class="n">columns</span><span class="o">=</span><span class="p">{</span><span class="nb">str</span><span class="p">(</span><span class="n">resultDF</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span> <span class="s">&#39;CustomID&#39;</span><span class="p">},</span> <span class="n">inplace</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">resultDF</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="s">&quot;CustomID&quot;</span><span class="p">,</span>
+                            <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">resultDF</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="o">+</span> <span class="s">&#39;_&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">resultDF</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span>
+                             <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">resultDF</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]))])</span>
+            <span class="n">resultDF</span><span class="o">.</span><span class="n">drop</span><span class="p">(</span><span class="n">resultDF</span><span class="o">.</span><span class="n">columns</span><span class="p">[[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">]],</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;Input_Ratio&#39;</span> <span class="ow">in</span> <span class="n">resultDF</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+            <span class="n">resultDF</span><span class="p">[</span><span class="s">&#39;Input_Ratio&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1.0</span>
+            <span class="n">resultDF</span><span class="p">[</span><span class="s">&#39;Difference&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1.0</span>
+
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;A&#39;</span><span class="p">,</span> <span class="s">&#39;B&#39;</span><span class="p">,</span> <span class="s">&#39;C&#39;</span><span class="p">,</span> <span class="s">&#39;D&#39;</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="s">&#39;Difference_&#39;</span> <span class="o">+</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">resultDF</span><span class="o">.</span><span class="n">columns</span><span class="p">:</span>
+                <span class="n">resultDF</span><span class="p">[</span><span class="s">&#39;Difference_&#39;</span> <span class="o">+</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1.0</span>
+                <span class="n">resultDF</span><span class="p">[</span><span class="s">&#39;Input_Ratio_&#39;</span> <span class="o">+</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1.0</span>
+
+        <span class="n">resultDF</span> <span class="o">=</span> <span class="n">set_column_sequence</span><span class="p">(</span><span class="n">resultDF</span><span class="p">,</span> <span class="p">[</span><span class="s">&#39;CustomID&#39;</span><span class="p">,</span> <span class="s">&#39;GroundUpLoss_Mod&#39;</span><span class="p">,</span> <span class="s">&#39;GroundUpLoss_Base&#39;</span><span class="p">,</span>
+                                                  <span class="s">&#39;Ratio&#39;</span><span class="p">,</span> <span class="s">&#39;Input_Ratio&#39;</span><span class="p">,</span> <span class="s">&#39;Difference&#39;</span><span class="p">,</span>
+                                                  <span class="s">&#39;GroundUpLossA_Mod&#39;</span><span class="p">,</span> <span class="s">&#39;GroundUpLossA_Base&#39;</span><span class="p">,</span>
+                                                  <span class="s">&#39;GroundUpLossA_Ratio&#39;</span><span class="p">,</span> <span class="s">&#39;Input_Ratio_A&#39;</span><span class="p">,</span>
+                                                  <span class="s">&#39;Difference_A&#39;</span><span class="p">,</span> <span class="s">&#39;GroundUpLossB_Mod&#39;</span><span class="p">,</span>
+                                                  <span class="s">&#39;GroundUpLossB_Base&#39;</span><span class="p">,</span> <span class="s">&#39;GroundUpLossB_Ratio&#39;</span><span class="p">,</span> <span class="s">&#39;Input_Ratio_B&#39;</span><span class="p">,</span>
+                                                  <span class="s">&#39;Difference_B&#39;</span><span class="p">,</span> <span class="s">&#39;GroundUpLossC_Mod&#39;</span><span class="p">,</span>
+                                                  <span class="s">&#39;GroundUpLossC_Base&#39;</span><span class="p">,</span> <span class="s">&#39;GroundUpLossC_Ratio&#39;</span><span class="p">,</span> <span class="s">&#39;Input_Ratio_C&#39;</span><span class="p">,</span>
+                                                  <span class="s">&#39;Difference_C&#39;</span><span class="p">,</span> <span class="s">&#39;GroundUpLossD_Mod&#39;</span><span class="p">,</span>
+                                                  <span class="s">&#39;GroundUpLossD_Base&#39;</span><span class="p">,</span> <span class="s">&#39;GroundUpLossD_Ratio&#39;</span><span class="p">,</span> <span class="s">&#39;Input_Ratio_D&#39;</span><span class="p">,</span>
+                                                  <span class="s">&#39;Difference_D&#39;</span><span class="p">,</span> <span class="s">&#39;Status&#39;</span><span class="p">])</span>
+        <span class="n">resultDF</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="p">[</span><span class="s">&#39;Difference&#39;</span><span class="p">,</span> <span class="s">&#39;Difference_A&#39;</span><span class="p">,</span>
+                         <span class="s">&#39;Difference_B&#39;</span><span class="p">,</span> <span class="s">&#39;Difference_C&#39;</span><span class="p">,</span> <span class="s">&#39;Difference_D&#39;</span><span class="p">]]</span> <span class="o">=</span> \
+            <span class="n">resultDF</span><span class="o">.</span><span class="n">loc</span><span class="p">[:,</span> <span class="p">[</span><span class="s">&#39;Difference&#39;</span><span class="p">,</span> <span class="s">&#39;Difference_A&#39;</span><span class="p">,</span>
+                             <span class="s">&#39;Difference_B&#39;</span><span class="p">,</span> <span class="s">&#39;Difference_C&#39;</span><span class="p">,</span> <span class="s">&#39;Difference_D&#39;</span><span class="p">]]</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">resultDF</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related" role="navigation" aria-label="related navigation">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="nav-item nav-item-0"><a href="../../../index.html">ValidationLib  documentation</a> &raquo;</li>
+          <li class="nav-item nav-item-1"><a href="../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer" role="contentinfo">
+        &copy; Copyright 2015, Author.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.3.1.
+    </div>
+  </body>
+</html>
