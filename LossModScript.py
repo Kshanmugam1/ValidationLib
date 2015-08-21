@@ -20,7 +20,7 @@ for o, a in OPTLIST:
     if o == "--outfile":
         OUTFILE = a
     print "Outfile: " + OUTFILE
-OUTFILE = 'C:\Users\i56228\Documents\Python\Git\ValidationLib\EPValidation.csv'
+# OUTFILE = 'C:\Users\i56228\Documents\Python\Git\ValidationLib\EPValidation.csv'
 if OUTFILE is None:
     print ('Outfile is not passed')
     sys.exit()
@@ -56,10 +56,10 @@ def file_skeleton(outfile):
 
 # Extract the given arguments
 try:
-    server = 'QAWUDB2\SQL2012'
-    result_db = 'SK_Res'
-    analysis_name = 'LossMod_082110057291_LossMod_082110054338'
-    tolerance = float('1')
+    server = sys.argv[3]
+    result_db = sys.argv[4]
+    analysis_name = sys.argv[5]
+    tolerance = float(sys.argv[6])
 except:
     LOGGER.error('Please verify the inputs')
     file_skeleton(OUTFILE)
@@ -87,7 +87,7 @@ if __name__ == '__main__':
 
     LOGGER.info('**********************************************************************************')
     LOGGER.info('Step 2. Get analysis sid')
-    analysis_sid = db.analysis_sid(analysis_name)
+    analysis_sid = db.analysis_sid(analysis_name) + 1
     LOGGER.info('Analysis SID for analysis (MOD)' + str(analysis_name) + ' is ' + str(analysis_sid))
 
     LOGGER.info('**********************************************************************************')
@@ -139,7 +139,7 @@ if __name__ == '__main__':
     resultDF = loss_mod.get_loss_df(analysis_sid, result_db, baseResultSID, modResultSID, coverage)
 
     LOGGER.info('**********************************************************************************')
-    LOGGER.info('Step 9. Get loss data frame')
+    LOGGER.info('Step 9. Validate')
     validatedDF = loss_mod.validate(resultDF, template_info, coverage, analysis_sid, tolerance)
 
     LOGGER.info('**********************************************************************************')
