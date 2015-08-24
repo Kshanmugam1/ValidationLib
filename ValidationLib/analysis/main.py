@@ -541,9 +541,9 @@ class loss_mod:
         else:
             coverages = ['A', 'B', 'C', 'D']
             for i in coverages:
-                resultDF['GroundUpLoss' + i + '_Base'] = -1.0
-                resultDF['GroundUpLoss' + i + '_Mod'] = -1.0
-                resultDF['GroundUpLoss' + i + '_Ratio'] = -1.0
+                resultDF['GroundUpLoss' + i + '_Base'] = ""
+                resultDF['GroundUpLoss' + i + '_Mod'] = ""
+                resultDF['GroundUpLoss' + i + '_Ratio'] = ""
         resultDF.loc[:, 'Status'] = 1
 
         return resultDF
@@ -754,13 +754,13 @@ class loss_mod:
             resultDF.drop(resultDF.columns[[2, 3]], axis=1, inplace=True)
 
         if not 'Input_Ratio' in resultDF.columns:
-            resultDF['Input_Ratio'] = -1.0
-            resultDF['Difference'] = -1.0
+            resultDF['Input_Ratio'] =""
+            resultDF['Difference'] = ""
 
         for i in ['A', 'B', 'C', 'D']:
             if not 'Difference_' + i in resultDF.columns:
-                resultDF['Difference_' + i] = -1.0
-                resultDF['Input_Ratio_' + i] = -1.0
+                resultDF['Difference_' + i] = ""
+                resultDF['Input_Ratio_' + i] = ""
 
         resultDF = set_column_sequence(resultDF, ['CustomID', 'GroundUpLoss_Mod', 'GroundUpLoss_Base',
                                                   'Ratio', 'Input_Ratio', 'Difference',
@@ -773,9 +773,10 @@ class loss_mod:
                                                   'Difference_C', 'GroundUpLossD_Mod',
                                                   'GroundUpLossD_Base', 'GroundUpLossD_Ratio', 'Input_Ratio_D',
                                                   'Difference_D', 'Status'])
-        resultDF.loc[:, ['Difference', 'Difference_A',
-                         'Difference_B', 'Difference_C', 'Difference_D']] = \
-            resultDF.loc[:, ['Difference', 'Difference_A',
-                             'Difference_B', 'Difference_C', 'Difference_D']].values.round(2)
+        # resultDF.loc[:, ['Difference', 'Difference_A',
+        #                  'Difference_B', 'Difference_C', 'Difference_D']] = \
+        #     resultDF.loc[:, ['Difference', 'Difference_A',
+        #                      'Difference_B', 'Difference_C', 'Difference_D']].values.round(2)
+
 
         return resultDF
