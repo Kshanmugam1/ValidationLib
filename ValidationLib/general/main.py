@@ -6,8 +6,17 @@ __maintainer__ = 'Shashank kapadia'
 __email__ = 'skapadia@air-worldwide.com'
 __status__ = 'Production'
 
-import pandas as pd
-import numpy as np
+import pip
+try:
+    import pandas as pd
+except:
+    pip.main(['install', 'pandas'])
+    import pandas as pd
+try:
+    import numpy as np
+except:
+    pip.main(['install', 'numpy'])
+    import numpy as np
 import threading
 import uuid
 import copy

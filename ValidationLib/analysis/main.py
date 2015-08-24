@@ -11,9 +11,14 @@ Analysis Package
 # Import standard Python packages
 import sys
 import logging
+import pip
 
 # Import external Python libraries
-import pandas as pd
+try:
+    import pandas as pd
+except:
+    pip.main(['install', 'pandas'])
+    import pandas as pd
 
 # Import internal packages
 from ValidationLib.database.main import *

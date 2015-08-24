@@ -1,10 +1,18 @@
 # Import standard Python packages
 import copy
+import pip
 
 # Import external Python libraries
-import pyodbc
-import copy
-import pandas as pd
+try:
+    import pandas as pd
+except:
+    pip.main(['install', 'pandas'])
+    import pandas as pd
+try:
+    import pyodbc
+except:
+    pip.main(['install', 'pyodbc'])
+    import pyodbc
 
 
 class Database:
