@@ -12,6 +12,7 @@ Inter Correlation Validation Script
 # Import standard Python packages and read outfile
 import getopt
 import sys
+import datetime
 
 OPTLIST, ARGS = getopt.getopt(sys.argv[1:], [''], ['outfile='])
 
@@ -73,13 +74,17 @@ if __name__ == "__main__":
 
     start = time.time()
 
-    LOGGER.info('**********************************************************************************')
-    LOGGER.info('                     Correlation Validation Tool                                  ')
-    LOGGER.info('**********************************************************************************')
+    LOGGER.info('********************************')
+    LOGGER.info('**      Touchstone v.3.0      **')
+    LOGGER.info('********************************')
 
+    LOGGER.info('\n********** Log header **********\n')
+    LOGGER.info('Description:   Inter Correlation Validation')
+    LOGGER.info('Time Submitted: ' + str(datetime.datetime.now()))
+    LOGGER.info('Status:                Completed')
+
+    LOGGER.info('\n********** Log Import Options **********\n')
     # Initialize the connection with the server
-    LOGGER.info('**********************************************************************************')
-    LOGGER.info('Step 1. Establishing the connection with database and initialize the Correlation class')
     try:
         db = Database(server)
         inter_correlation = Correlation(server)
@@ -87,32 +92,22 @@ if __name__ == "__main__":
         LOGGER.error('Invalid server information')
         file_skeleton(OUTFILE)
         sys.exit()
-    LOGGER.info('Connection Established with server: ' + str(server))
+    LOGGER.info('Server: ' + str(server))
 
-    LOGGER.info('**********************************************************************************')
-    LOGGER.info('Step 2. Get analysis sid')
     contract_analysis_sid = db.analysis_sid(contract_analysis_name)
-    LOGGER.info('Analysis SID for analysis ' + str(contract_analysis_name) + ' is ' + str(contract_analysis_sid))
+    LOGGER.info('Analysis SID: ' + str(contract_analysis_sid))
 
-    LOGGER.info('**********************************************************************************')
-    LOGGER.info('Step 3. Get inter and intra correlation factor')
     intra_correlation_fac, inter_correlation_fac = inter_correlation.correlation_factor(contract_analysis_sid)
-    LOGGER.info('1. Intra Correlation Factor: ' + str(intra_correlation_fac))
-    LOGGER.info('2. Inter Correlation Factor: ' + str(inter_correlation_fac))
+    LOGGER.info('Intra Correlation Factor: ' + str(intra_correlation_fac))
+    LOGGER.info('Inter Correlation Factor: ' + str(inter_correlation_fac))
 
-    LOGGER.info('**********************************************************************************')
-    LOGGER.info('Step 4. Get result SID')
     contractResultSID = db.result_sid(contract_analysis_sid)
-    LOGGER.info('1. Contract Result SID: ' + str(contractResultSID))
+    LOGGER.info('Result SID: ' + str(contractResultSID))
 
-    LOGGER.info('**********************************************************************************')
-    LOGGER.info('Step 5. Get the numbers and validate')
     resultDF_detailed, resultDF_summary = inter_correlation.loss_sd(contractResultSID, result_db, 'Inter',
                                                                  inter_correlation=inter_correlation_fac,
                                                                  tolerance=tolerance)
 
-    LOGGER.info('**********************************************************************************')
-    LOGGER.info('Step 6. Save the results')
     sequence = ['CatalogTypeCode', 'ModelCode', 'PortGuSD', 'CalculatedPortGuSD',
                 'DifferencePortGuSD_Percent', 'PortGrSD', 'CalculatedPortGrSD',
                 'DifferencePortGrSD_Percent', 'Status']

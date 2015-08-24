@@ -29,6 +29,7 @@ if OUTFILE is None:
 import time
 import logging
 import math
+import datetime
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
@@ -70,39 +71,35 @@ if __name__ == '__main__':
 
     start = time.time()
 
-    LOGGER.info('**********************************************************************************')
-    LOGGER.info('                      EP Summary Validation Tool                                  ')
-    LOGGER.info('**********************************************************************************')
+    LOGGER.info('********************************')
+    LOGGER.info('**      Touchstone v.3.0      **')
+    LOGGER.info('********************************')
 
+    LOGGER.info('\n********** Log header **********\n')
+    LOGGER.info('Description:   EP Summary Validation')
+    LOGGER.info('Time Submitted: ' + str(datetime.datetime.now()))
+    LOGGER.info('Status:                Completed')
+
+    LOGGER.info('\n********** Log Import Options **********\n')
     # Initialize the connection with the server
-    LOGGER.info('**********************************************************************************')
-    LOGGER.info('Step 1. Establishing the connection with database and initialize the Correlation class')
     try:
         db = Database(server)
     except:
         LOGGER.error('Invalid server information')
         file_skeleton(OUTFILE)
         sys.exit()
-    LOGGER.info('Connection Established with server: ' + str(server))
+    LOGGER.info('Server: ' + str(server))
 
-    LOGGER.info('**********************************************************************************')
-    LOGGER.info('Step 2. Get analysis sid')
     analysis_sid = db.analysis_sid(analysis_name)
-    LOGGER.info('Analysis SID for analysis ' + str(analysis_name) + ' is ' + str(analysis_sid))
+    LOGGER.info('Analysis SID: ' + str(analysis_sid))
 
-    LOGGER.info('**********************************************************************************')
-    LOGGER.info('Step 3. Get result SID')
     result_sid = db.result_sid(analysis_sid)
     LOGGER.info('Result SID: ' + str(result_sid))
 
-    LOGGER.info('**********************************************************************************')
-    LOGGER.info('Step 4. Get EP loss')
     ep_lossDf = db.loss_df(result_db, result_sid, 'EP').iloc[:, :14]
     columns_detail = ['EPAnnualTypeCode', 'EPCurveTypeCode', 'FinancialPerspectiveCodeCode', 'Rank',
                       'ModelCode', 'YearID', 'PerilSetCode', 'ExceedanceProbability', 'EPLoss']
 
-    LOGGER.info('**********************************************************************************')
-    LOGGER.info('Step 5. Determine Catalog size')
     max_year = max(ep_lossDf['YearID'])
     if max_year <= 10000.0:
         catalog_size = 10000.0
@@ -112,13 +109,9 @@ if __name__ == '__main__':
         catalog_size = 100000.0
     LOGGER.info('Catalog Size: ' + str(catalog_size))
 
-    LOGGER.info('**********************************************************************************')
-    LOGGER.info('Step 6. Get EP points')
     ep_points = db.ep_points(analysis_sid)
     LOGGER.info('EP points: ' + str(ep_points))
 
-    LOGGER.info('**********************************************************************************')
-    LOGGER.info('Step 7. Get loss and validate')
     loss_by_event = pd.DataFrame()
     result_ep_detail = pd.DataFrame()
     result_ep_summary = pd.DataFrame()

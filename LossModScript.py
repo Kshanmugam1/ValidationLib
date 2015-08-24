@@ -12,6 +12,7 @@ Loss Mod Validation Script
 # Import standard Python packages and read outfile
 import getopt
 import sys
+import datetime
 
 OPTLIST, ARGS = getopt.getopt(sys.argv[1:], [''], ['outfile='])
 
@@ -69,13 +70,17 @@ if __name__ == '__main__':
 
     start = time.time()
 
-    LOGGER.info('**********************************************************************************')
-    LOGGER.info('                        Loss Mod Validation Tool                                  ')
-    LOGGER.info('**********************************************************************************')
+    LOGGER.info('********************************')
+    LOGGER.info('**      Touchstone v.3.0      **')
+    LOGGER.info('********************************')
 
+    LOGGER.info('\n********** Log header **********\n')
+    LOGGER.info('Description:   Loss Mod Validation')
+    LOGGER.info('Time Submitted: ' + str(datetime.datetime.now()))
+    LOGGER.info('Status:                Completed')
+
+    LOGGER.info('\n********** Log Import Options **********\n')
     # Initialize the connection with the server
-    LOGGER.info('**********************************************************************************')
-    LOGGER.info('Step 1. Establishing the connection with database and initialize the Correlation class')
     try:
         db = Database(server)
         loss_mod = loss_mod(server)
@@ -83,67 +88,50 @@ if __name__ == '__main__':
         LOGGER.error('Invalid server information')
         file_skeleton(OUTFILE)
         sys.exit()
-    LOGGER.info('Connection Established with server: ' + str(server))
+    LOGGER.info('Server: ' + str(server))
 
-    LOGGER.info('**********************************************************************************')
-    LOGGER.info('Step 2. Get analysis sid')
     analysis_sid = db.analysis_sid(analysis_name) + 1
-    LOGGER.info('Analysis SID for analysis (MOD)' + str(analysis_name) + ' is ' + str(analysis_sid))
+    LOGGER.info('Analysis SID: ' + str(analysis_sid))
 
-    LOGGER.info('**********************************************************************************')
-    LOGGER.info('Step 3. Get  base analysis sid, loss mod template id and list of perils')
     base_analysis_sid = db.mod_analysis_sid(analysis_sid)
     template_id = db.loss_mod_temp_id(analysis_sid)
     peril_analysis = db.perils_analysis(analysis_sid)
-    LOGGER.info('1. Base Analysis SID: ' + str(base_analysis_sid))
-    LOGGER.info('2. Loss Mod Template SID: ' + str(template_id))
-    LOGGER.info('3. Peril code: ' + str(peril_analysis))
+    LOGGER.info('Base Analysis SID: ' + str(base_analysis_sid))
+    LOGGER.info('Loss Mod Template SID: ' + str(template_id))
+    LOGGER.info('Peril code: ' + str(peril_analysis))
 
-    LOGGER.info('**********************************************************************************')
-    LOGGER.info('Step 4. Get  Loss mod information')
-    perilsTemp, coverage, LOB, admin_boundary, occupancy, construction, \
-    yearBuilt, stories, contractID, locationID, factor = db.loss_mod_info(template_id)
-    LOGGER.info('1. Perils: ' + str(perilsTemp))
-    LOGGER.info('2. Coverage: ' + str(coverage))
-    LOGGER.info('3. LOB: ' + str(LOB))
-    LOGGER.info('4. Admin Boundaries: ' + str(admin_boundary))
-    LOGGER.info('5. Occupancy Code: ' + str(occupancy))
-    LOGGER.info('6. Construction Code: ' + str(construction))
-    LOGGER.info('7. Year Built: ' + str(yearBuilt))
-    LOGGER.info('8. Stories: ' + str(stories))
-    LOGGER.info('9. ContractIDs: ' + str(contractID))
-    LOGGER.info('10. LocationIDs: ' + str(locationID))
-    LOGGER.info('11. Factor: ' + str(factor))
-
-
-    LOGGER.info('**********************************************************************************')
-    LOGGER.info('Step 5. Get result sid')
     baseResultSID = db.result_sid(base_analysis_sid)
     modResultSID = db.result_sid(analysis_sid)
-    LOGGER.info('1. Base Result SID: ' + str(baseResultSID))
-    LOGGER.info('2. Mod Result SID: ' + str(modResultSID))
+    LOGGER.info('Base Result SID: ' + str(baseResultSID))
+    LOGGER.info('Mod Result SID: ' + str(modResultSID))
 
-    LOGGER.info('**********************************************************************************')
-    LOGGER.info('Step 6. Group analysis perils')
+
+    LOGGER.info('\n********** Loss Mod Options **********\n')
+    perilsTemp, coverage, LOB, admin_boundary, occupancy, construction, \
+    yearBuilt, stories, contractID, locationID, factor = db.loss_mod_info(template_id)
+    LOGGER.info('Perils: ' + str(perilsTemp))
+    LOGGER.info('Coverage: ' + str(coverage))
+    LOGGER.info('LOB: ' + str(LOB))
+    LOGGER.info('Admin Boundaries: ' + str(admin_boundary))
+    LOGGER.info('Occupancy Code: ' + str(occupancy))
+    LOGGER.info('Construction Code: ' + str(construction))
+    LOGGER.info('Year Built: ' + str(yearBuilt))
+    LOGGER.info('Stories: ' + str(stories))
+    LOGGER.info('ContractIDs: ' + str(contractID))
+    LOGGER.info('LocationIDs: ' + str(locationID))
+    LOGGER.info('Factor: ' + str(factor))
+
     perilsAnalysisGrouped = db.group_analysis_perils(analysis_sid, perilsTemp)
-    LOGGER.info('1. Grouped Perils used in analysis: ' + str(perilsAnalysisGrouped))
+    LOGGER.info('Grouped Perils used in analysis: ' + str(perilsAnalysisGrouped))
 
-    LOGGER.info('**********************************************************************************')
-    LOGGER.info('Step 7. Check Rule')
     template_info = loss_mod.check_rule(analysis_sid, perilsAnalysisGrouped, coverage,
                                                   LOB, admin_boundary, occupancy, construction, yearBuilt,
                                                   stories, contractID, locationID, factor, modResultSID, result_db)
 
-    LOGGER.info('**********************************************************************************')
-    LOGGER.info('Step 8. Get loss data frame')
     resultDF = loss_mod.get_loss_df(analysis_sid, result_db, baseResultSID, modResultSID, coverage)
 
-    LOGGER.info('**********************************************************************************')
-    LOGGER.info('Step 9. Validate')
     validatedDF = loss_mod.validate(resultDF, template_info, coverage, analysis_sid, tolerance)
 
-    LOGGER.info('**********************************************************************************')
-    LOGGER.info('Step 10. Saving the results')
     validatedDF.to_csv(OUTFILE, index=False)
 
 

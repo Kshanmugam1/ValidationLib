@@ -11,6 +11,7 @@ CATXOL Validation Script
 # Import standard Python packages and read outfile
 import getopt
 import sys
+import datetime
 
 OPTLIST, ARGS = getopt.getopt(sys.argv[1:], [''], ['outfile='])
 
@@ -72,13 +73,17 @@ except:
 
 if __name__ == "__main__":
 
-    LOGGER.info('**********************************************************************************')
-    LOGGER.info('                          CATXOL Validation Tool                                  ')
-    LOGGER.info('**********************************************************************************')
+    LOGGER.info('********************************')
+    LOGGER.info('**      Touchstone v.3.0      **')
+    LOGGER.info('********************************')
 
+    LOGGER.info('\n********** Log header **********\n')
+    LOGGER.info('Description:   CATXOL Validation')
+    LOGGER.info('Time Submitted: ' + str(datetime.datetime.now()))
+    LOGGER.info('Status:                Completed')
+
+    LOGGER.info('\n********** Log Import Options **********\n')
     # Initialize the connection with the server
-    LOGGER.info('**********************************************************************************')
-    LOGGER.info('Step 1. Establishing the connection with database and initialize the Correlation class')
     try:
         db = Database(server)
         catxol = Catxol(server)
@@ -86,36 +91,25 @@ if __name__ == "__main__":
         LOGGER.error('Invalid server information')
         file_skeleton(OUTFILE)
         sys.exit()
-    LOGGER.info('Connection Established with server: ' + str(server))
+    LOGGER.info('Server: ' + str(server))
 
-    LOGGER.info('**********************************************************************************')
-    LOGGER.info('Step 2. Get analysis sid')
     analysis_sid = db.analysis_sid(analysis_name)
-    LOGGER.info('Analysis SID for analysis ' + str(analysis_name) + ' is ' + str(analysis_sid))
+    LOGGER.info('Analysis SID: ' + str(analysis_sid))
 
-    LOGGER.info('**********************************************************************************')
-    LOGGER.info('Step 3. Get result SID')
-    resultSID = db.result_sid(analysis_sid)
-    LOGGER.info('1. Contract Result SID: ' + str(resultSID))
+    result_sid = db.result_sid(analysis_sid)
+    LOGGER.info('Result SID: ' + str(result_sid))
 
-    LOGGER.info('**********************************************************************************')
-    LOGGER.info('Step 4. Get program ID')
     programSID = db.program_id(analysis_sid)
     LOGGER.info('Program ID: ' + str(programSID))
 
-    LOGGER.info('**********************************************************************************')
-    LOGGER.info('Step 5. Get program information')
     programInfo = db.program_info(programSID, 'catxol')
     programInfo = pd.DataFrame(data=zip(*programInfo), columns=['Occ_Limit', 'Occ_Ret', 'Agg_Limit',
                                                                 'Agg_Ret', '%Placed', 'Ins_CoIns',
                                                                 'Inuring'])
+    LOGGER.info('Program Info: ')
     LOGGER.info(programInfo)
 
-    LOGGER.info('**********************************************************************************')
-    LOGGER.info('Step 6. Get the chunks of tasks to be performed')
-    tasks, lossDF = catxol.get_tasks(result_db, resultSID)
-    LOGGER.info('**********************************************************************************')
-    LOGGER.info('Step 7. Get the result data frame')
+    tasks, lossDF = catxol.get_tasks(result_db, result_sid)
     '''
     Pseudo Algorithm:
         1. Get the max inuring order
@@ -144,12 +138,8 @@ if __name__ == "__main__":
             lossDF['NetOfPreCATLoss'] = lossDF['NetOfPreCATLoss'] - lossDF['Recovery']
         recovery = []
 
-    LOGGER.info('**********************************************************************************')
-    LOGGER.info('Step 7. Validate the numbers')
     resultDF = catxol.validate(lossDF)
 
-    LOGGER.info('**********************************************************************************')
-    LOGGER.info('Step 8. Save the results')
     sequence = ['CatalogTypeCode', 'ModelCode', 'YearID', 'EventID', 'NetOfPreCATLoss', 'Recovery',
                 'PostCATNetLoss', 'CalculatedPostCATNetLoss', 'DifferencePercent', 'Status']
     resultDF = set_column_sequence(resultDF, sequence)
