@@ -778,5 +778,4 @@ class loss_mod:
         #     resultDF.loc[:, ['Difference', 'Difference_A',
         #                      'Difference_B', 'Difference_C', 'Difference_D']].values.round(2)
 
-
         return resultDF
