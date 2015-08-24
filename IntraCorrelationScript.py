@@ -60,8 +60,6 @@ def file_skeleton(outfile):
                           'CalculatedConGrSD', 'DifferenceConGrSD_Percent',
                           'Status']).to_csv(outfile, index=False)
 
-start = time.time()
-
 # Extract the given arguments
 try:
     server = sys.argv[3]
@@ -76,56 +74,57 @@ except:
 
 if __name__ == "__main__":
 
-    LOGGER.info('********************************')
-    LOGGER.info('**      Touchstone v.3.0      **')
-    LOGGER.info('********************************')
-
-    LOGGER.info('\n********** Log header **********\n')
-    LOGGER.info('Description:   Intra Correlation Validation')
-    LOGGER.info('Time Submitted: ' + str(datetime.datetime.now()))
-    LOGGER.info('Status:                Completed')
-
-    LOGGER.info('\n********** Log Import Options **********\n')
-    # Initialize the connection with the server
     try:
+        start = time.time()
+        LOGGER.info('********************************')
+        LOGGER.info('**      Touchstone v.3.0      **')
+        LOGGER.info('********************************')
+
+        LOGGER.info('\n********** Log header **********\n')
+        LOGGER.info('Description:   Intra Correlation Validation')
+        LOGGER.info('Time Submitted: ' + str(datetime.datetime.now()))
+        LOGGER.info('Status:                Completed')
+
+        LOGGER.info('\n********** Log Import Options **********\n')
+        # Initialize the connection with the server
         db = Database(server)
         intra_correlation = Correlation(server)
+        LOGGER.info('Server: ' + str(server))
+
+        contract_analysis_sid = db.analysis_sid(contract_analysis_name)
+        location_analysis_sid = db.analysis_sid(location_analysis_name)
+        LOGGER.info('Contract analysis SID: ' + str(contract_analysis_sid))
+        LOGGER.info('Location analysis SID: ' + str(location_analysis_sid))
+
+        intra_correlation_fac, inter_correlation_fac = intra_correlation.correlation_factor(contract_analysis_sid)
+        LOGGER.info('Intra Correlation Factor: ' + str(intra_correlation_fac))
+        LOGGER.info('Inter Correlation Factor: ' + str(inter_correlation_fac))
+
+        contract_result_sid = db.result_sid(contract_analysis_sid)
+        location_result_sid = db.result_sid(location_analysis_sid)
+        LOGGER.info('Contract Result SID: ' + str(contract_result_sid))
+        LOGGER.info('Location Result SID: ' + str(location_result_sid))
+
+        resultDF_detailed, resultDF_summary = intra_correlation.loss_sd(contract_result_sid, result_db, 'Intra',
+                                                                        location_result_sid=location_result_sid,
+                                                                        intra_correlation=intra_correlation_fac,
+                                                                        tolerance=tolerance)
+
+        sequence = ['CatalogTypeCode', 'ModelCode', 'PerilSetCode', 'ContractID', 'ContractGuSD', 'CalculatedConGuSD',
+                    'DifferenceConGuSD_Percent', 'ContractGrSD', 'CalculatedConGrSD', 'DifferenceConGrSD_Percent',
+                    'Status']
+        resultDF_summary = set_column_sequence(resultDF_summary, sequence)
+
+        resultDF_summary.to_csv(OUTFILE, index=False)
+        resultDF_detailed.to_csv(OUTFILE[:-4] + '-Detailed.csv', index=False)
+
+        LOGGER.info('----------------------------------------------------------------------------------')
+        LOGGER.info('         Correlation Validation Completed Successfully                            ')
+        LOGGER.info('----------------------------------------------------------------------------------')
+
+        LOGGER.info('********** Process Complete Time: ' + str(time.time() - start) + ' Seconds **********')
+
     except:
-        LOGGER.error('Invalid server information')
+        LOGGER.error('Unknown error: Contact code maintainer: ' + __maintainer__)
         file_skeleton(OUTFILE)
         sys.exit()
-    LOGGER.info('Server: ' + str(server))
-
-    contract_analysis_sid = db.analysis_sid(contract_analysis_name)
-    location_analysis_sid = db.analysis_sid(location_analysis_name)
-    LOGGER.info('Contract analysis SID: ' + str(contract_analysis_sid))
-    LOGGER.info('Location analysis SID: ' + str(location_analysis_sid))
-
-    intra_correlation_fac, inter_correlation_fac = intra_correlation.correlation_factor(contract_analysis_sid)
-    LOGGER.info('Intra Correlation Factor: ' + str(intra_correlation_fac))
-    LOGGER.info('Inter Correlation Factor: ' + str(inter_correlation_fac))
-
-    contract_result_sid = db.result_sid(contract_analysis_sid)
-    location_result_sid = db.result_sid(location_analysis_sid)
-    LOGGER.info('Contract Result SID: ' + str(contract_result_sid))
-    LOGGER.info('Location Result SID: ' + str(location_result_sid))
-
-    resultDF_detailed, resultDF_summary = intra_correlation.loss_sd(contract_result_sid, result_db, 'Intra',
-                                                                    location_result_sid=location_result_sid,
-                                                                    intra_correlation=intra_correlation_fac,
-                                                                    tolerance=tolerance)
-
-    sequence = ['CatalogTypeCode', 'ModelCode', 'PerilSetCode', 'ContractID', 'ContractGuSD', 'CalculatedConGuSD',
-                'DifferenceConGuSD_Percent', 'ContractGrSD', 'CalculatedConGrSD', 'DifferenceConGrSD_Percent',
-                'Status']
-    resultDF_summary = set_column_sequence(resultDF_summary, sequence)
-
-    resultDF_summary.to_csv(OUTFILE, index=False)
-    resultDF_detailed.to_csv(OUTFILE[:-4] + '-Detailed.csv', index=False)
-
-    LOGGER.info('----------------------------------------------------------------------------------')
-    LOGGER.info('         Correlation Validation Completed Successfully                            ')
-    LOGGER.info('----------------------------------------------------------------------------------')
-
-    LOGGER.info('********** Process Complete Time: ' + str(time.time() - start) + ' Seconds **********')
-

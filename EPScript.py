@@ -20,7 +20,7 @@ for o, a in OPTLIST:
     if o == "--outfile":
         OUTFILE = a
     print "Outfile: " + OUTFILE
-# OUTFILE = 'C:\Users\i56228\Documents\Python\Git\ValidationLib\EPValidation.csv'
+
 if OUTFILE is None:
     print ('Outfile is not passed')
     sys.exit()
@@ -84,21 +84,11 @@ if __name__ == '__main__':
 
         LOGGER.info('\n********** Log Import Options **********\n')
         # Initialize the connection with the server
-        try:
-            db = Database(server)
-        except:
-            LOGGER.error('Invalid server information')
-            file_skeleton(OUTFILE)
-            sys.exit()
+        db = Database(server)
         LOGGER.info('Server: ' + str(server))
 
-        try:
-            analysis_sid = db.analysis_sid(analysis_name)
-            LOGGER.info('Analysis SID: ' + str(analysis_sid))
-        except:
-            LOGGER.error('Error with analysis name')
-            file_skeleton(OUTFILE)
-            sys.exit()
+        analysis_sid = db.analysis_sid(analysis_name)
+        LOGGER.info('Analysis SID: ' + str(analysis_sid))
 
         result_sid = db.result_sid(analysis_sid)
         LOGGER.info('Result SID: ' + str(result_sid))

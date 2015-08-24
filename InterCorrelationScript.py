@@ -58,7 +58,6 @@ def file_skeleton(outfile):
                           'DifferencePortGuSD_Percent', 'PortGrSD', 'CalculatedPortGrSD',
                           'DifferencePortGrSD_Percent', 'Status']).to_csv(outfile, index=False)
 
-
 # Extract the given arguments
 try:
     server = sys.argv[3]
@@ -72,53 +71,54 @@ except:
 
 if __name__ == "__main__":
 
-    start = time.time()
-
-    LOGGER.info('********************************')
-    LOGGER.info('**      Touchstone v.3.0      **')
-    LOGGER.info('********************************')
-
-    LOGGER.info('\n********** Log header **********\n')
-    LOGGER.info('Description:   Inter Correlation Validation')
-    LOGGER.info('Time Submitted: ' + str(datetime.datetime.now()))
-    LOGGER.info('Status:                Completed')
-
-    LOGGER.info('\n********** Log Import Options **********\n')
-    # Initialize the connection with the server
     try:
+        start = time.time()
+
+        LOGGER.info('********************************')
+        LOGGER.info('**      Touchstone v.3.0      **')
+        LOGGER.info('********************************')
+
+        LOGGER.info('\n********** Log header **********\n')
+        LOGGER.info('Description:   Inter Correlation Validation')
+        LOGGER.info('Time Submitted: ' + str(datetime.datetime.now()))
+        LOGGER.info('Status:                Completed')
+
+        LOGGER.info('\n********** Log Import Options **********\n')
+        # Initialize the connection with the server
         db = Database(server)
         inter_correlation = Correlation(server)
+        LOGGER.info('Server: ' + str(server))
+
+        contract_analysis_sid = db.analysis_sid(contract_analysis_name)
+        LOGGER.info('Analysis SID: ' + str(contract_analysis_sid))
+
+        intra_correlation_fac, inter_correlation_fac = inter_correlation.correlation_factor(contract_analysis_sid)
+        LOGGER.info('Intra Correlation Factor: ' + str(intra_correlation_fac))
+        LOGGER.info('Inter Correlation Factor: ' + str(inter_correlation_fac))
+
+        contractResultSID = db.result_sid(contract_analysis_sid)
+        LOGGER.info('Result SID: ' + str(contractResultSID))
+
+        resultDF_detailed, resultDF_summary = inter_correlation.loss_sd(contractResultSID, result_db, 'Inter',
+                                                                     inter_correlation=inter_correlation_fac,
+                                                                     tolerance=tolerance)
+
+        sequence = ['CatalogTypeCode', 'ModelCode', 'PortGuSD', 'CalculatedPortGuSD',
+                    'DifferencePortGuSD_Percent', 'PortGrSD', 'CalculatedPortGrSD',
+                    'DifferencePortGrSD_Percent', 'Status']
+        resultDF_summary = set_column_sequence(resultDF_summary, sequence)
+
+        resultDF_summary.to_csv(OUTFILE, index=False)
+        resultDF_detailed.to_csv(OUTFILE[:-4] + '-Detailed.csv', index=False)
+
+        LOGGER.info('----------------------------------------------------------------------------------')
+        LOGGER.info('         Correlation Validation Completed Successfully                            ')
+        LOGGER.info('----------------------------------------------------------------------------------')
+
+        LOGGER.info('********** Process Complete Time: ' + str(time.time() - start) + ' Seconds **********')
+
     except:
-        LOGGER.error('Invalid server information')
+        LOGGER.error('Unknown error: Contact code maintainer: ' + __maintainer__)
         file_skeleton(OUTFILE)
         sys.exit()
-    LOGGER.info('Server: ' + str(server))
-
-    contract_analysis_sid = db.analysis_sid(contract_analysis_name)
-    LOGGER.info('Analysis SID: ' + str(contract_analysis_sid))
-
-    intra_correlation_fac, inter_correlation_fac = inter_correlation.correlation_factor(contract_analysis_sid)
-    LOGGER.info('Intra Correlation Factor: ' + str(intra_correlation_fac))
-    LOGGER.info('Inter Correlation Factor: ' + str(inter_correlation_fac))
-
-    contractResultSID = db.result_sid(contract_analysis_sid)
-    LOGGER.info('Result SID: ' + str(contractResultSID))
-
-    resultDF_detailed, resultDF_summary = inter_correlation.loss_sd(contractResultSID, result_db, 'Inter',
-                                                                 inter_correlation=inter_correlation_fac,
-                                                                 tolerance=tolerance)
-
-    sequence = ['CatalogTypeCode', 'ModelCode', 'PortGuSD', 'CalculatedPortGuSD',
-                'DifferencePortGuSD_Percent', 'PortGrSD', 'CalculatedPortGrSD',
-                'DifferencePortGrSD_Percent', 'Status']
-    resultDF_summary = set_column_sequence(resultDF_summary, sequence)
-
-    resultDF_summary.to_csv(OUTFILE, index=False)
-    resultDF_detailed.to_csv(OUTFILE[:-4] + '-Detailed.csv', index=False)
-
-    LOGGER.info('----------------------------------------------------------------------------------')
-    LOGGER.info('         Correlation Validation Completed Successfully                            ')
-    LOGGER.info('----------------------------------------------------------------------------------')
-
-    LOGGER.info('********** Process Complete Time: ' + str(time.time() - start) + ' Seconds **********')
 

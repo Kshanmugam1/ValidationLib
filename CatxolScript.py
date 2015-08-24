@@ -59,8 +59,6 @@ def file_skeleton(outfile):
                           'Recovery', 'PostCATNetLoss', 'CalculatedPostCATNetLoss',
                           'DifferencePercent', 'Status']).to_csv(outfile, index=False)
 
-start = time.time()
-
 # Extract the given arguments
 try:
     server = sys.argv[3]
@@ -74,6 +72,7 @@ except:
 if __name__ == "__main__":
 
     try:
+        start = time.time()
 
         LOGGER.info('********************************')
         LOGGER.info('**      Touchstone v.3.0      **')
@@ -86,33 +85,18 @@ if __name__ == "__main__":
 
         LOGGER.info('\n********** Log Import Options **********\n')
         # Initialize the connection with the server
-        try:
-            db = Database(server)
-            catxol = Catxol(server)
-            LOGGER.info('Server: ' + str(server))
-        except:
-            LOGGER.error('Invalid server information')
-            file_skeleton(OUTFILE)
-            sys.exit()
+        db = Database(server)
+        catxol = Catxol(server)
+        LOGGER.info('Server: ' + str(server))
 
-        try:
-            analysis_sid = db.analysis_sid(analysis_name)
-            LOGGER.info('Analysis SID: ' + str(analysis_sid))
-        except:
-            LOGGER.error('Error with analysis name')
-            file_skeleton(OUTFILE)
-            sys.exit()
+        analysis_sid = db.analysis_sid(analysis_name)
+        LOGGER.info('Analysis SID: ' + str(analysis_sid))
 
         result_sid = db.result_sid(analysis_sid)
         LOGGER.info('Result SID: ' + str(result_sid))
 
-        try:
-            programSID = db.program_id(analysis_sid)
-            LOGGER.info('Program ID: ' + str(programSID))
-        except:
-            LOGGER.error('Error with Program ID')
-            file_skeleton(OUTFILE)
-            sys.exit()
+        programSID = db.program_id(analysis_sid)
+        LOGGER.info('Program ID: ' + str(programSID))
 
         programInfo = db.program_info(programSID, 'catxol')
         programInfo = pd.DataFrame(data=zip(*programInfo), columns=['Occ_Limit', 'Occ_Ret', 'Agg_Limit',
@@ -165,7 +149,7 @@ if __name__ == "__main__":
         LOGGER.info('********** Process Complete Time: ' + str(time.time() - start) + ' Seconds **********')
 
     except:
-        LOGGER.error('Unknown error: Contact' + __maintainer__)
+        LOGGER.error('Unknown error: Contact code maintainer: ' + __maintainer__)
         file_skeleton(OUTFILE)
         sys.exit()
 
