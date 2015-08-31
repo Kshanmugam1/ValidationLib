@@ -34,7 +34,7 @@ __email__ = 'skapadia@air-worldwide.com'
 __status__ = 'Complete'
 
 
-class loss_mod:
+class LossMod:
 
     """
     Loss Mod Validation
@@ -779,3 +779,4 @@ class loss_mod:
         #                      'Difference_B', 'Difference_C', 'Difference_D']].values.round(2)
 
         return resultDF
+
