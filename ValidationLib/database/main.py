@@ -416,3 +416,111 @@ class Database:
 
         script = 'SELECT * from [' + resultDB + '].dbo.t' + str(resultSID) + '_LOSS_AnnualEPSummary'
         return copy.deepcopy(pd.read_sql(script, self.connection))
+
+    def table_names(self, db, criteria=None):
+
+        script = 'USE [' + str(db) + '] '
+        self.cursor.execute(script)
+
+        if not criteria is None:
+            script = 'SELECT * FROM INFORMATION_SCHEMA.TABLES WHERE TABLE_NAME like ' \
+                     + "'" + criteria + "'"
+        else:
+            script = 'SELECT * FROM INFORMATION_SCHEMA.TABLES'
+
+        return copy.deepcopy(pd.read_sql(script, self.connection))
+
+    def location_info(self, exp_db, exp_name):
+
+        script = 'SELECT ' \
+                 'b.GeographySID, ' \
+                 'b.AIROccupancyCode, ' \
+                 'b.LocationID, ' \
+                 'b.CountryCode, ' \
+                 'c.GeoLevelCode, ' \
+                 'e.ExchangeRate, ' \
+                 'f.intWeightTypeId, ' \
+                 'b.ReplacementValueA, ' \
+                 'b.ReplacementValueB, ' \
+                 'b.ReplacementValueC, ' \
+                 'b.ReplacementValueD ' \
+                 'FROM (SELECT [ExposureSetSID], ' \
+                 '[ExposureSetName], ' \
+                 '[StatusCode], ' \
+                 '[EnteredDate], ' \
+                 '[EditedDate], ' \
+                 '[Description], ' \
+                 '[RowVersion] ' \
+                 'FROM [SK_Exp].[dbo].[tExposureSet] ' \
+                 'where ExposureSetName = '+ "'" + str(exp_name) + "'" + ') a ' \
+                 'JOIN ['+str(exp_db) + '].[dbo].[tLocation] b ON a.ExposureSetSID = b.ExposureSetSID ' \
+                 'JOIN [AIRGeography].[dbo].[tGeography] c on b.GeographySID = c.GeographySID ' \
+                 'JOIN [AIRReference].[dbo].[tCountryCurrencyXref] d on c.CountryCode=d.CountryCode ' \
+                 'JOIN [AIRUserSetting].[dbo].[tCurrencyExchangeRateSetConversion] e on ' \
+                 'd.CurrencyCode=e.CurrencyCode ' \
+                 'JOIN [AIRGeography].[dbo].[TblOccAirWeightType_xref] f ON b.AIROccupancyCode = f.intOccAir' \
+                 ' where  e.CurrencyExchangeRateSetSID=1 and d.IsDefault=1'
+
+        return copy.deepcopy(pd.read_sql(script, self.connection))
+
+    def weight_type(self, Occupancycode):
+
+        script = 'SELECT intWeightTypeID from [AIRGeography].[dbo].[TblOccAirWeightType_xref] WHERE intOccAir = ' \
+                 + str(Occupancycode)
+        self.cursor.execute(script)
+        info = copy.deepcopy(self.cursor.fetchall())
+        return info[0][0]
+
+    def table_info(self, db, table_name):
+
+        script = 'SELECT * from [' + str(db) + '].[dbo].[' + str(table_name) + ']'
+        return copy.deepcopy(pd.read_sql(script, self.connection))
+
+    def disagg_loss(self, location_info):
+
+        script = 'SELECT a.fltGeoLat,' \
+                 'a.fltGeoLong, ' \
+                 'a.fltWeight, ' \
+                 'b.dblMinCovA*' + str(location_info[5]) + ' as dblMinCovA, ' \
+                 'b.dblMinCovB*' + str(location_info[5]) + ' as dblMinCovB, ' \
+                 'b.dblMinCovC*' + str(location_info[5]) + ' as dblMinCovC, ' \
+                 'b.dblMinCovD*' + str(location_info[5]) + ' as dblMinCovD, ' \
+                 + str(location_info[7] * location_info[5]) + '*a.fltWeight as ReplacementValueA, ' \
+                 + str(location_info[8] * location_info[5]) + '*a.fltWeight as ReplacementValueB,' \
+                 + str(location_info[9] * location_info[5]) + '*a.fltWeight as ReplacementValueC, ' \
+                 + str(location_info[10] * location_info[5]) + '*a.fltWeight as ReplacementValueD ' \
+                 'From (SELECT [guidExternalSource],' \
+                 '[fltGeoLat],' \
+                 '[fltGeoLong],' \
+                 '[intWeightTypeId],' \
+                 '[fltWeight],' \
+                 '[GridGeographySID] FROM [AIRGeography].[dbo].[TblSourceTargetMap_CAN] ' \
+                 'where GridGeographySID =' + str(location_info[0]) + ' and intWeightTypeId = ' + str(location_info[6]) + ') a ' \
+                 'JOIN [AIRGeography].[dbo].[TblSourceDefaultTarget_Xref] b ' \
+                                                                     'ON a.guidExternalSource = b.guidExternalSource ' \
+                                                                     'and a.intWeightTypeId = b.intWeightTypeId'
+        return copy.deepcopy(pd.read_sql(script, self.connection))
+
+    def loc_replacement(self, exp_db, exp_name):
+
+        script = 'SELECT' \
+                 ' b.LocationID,' \
+                 'b.ReplacementValueA,' \
+                 'b.ReplacementValueB,' \
+                 'b.ReplacementValueC,' \
+                 'b.ReplacementValueD  ' \
+                 'FROM (SELECT [ExposureSetSID],' \
+                 '[ExposureSetName],' \
+                 '[StatusCode],' \
+                 '[EnteredDate],' \
+                 '[EditedDate],' \
+                 '[Description],' \
+                 '[RowVersion] ' \
+                 'FROM [SK_Exp].[dbo].[tExposureSet] ' \
+                 'where ExposureSetName = ' + "'" + str(exp_name) + "'" + ') a ' \
+                 'JOIN [' + str(exp_db) + '].[dbo].[tLocation] b ON a.ExposureSetSID = b.ExposureSetSID'
+        return copy.deepcopy(pd.read_sql(script, self.connection))
+
+    def replacement_values(self, location_sid):
+
+        script = 'SELECT ReplacementValueA, ReplacementValueB, ReplacementValueC, ReplacementValueD'
