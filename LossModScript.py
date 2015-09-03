@@ -23,7 +23,7 @@ for o, a in OPTLIST:
     print "Outfile: " + OUTFILE
 
 if OUTFILE is None:
-    print ('Outfile is not passed')
+    print ("Outfile: " + OUTFILE)
     sys.exit()
 
 # Import standard Python packages and read outfile
