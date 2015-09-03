@@ -20,7 +20,7 @@ OUTFILE = None
 for o, a in OPTLIST:
     if o == "--outfile":
         OUTFILE = a
-    print "Outfile: " + OUTFILE
+    print ("Outfile: " + OUTFILE)
 
 if OUTFILE is None:
     print ("Outfile: " + OUTFILE)
