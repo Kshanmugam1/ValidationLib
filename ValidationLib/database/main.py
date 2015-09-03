@@ -436,6 +436,7 @@ class Database:
                  'b.GeographySID, ' \
                  'b.AIROccupancyCode, ' \
                  'b.LocationID, ' \
+                 'g.ContractID, ' \
                  'b.CountryCode, ' \
                  'c.GeoLevelCode, ' \
                  'e.ExchangeRate, ' \
@@ -458,7 +459,8 @@ class Database:
                  'JOIN [AIRReference].[dbo].[tCountryCurrencyXref] d on c.CountryCode=d.CountryCode ' \
                  'JOIN [AIRUserSetting].[dbo].[tCurrencyExchangeRateSetConversion] e on ' \
                  'd.CurrencyCode=e.CurrencyCode ' \
-                 'JOIN [AIRGeography].[dbo].[TblOccAirWeightType_xref] f ON b.AIROccupancyCode = f.intOccAir' \
+                 'JOIN [AIRGeography].[dbo].[TblOccAirWeightType_xref] f ON b.AIROccupancyCode = f.intOccAir ' \
+                 'JOIN ['+str(exp_db) + '].[dbo].[tContract] g ON b.ContractSID = g.ContractSID' \
                  ' where  e.CurrencyExchangeRateSetSID=1 and d.IsDefault=1'
 
         return copy.deepcopy(pd.read_sql(script, self.connection))
@@ -476,26 +478,44 @@ class Database:
         script = 'SELECT * from [' + str(db) + '].[dbo].[' + str(table_name) + ']'
         return copy.deepcopy(pd.read_sql(script, self.connection))
 
+    def staging_contract_location(self, db, location_table, contract_table):
+
+        script = 'SELECT ' \
+                 'b.[ContractID], ' \
+                 'a.[LocationID], ' \
+                 'a.[Latitude], ' \
+                 'a.[Longitude], ' \
+                 'a.[ReplacementValueA], ' \
+                 'a.[ReplacementValueB], ' \
+                 'a.[ReplacementValueC], ' \
+                 'a.[ReplacementValueD], ' \
+                 'a.[LocationTypeCode], ' \
+                 'a.[LocationSID] ' \
+                 'FROM [AIRWork].[dbo].['+ str(location_table)+ '] a ' \
+                 'JOIN [AIRWork].[dbo].['+ str(contract_table)+ '] b ON a.guidContract = b.guidContract'
+
+        return copy.deepcopy(pd.read_sql(script, self.connection))
+
     def disagg_loss(self, location_info):
 
-        script = 'SELECT a.fltGeoLat,' \
-                 'a.fltGeoLong, ' \
+        script = 'SELECT a.fltGeoLat as Latitude,' \
+                 'a.fltGeoLong as Longitude, ' \
                  'a.fltWeight, ' \
-                 'b.dblMinCovA*' + str(location_info[5]) + ' as dblMinCovA, ' \
-                 'b.dblMinCovB*' + str(location_info[5]) + ' as dblMinCovB, ' \
-                 'b.dblMinCovC*' + str(location_info[5]) + ' as dblMinCovC, ' \
-                 'b.dblMinCovD*' + str(location_info[5]) + ' as dblMinCovD, ' \
-                 + str(location_info[7] * location_info[5]) + '*a.fltWeight as ReplacementValueA, ' \
-                 + str(location_info[8] * location_info[5]) + '*a.fltWeight as ReplacementValueB,' \
-                 + str(location_info[9] * location_info[5]) + '*a.fltWeight as ReplacementValueC, ' \
-                 + str(location_info[10] * location_info[5]) + '*a.fltWeight as ReplacementValueD ' \
+                 'b.dblMinCovA*' + str(location_info[6]) + ' as dblMinCovA, ' \
+                 'b.dblMinCovB*' + str(location_info[6]) + ' as dblMinCovB, ' \
+                 'b.dblMinCovC*' + str(location_info[6]) + ' as dblMinCovC, ' \
+                 'b.dblMinCovD*' + str(location_info[6]) + ' as dblMinCovD, ' \
+                 + str(location_info[8] * location_info[6]) + '*a.fltWeight as ReplacementValueA, ' \
+                 + str(location_info[9] * location_info[6]) + '*a.fltWeight as ReplacementValueB,' \
+                 + str(location_info[10] * location_info[6]) + '*a.fltWeight as ReplacementValueC, ' \
+                 + str(location_info[11] * location_info[6]) + '*a.fltWeight as ReplacementValueD ' \
                  'From (SELECT [guidExternalSource],' \
                  '[fltGeoLat],' \
                  '[fltGeoLong],' \
                  '[intWeightTypeId],' \
                  '[fltWeight],' \
                  '[GridGeographySID] FROM [AIRGeography].[dbo].[TblSourceTargetMap_CAN] ' \
-                 'where GridGeographySID =' + str(location_info[0]) + ' and intWeightTypeId = ' + str(location_info[6]) + ') a ' \
+                 'where GridGeographySID =' + str(location_info[0]) + ' and intWeightTypeId = ' + str(location_info[7]) + ') a ' \
                  'JOIN [AIRGeography].[dbo].[TblSourceDefaultTarget_Xref] b ' \
                                                                      'ON a.guidExternalSource = b.guidExternalSource ' \
                                                                      'and a.intWeightTypeId = b.intWeightTypeId'
