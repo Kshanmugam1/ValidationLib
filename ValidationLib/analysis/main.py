@@ -780,3 +780,29 @@ class LossMod:
 
         return resultDF
 
+class DissAggregation:
+
+    def __init__(self, server):
+
+        """Initialize the LossModValidation class
+
+        Establish a connection with an input server
+
+        Parameters
+        ----------
+        server: string
+            For example: 'QAWUDB2\SQL2012'
+
+        Returns
+        -------
+
+        Raises
+        ------
+
+        """
+        self.setup = Database(server)
+        self.connection = self.setup.connection
+        self.cursor = self.setup.cursor
+
+
+
