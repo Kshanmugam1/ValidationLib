@@ -12,6 +12,9 @@ CATXOL Validation Script
 import getopt
 import sys
 import datetime
+import warnings
+
+warnings.filterwarnings('ignore')
 
 OPTLIST, ARGS = getopt.getopt(sys.argv[1:], [''], ['outfile='])
 
@@ -20,7 +23,7 @@ for o, a in OPTLIST:
     if o == "--outfile":
         OUTFILE = a
     print ("Outfile: " + OUTFILE)
-
+OUTFILE = 'C:\Users\i56228\Documents\Python\Git\Catxol.csv'
 if OUTFILE is None:
     print ('Outfile is not passed')
     sys.exit()
@@ -61,9 +64,9 @@ def file_skeleton(outfile):
 
 # Extract the given arguments
 try:
-    server = sys.argv[3]
-    result_db = sys.argv[4]
-    analysis_name = sys.argv[5]
+    server = 'QA-TS-DB1\SQL2012'
+    result_db = 'SK_Res'
+    analysis_name = 'CatxolPy_092116363512'
 except:
     LOGGER.error('Please verify the inputs')
     file_skeleton(OUTFILE)
