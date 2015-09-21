@@ -20,10 +20,10 @@ OUTFILE = None
 for o, a in OPTLIST:
     if o == "--outfile":
         OUTFILE = a
-    print "Outfile: " + OUTFILE
+    print ("Outfile: " + OUTFILE)
 
 if OUTFILE is None:
-    print ('Outfile is not passed')
+    print ("Outfile: " + OUTFILE)
     sys.exit()
 
 # Import standard Python packages and read outfile
@@ -84,7 +84,7 @@ if __name__ == '__main__':
         # Initialize the connection with the server
         try:
             db = Database(server)
-            loss_mod = loss_mod(server)
+            loss_mod = LossMod(server)
         except:
             LOGGER.error('Invalid server information')
             file_skeleton(OUTFILE)
@@ -125,13 +125,13 @@ if __name__ == '__main__':
         perilsAnalysisGrouped = db.group_analysis_perils(analysis_sid, perilsTemp)
         LOGGER.info('Grouped Perils used in analysis: ' + str(perilsAnalysisGrouped))
 
-        template_info = loss_mod.check_rule(analysis_sid, perilsAnalysisGrouped, coverage,
+        template_info = LossMod.check_rule(analysis_sid, perilsAnalysisGrouped, coverage,
                                                       LOB, admin_boundary, occupancy, construction, yearBuilt,
                                                       stories, contractID, locationID, factor, modResultSID, result_db)
 
-        resultDF = loss_mod.get_loss_df(analysis_sid, result_db, baseResultSID, modResultSID, coverage)
+        resultDF = LossMod.get_loss_df(analysis_sid, result_db, baseResultSID, modResultSID, coverage)
 
-        validatedDF = loss_mod.validate(resultDF, template_info, coverage, analysis_sid, tolerance)
+        validatedDF = LossMod.validate(resultDF, template_info, coverage, analysis_sid, tolerance)
 
         validatedDF.to_csv(OUTFILE, index=False)
 
