@@ -141,19 +141,19 @@ if __name__ == '__main__':
             LOGGER.error('Error: Failed to group perils')
 
         try:
-            template_info = LossMod.check_rule(analysis_sid, perilsAnalysisGrouped, coverage,
-                                                      LOB, admin_boundary, occupancy, construction, yearBuilt,
-                                                      stories, contractID, locationID, factor, modResultSID, result_db)
+            template_info = loss_mod.check_rule(analysis_sid, perilsAnalysisGrouped, coverage,
+                                               LOB, admin_boundary, occupancy, construction, yearBuilt,
+                                               stories, contractID, locationID, factor, modResultSID, result_db)
         except:
             LOGGER.error('Error: Failed to check rule')
 
         try:
-            resultDF = LossMod.get_loss_df(analysis_sid, result_db, baseResultSID, modResultSID, coverage)
+            resultDF = loss_mod.get_loss_df(analysis_sid, result_db, baseResultSID, modResultSID, coverage)
         except:
             LOGGER.error('Error: Failed to get loss numbers')
 
         try:
-            validatedDF = LossMod.validate(resultDF, template_info, coverage, analysis_sid, tolerance)
+            validatedDF = loss_mod.validate(resultDF, template_info, coverage, analysis_sid, tolerance)
         except:
             LOGGER.error('Error: Failed to validate numbers')
 
