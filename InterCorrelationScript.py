@@ -85,23 +85,37 @@ if __name__ == "__main__":
 
         LOGGER.info('\n********** Log Import Options **********\n')
         # Initialize the connection with the server
-        db = Database(server)
-        inter_correlation = Correlation(server)
-        LOGGER.info('Server: ' + str(server))
+        try:
+            db = Database(server)
+            inter_correlation = Correlation(server)
+            LOGGER.info('Server: ' + str(server))
+        except:
+            LOGGER.error('Error: Check connection to database server')
+        try:
+            contract_analysis_sid = db.analysis_sid(contract_analysis_name)
+            LOGGER.info('Analysis SID: ' + str(contract_analysis_sid))
+        except:
+            LOGGER.error('Error: Failed to extract the contract analysis SID from contract analysis name')
 
-        contract_analysis_sid = db.analysis_sid(contract_analysis_name)
-        LOGGER.info('Analysis SID: ' + str(contract_analysis_sid))
+        try:
+            intra_correlation_fac, inter_correlation_fac = inter_correlation.correlation_factor(contract_analysis_sid)
+            LOGGER.info('Intra Correlation Factor: ' + str(intra_correlation_fac))
+            LOGGER.info('Inter Correlation Factor: ' + str(inter_correlation_fac))
+        except:
+            LOGGER.error('Error: Failed to fetch the correlation factors')
 
-        intra_correlation_fac, inter_correlation_fac = inter_correlation.correlation_factor(contract_analysis_sid)
-        LOGGER.info('Intra Correlation Factor: ' + str(intra_correlation_fac))
-        LOGGER.info('Inter Correlation Factor: ' + str(inter_correlation_fac))
+        try:
+            contractResultSID = db.result_sid(contract_analysis_sid)
+            LOGGER.info('Result SID: ' + str(contractResultSID))
+        except:
+            LOGGER.error('Error: Failed to get contract result SID from analysis SID')
+        try:
 
-        contractResultSID = db.result_sid(contract_analysis_sid)
-        LOGGER.info('Result SID: ' + str(contractResultSID))
-
-        resultDF_detailed, resultDF_summary = inter_correlation.loss_sd(contractResultSID, result_db, 'Inter',
-                                                                     inter_correlation=inter_correlation_fac,
-                                                                     tolerance=tolerance)
+            resultDF_detailed, resultDF_summary = inter_correlation.loss_sd(contractResultSID, result_db, 'Inter',
+                                                                            inter_correlation=inter_correlation_fac,
+                                                                            tolerance=tolerance)
+        except:
+            LOGGER.error('Error: Failed to get loss numbers')
 
         sequence = ['CatalogTypeCode', 'ModelCode', 'PortGuSD', 'CalculatedPortGuSD',
                     'DifferencePortGuSD_Percent', 'PortGrSD', 'CalculatedPortGrSD',

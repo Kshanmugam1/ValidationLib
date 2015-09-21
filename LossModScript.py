@@ -85,53 +85,74 @@ if __name__ == '__main__':
         try:
             db = Database(server)
             loss_mod = LossMod(server)
+            LOGGER.info('Server: ' + str(server))
         except:
-            LOGGER.error('Invalid server information')
-            file_skeleton(OUTFILE)
-            sys.exit()
-        LOGGER.info('Server: ' + str(server))
+            LOGGER.error('Error: Check connection to database server')
 
-        analysis_sid = db.analysis_sid(analysis_name) + 1
-        LOGGER.info('Analysis SID: ' + str(analysis_sid))
+        try:
+            analysis_sid = db.analysis_sid(analysis_name) + 1
+            LOGGER.info('Analysis SID: ' + str(analysis_sid))
+        except:
+             LOGGER.error('Error: Failed to extract the analysis SID from analysis name')
 
-        base_analysis_sid = db.mod_analysis_sid(analysis_sid)
-        template_id = db.loss_mod_temp_id(analysis_sid)
-        peril_analysis = db.perils_analysis(analysis_sid)
-        LOGGER.info('Base Analysis SID: ' + str(base_analysis_sid))
-        LOGGER.info('Loss Mod Template SID: ' + str(template_id))
-        LOGGER.info('Peril code: ' + str(peril_analysis))
+        try:
+            base_analysis_sid = db.mod_analysis_sid(analysis_sid)
+            template_id = db.loss_mod_temp_id(analysis_sid)
+            peril_analysis = db.perils_analysis(analysis_sid)
+            LOGGER.info('Base Analysis SID: ' + str(base_analysis_sid))
+            LOGGER.info('Loss Mod Template SID: ' + str(template_id))
+            LOGGER.info('Peril code: ' + str(peril_analysis))
+        except:
+            LOGGER.error('Error: Failed to fetch Base analysis SID/Template ID/Peril Analysis')
 
-        baseResultSID = db.result_sid(base_analysis_sid)
-        modResultSID = db.result_sid(analysis_sid)
-        LOGGER.info('Base Result SID: ' + str(baseResultSID))
-        LOGGER.info('Mod Result SID: ' + str(modResultSID))
+        try:
+            baseResultSID = db.result_sid(base_analysis_sid)
+            modResultSID = db.result_sid(analysis_sid)
+            LOGGER.info('Base Result SID: ' + str(baseResultSID))
+            LOGGER.info('Mod Result SID: ' + str(modResultSID))
+        except:
+            LOGGER.error('Error: Failed to extract result SID from analysis SID')
 
+        try:
+            LOGGER.info('\n********** Loss Mod Options **********\n')
+            perilsTemp, coverage, LOB, admin_boundary, occupancy, construction, \
+            yearBuilt, stories, contractID, locationID, factor = db.loss_mod_info(template_id)
+            LOGGER.info('Perils: ' + str(perilsTemp))
+            LOGGER.info('Coverage: ' + str(coverage))
+            LOGGER.info('LOB: ' + str(LOB))
+            LOGGER.info('Admin Boundaries: ' + str(admin_boundary))
+            LOGGER.info('Occupancy Code: ' + str(occupancy))
+            LOGGER.info('Construction Code: ' + str(construction))
+            LOGGER.info('Year Built: ' + str(yearBuilt))
+            LOGGER.info('Stories: ' + str(stories))
+            LOGGER.info('ContractIDs: ' + str(contractID))
+            LOGGER.info('LocationIDs: ' + str(locationID))
+            LOGGER.info('Factor: ' + str(factor))
+        except:
+            LOGGER.error('Error: Failed to extract Loss Mod template information')
 
-        LOGGER.info('\n********** Loss Mod Options **********\n')
-        perilsTemp, coverage, LOB, admin_boundary, occupancy, construction, \
-        yearBuilt, stories, contractID, locationID, factor = db.loss_mod_info(template_id)
-        LOGGER.info('Perils: ' + str(perilsTemp))
-        LOGGER.info('Coverage: ' + str(coverage))
-        LOGGER.info('LOB: ' + str(LOB))
-        LOGGER.info('Admin Boundaries: ' + str(admin_boundary))
-        LOGGER.info('Occupancy Code: ' + str(occupancy))
-        LOGGER.info('Construction Code: ' + str(construction))
-        LOGGER.info('Year Built: ' + str(yearBuilt))
-        LOGGER.info('Stories: ' + str(stories))
-        LOGGER.info('ContractIDs: ' + str(contractID))
-        LOGGER.info('LocationIDs: ' + str(locationID))
-        LOGGER.info('Factor: ' + str(factor))
+        try:
+            perilsAnalysisGrouped = db.group_analysis_perils(analysis_sid, perilsTemp)
+            LOGGER.info('Grouped Perils used in analysis: ' + str(perilsAnalysisGrouped))
+        except:
+            LOGGER.error('Error: Failed to group perils')
 
-        perilsAnalysisGrouped = db.group_analysis_perils(analysis_sid, perilsTemp)
-        LOGGER.info('Grouped Perils used in analysis: ' + str(perilsAnalysisGrouped))
-
-        template_info = LossMod.check_rule(analysis_sid, perilsAnalysisGrouped, coverage,
+        try:
+            template_info = LossMod.check_rule(analysis_sid, perilsAnalysisGrouped, coverage,
                                                       LOB, admin_boundary, occupancy, construction, yearBuilt,
                                                       stories, contractID, locationID, factor, modResultSID, result_db)
+        except:
+            LOGGER.error('Error: Failed to check rule')
 
-        resultDF = LossMod.get_loss_df(analysis_sid, result_db, baseResultSID, modResultSID, coverage)
+        try:
+            resultDF = LossMod.get_loss_df(analysis_sid, result_db, baseResultSID, modResultSID, coverage)
+        except:
+            LOGGER.error('Error: Failed to get loss numbers')
 
-        validatedDF = LossMod.validate(resultDF, template_info, coverage, analysis_sid, tolerance)
+        try:
+            validatedDF = LossMod.validate(resultDF, template_info, coverage, analysis_sid, tolerance)
+        except:
+            LOGGER.error('Error: Failed to validate numbers')
 
         validatedDF.to_csv(OUTFILE, index=False)
 
