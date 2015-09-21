@@ -12,6 +12,9 @@ EP Summary Validation Script
 # Import standard Python packages and read outfile
 import getopt
 import sys
+import warnings
+
+warnings.filterwarnings('ignore')
 
 OPTLIST, ARGS = getopt.getopt(sys.argv[1:], [''], ['outfile='])
 

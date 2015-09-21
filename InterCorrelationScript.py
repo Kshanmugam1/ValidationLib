@@ -13,6 +13,9 @@ Inter Correlation Validation Script
 import getopt
 import sys
 import datetime
+import warnings
+
+warnings.filterwarnings('ignore')
 
 OPTLIST, ARGS = getopt.getopt(sys.argv[1:], [''], ['outfile='])
 
