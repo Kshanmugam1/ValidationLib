@@ -85,56 +85,77 @@ if __name__ == "__main__":
 
         LOGGER.info('\n********** Log Import Options **********\n')
         # Initialize the connection with the server
-        db = Database(server)
-        catxol = Catxol(server)
-        LOGGER.info('Server: ' + str(server))
+        try:
+            db = Database(server)
+            catxol = Catxol(server)
+            LOGGER.info('Server: ' + str(server))
+        except:
+            LOGGER.error('Error: Check connection to database server')
 
-        analysis_sid = db.analysis_sid(analysis_name)
-        LOGGER.info('Analysis SID: ' + str(analysis_sid))
+        try:
+            analysis_sid = db.analysis_sid(analysis_name)
+            LOGGER.info('Analysis SID: ' + str(analysis_sid))
+        except:
+            LOGGER.error('Error: Failed to extract the analysis SID from analysis name')
 
-        result_sid = db.result_sid(analysis_sid)
-        LOGGER.info('Result SID: ' + str(result_sid))
+        try:
+            result_sid = db.result_sid(analysis_sid)
+            LOGGER.info('Result SID: ' + str(result_sid))
+        except:
+            LOGGER.error('Error: Failed to extract the result SID from analysis SID')
 
-        programSID = db.program_id(analysis_sid)
-        LOGGER.info('Program ID: ' + str(programSID))
+        try:
+            programSID = db.program_id(analysis_sid)
+            LOGGER.info('Program ID: ' + str(programSID))
+        except:
+            LOGGER.error('Error: Failed to extract program ID')
 
-        programInfo = db.program_info(programSID, 'catxol')
-        programInfo = pd.DataFrame(data=zip(*programInfo), columns=['Occ_Limit', 'Occ_Ret', 'Agg_Limit',
-                                                                    'Agg_Ret', '%Placed', 'Ins_CoIns',
-                                                                    'Inuring'])
-        LOGGER.info('Program Info: ')
-        LOGGER.info(programInfo)
+        try:
 
-        tasks, lossDF = catxol.get_tasks(result_db, result_sid)
-        '''
-        Pseudo Algorithm:
-            1. Get the max inuring order
-            2. For i=1 to max(inuring), i++
-                get all the treaty at the inuring order i (Example: treat1 and treaty2 has a inuring number 1)
-            3. Run each treaty at the same inuring order
-        '''
-        max_inuring = max(programInfo['Inuring'].values)
-        recovery = []
-        for k in range(max_inuring):
-
-            program_infos = programInfo.loc[programInfo['Inuring'] == k + 1, :].values
-
-            for j in range(len(program_infos)):
-                pool = mp.Pool()
-                results = [pool.apply_async(recovery_catxol, args=(tasks[i], lossDF, program_infos[j]))
-                           for i in range(len(tasks))]
-                output = [p.get() for p in results]
-                recovery.append([item for sublist in output for item in sublist])
-            recovery = [sum(x) for x in zip(*recovery)]
-            recovery = [min(x) for x in zip(lossDF['NetOfPreCATLoss'], recovery)]
-            lossDF['Recovery'] = recovery
-            if k == max_inuring - 1:
-                lossDF['CalculatedPostCATNetLoss'] = lossDF['NetOfPreCATLoss'] - lossDF['Recovery']
-            else:
-                lossDF['NetOfPreCATLoss'] = lossDF['NetOfPreCATLoss'] - lossDF['Recovery']
+            programInfo = db.program_info(programSID, 'catxol')
+            programInfo = pd.DataFrame(data=zip(*programInfo), columns=['Occ_Limit', 'Occ_Ret', 'Agg_Limit',
+                                                                        'Agg_Ret', '%Placed', 'Ins_CoIns',
+                                                                        'Inuring'])
+            LOGGER.info('Program Info: ')
+            LOGGER.info(programInfo)
+        except:
+            LOGGER.error('Error: Failed to get program information')
+        try:
+            tasks, lossDF = catxol.get_tasks(result_db, result_sid)
+            '''
+            Pseudo Algorithm:
+                1. Get the max inuring order
+                2. For i=1 to max(inuring), i++
+                    get all the treaty at the inuring order i (Example: treat1 and treaty2 has a inuring number 1)
+                3. Run each treaty at the same inuring order
+            '''
+            max_inuring = max(programInfo['Inuring'].values)
             recovery = []
+            for k in range(max_inuring):
 
-        resultDF = catxol.validate(lossDF)
+                program_infos = programInfo.loc[programInfo['Inuring'] == k + 1, :].values
+
+                for j in range(len(program_infos)):
+                    pool = mp.Pool()
+                    results = [pool.apply_async(recovery_catxol, args=(tasks[i], lossDF, program_infos[j]))
+                               for i in range(len(tasks))]
+                    output = [p.get() for p in results]
+                    recovery.append([item for sublist in output for item in sublist])
+                recovery = [sum(x) for x in zip(*recovery)]
+                recovery = [min(x) for x in zip(lossDF['NetOfPreCATLoss'], recovery)]
+                lossDF['Recovery'] = recovery
+                if k == max_inuring - 1:
+                    lossDF['CalculatedPostCATNetLoss'] = lossDF['NetOfPreCATLoss'] - lossDF['Recovery']
+                else:
+                    lossDF['NetOfPreCATLoss'] = lossDF['NetOfPreCATLoss'] - lossDF['Recovery']
+                recovery = []
+        except:
+            LOGGER.error('Error: Failed multi-threading task')
+
+        try:
+            resultDF = catxol.validate(lossDF)
+        except:
+            LOGGER.error('Error: Failed to validate')
 
         sequence = ['CatalogTypeCode', 'ModelCode', 'YearID', 'EventID', 'NetOfPreCATLoss', 'Recovery',
                     'PostCATNetLoss', 'CalculatedPostCATNetLoss', 'DifferencePercent', 'Status']

@@ -87,28 +87,42 @@ if __name__ == "__main__":
 
         LOGGER.info('\n********** Log Import Options **********\n')
         # Initialize the connection with the server
-        db = Database(server)
-        intra_correlation = Correlation(server)
-        LOGGER.info('Server: ' + str(server))
+        try:
+            db = Database(server)
+            intra_correlation = Correlation(server)
+            LOGGER.info('Server: ' + str(server))
+        except:
+            LOGGER.error('Error: Check connection to database server')
 
-        contract_analysis_sid = db.analysis_sid(contract_analysis_name)
-        location_analysis_sid = db.analysis_sid(location_analysis_name)
-        LOGGER.info('Contract analysis SID: ' + str(contract_analysis_sid))
-        LOGGER.info('Location analysis SID: ' + str(location_analysis_sid))
+        try:
+            contract_analysis_sid = db.analysis_sid(contract_analysis_name)
+            location_analysis_sid = db.analysis_sid(location_analysis_name)
+            LOGGER.info('Contract analysis SID: ' + str(contract_analysis_sid))
+            LOGGER.info('Location analysis SID: ' + str(location_analysis_sid))
+        except:
+            LOGGER.error('Error: Failed to extract the analysis SID from analysis name')
+        try:
+            intra_correlation_fac, inter_correlation_fac = intra_correlation.correlation_factor(contract_analysis_sid)
+            LOGGER.info('Intra Correlation Factor: ' + str(intra_correlation_fac))
+            LOGGER.info('Inter Correlation Factor: ' + str(inter_correlation_fac))
+        except:
+            LOGGER.error('Error: Failed to fetch the correlation factors')
 
-        intra_correlation_fac, inter_correlation_fac = intra_correlation.correlation_factor(contract_analysis_sid)
-        LOGGER.info('Intra Correlation Factor: ' + str(intra_correlation_fac))
-        LOGGER.info('Inter Correlation Factor: ' + str(inter_correlation_fac))
+        try:
+            contract_result_sid = db.result_sid(contract_analysis_sid)
+            location_result_sid = db.result_sid(location_analysis_sid)
+            LOGGER.info('Contract Result SID: ' + str(contract_result_sid))
+            LOGGER.info('Location Result SID: ' + str(location_result_sid))
+        except:
+            LOGGER.error('Error: Failed to get contract/Location result SID from analysis SID')
+        try:
+            resultDF_detailed, resultDF_summary = intra_correlation.loss_sd(contract_result_sid, result_db, 'Intra',
+                                                                            location_result_sid=location_result_sid,
+                                                                            intra_correlation=intra_correlation_fac,
+                                                                            tolerance=tolerance)
 
-        contract_result_sid = db.result_sid(contract_analysis_sid)
-        location_result_sid = db.result_sid(location_analysis_sid)
-        LOGGER.info('Contract Result SID: ' + str(contract_result_sid))
-        LOGGER.info('Location Result SID: ' + str(location_result_sid))
-
-        resultDF_detailed, resultDF_summary = intra_correlation.loss_sd(contract_result_sid, result_db, 'Intra',
-                                                                        location_result_sid=location_result_sid,
-                                                                        intra_correlation=intra_correlation_fac,
-                                                                        tolerance=tolerance)
+        except:
+            LOGGER.error('Error: Failed to get loss numbers')
 
         sequence = ['CatalogTypeCode', 'ModelCode', 'PerilSetCode', 'ContractID', 'ContractGuSD', 'CalculatedConGuSD',
                     'DifferenceConGuSD_Percent', 'ContractGrSD', 'CalculatedConGrSD', 'DifferenceConGrSD_Percent',
