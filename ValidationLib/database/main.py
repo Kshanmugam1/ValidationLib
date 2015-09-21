@@ -483,14 +483,17 @@ class Database:
         script = 'SELECT ' \
                  'b.[ContractID], ' \
                  'a.[LocationID], ' \
+                 'CONVERT(varchar(max),a.[guidLocation],2) as GuidLocation, ' \
                  'a.[Latitude], ' \
                  'a.[Longitude], ' \
+                 'a.[ChildLocationCount], ' \
                  'a.[ReplacementValueA], ' \
                  'a.[ReplacementValueB], ' \
                  'a.[ReplacementValueC], ' \
                  'a.[ReplacementValueD], ' \
                  'a.[LocationTypeCode], ' \
-                 'a.[LocationSID] ' \
+                 'a.[LocationSID], ' \
+                 'CONVERT(varchar(max),a.[guidLocationParent],2) as GuidLocationParent ' \
                  'FROM [AIRWork].[dbo].['+ str(location_table)+ '] a ' \
                  'JOIN [AIRWork].[dbo].['+ str(contract_table)+ '] b ON a.guidContract = b.guidContract'
 
