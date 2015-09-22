@@ -589,7 +589,7 @@ class LossMod:
 
         '''
         ############################################################################################################
-
+        template_info = list(template_info) # compatible with python 3.4
         for i in range(len(template_info)):
 
             if not info_analysis[0][8] in ['LOCSUM', 'CONSUM']:
