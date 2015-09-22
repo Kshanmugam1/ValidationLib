@@ -23,7 +23,7 @@ for o, a in OPTLIST:
     if o == "--outfile":
         OUTFILE = a
     print ("Outfile: " + OUTFILE)
-
+OUTFILE = 'C:\Users\i56228\Documents\Python\ep.csv'
 if OUTFILE is None:
     print ('Outfile is not passed')
     sys.exit()
@@ -63,9 +63,10 @@ def file_skeleton(outfile):
 
 # Extract the given arguments
 try:
-    server = sys.argv[3]
-    result_db = sys.argv[4]
-    analysis_name = sys.argv[5]
+    server = 'QA-TS-DB1\SQL2012'
+    result_db = 'SK_Res'
+    analysis_name = 'EPCurvePy_092117294763'
+    tolerance = 10
 except:
     LOGGER.error('Please verify the inputs')
     file_skeleton(OUTFILE)
@@ -92,21 +93,31 @@ if __name__ == '__main__':
             LOGGER.info('Server: ' + str(server))
         except:
             LOGGER.error('Error: Check connection to database server')
+            file_skeleton(OUTFILE)
+            sys.exit()
 
         try:
             analysis_sid = db.analysis_sid(analysis_name)
             LOGGER.info('Analysis SID: ' + str(analysis_sid))
         except:
             LOGGER.error('Error: Failed to extract the analysis SID from analysis name')
+            file_skeleton(OUTFILE)
+            sys.exit()
+
         try:
             result_sid = db.result_sid(analysis_sid)
             LOGGER.info('Result SID: ' + str(result_sid))
         except:
             LOGGER.error('Error: Failed to extract the result SID from analysis SID')
+            file_skeleton(OUTFILE)
+            sys.exit()
+
         try:
             ep_lossDf = db.loss_df(result_db, result_sid, 'EP').iloc[:, :14]
         except:
             LOGGER.error('Error: Failed to fetch the loss DF')
+            file_skeleton(OUTFILE)
+            sys.exit()
 
         columns_detail = ['EPAnnualTypeCode', 'EPCurveTypeCode', 'FinancialPerspectiveCodeCode', 'Rank',
                           'ModelCode', 'YearID', 'PerilSetCode', 'ExceedanceProbability', 'EPLoss']
@@ -125,6 +136,9 @@ if __name__ == '__main__':
             LOGGER.info('EP points: ' + str(ep_points))
         except:
             LOGGER.error('Error: Failed to get EP points')
+            file_skeleton(OUTFILE)
+            sys.exit()
+
         try:
             loss_by_event = pd.DataFrame()
             result_ep_detail = pd.DataFrame()
@@ -225,11 +239,14 @@ if __name__ == '__main__':
             detailed_output = pd.concat([ep_summary, result_ep_summary], axis=1).fillna('-')
         except:
             LOGGER.error('Error: Failed core algorithm')
+            file_skeleton(OUTFILE)
+            sys.exit()
 
         summary_output['Status'] = -1
-        summary_output.loc[(summary_output['EPSum'] == summary_output['CalcEPSum']) &
-                           (summary_output['ExpectedValue'] == summary_output['CalcExpectedValue']) &
-                           (summary_output['StandardDeviation'] == summary_output['CalcStandardDeviation']),
+
+        summary_output.loc[((summary_output['EPSum'] - summary_output['CalcEPSum']) <= tolerance/100.0) &
+                           ((summary_output['ExpectedValue'] - summary_output['CalcExpectedValue']) <= tolerance/100.0) &
+                           ((summary_output['StandardDeviation'] - summary_output['CalcStandardDeviation']) <= tolerance/100.0),
                            'Status'] = 'Pass'
         summary_output.loc[summary_output['Status'] == -1, 'Status'] = 'Fail'
 
