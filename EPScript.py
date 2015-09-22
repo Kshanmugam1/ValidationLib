@@ -23,7 +23,7 @@ for o, a in OPTLIST:
     if o == "--outfile":
         OUTFILE = a
     print ("Outfile: " + OUTFILE)
-OUTFILE = 'C:\Users\i56228\Documents\Python\ep.csv'
+
 if OUTFILE is None:
     print ('Outfile is not passed')
     sys.exit()
@@ -63,9 +63,9 @@ def file_skeleton(outfile):
 
 # Extract the given arguments
 try:
-    server = 'QA-TS-DB1\SQL2012'
-    result_db = 'SK_Res'
-    analysis_name = 'EPCurvePy_092117294763'
+    server = sys.argv[3]
+    result_db = sys.argv[4]
+    analysis_name = sys.argv[5]
     tolerance = 10
 except:
     LOGGER.error('Please verify the inputs')
