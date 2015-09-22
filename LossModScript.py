@@ -54,9 +54,17 @@ __status__ = 'Complete'
 
 def file_skeleton(outfile):
 
-    pd.DataFrame(columns=['CatalogTypeCode', 'ModelCode', 'PortGuSD', 'CalculatedPortGuSD',
-                          'DifferencePortGuSD_Percent', 'PortGrSD', 'CalculatedPortGrSD',
-                          'DifferencePortGrSD_Percent', 'Status']).to_csv(outfile, index=False)
+    pd.DataFrame(columns=['CustomID', 'GroundUpLoss_Mod', 'GroundUpLoss_Base',
+                          'Ratio', 'Input_Ratio', 'Difference',
+                          'GroundUpLossA_Mod', 'GroundUpLossA_Base',
+                          'GroundUpLossA_Ratio', 'Input_Ratio_A',
+                          'Difference_A', 'GroundUpLossB_Mod',
+                          'GroundUpLossB_Base', 'GroundUpLossB_Ratio', 'Input_Ratio_B',
+                          'Difference_B', 'GroundUpLossC_Mod',
+                          'GroundUpLossC_Base', 'GroundUpLossC_Ratio', 'Input_Ratio_C',
+                          'Difference_C', 'GroundUpLossD_Mod',
+                          'GroundUpLossD_Base', 'GroundUpLossD_Ratio', 'Input_Ratio_D',
+                          'Difference_D', 'Status']).to_csv(outfile, index=False)
 
 # Extract the given arguments
 try:
@@ -91,12 +99,16 @@ if __name__ == '__main__':
             LOGGER.info('Server: ' + str(server))
         except:
             LOGGER.error('Error: Check connection to database server')
+            file_skeleton(OUTFILE)
+            sys.exit()
 
         try:
             analysis_sid = db.analysis_sid(analysis_name) + 1
             LOGGER.info('Analysis SID: ' + str(analysis_sid))
         except:
-             LOGGER.error('Error: Failed to extract the analysis SID from analysis name')
+            LOGGER.error('Error: Failed to extract the analysis SID from analysis name')
+            file_skeleton(OUTFILE)
+            sys.exit()
 
         try:
             base_analysis_sid = db.mod_analysis_sid(analysis_sid)
@@ -107,6 +119,8 @@ if __name__ == '__main__':
             LOGGER.info('Peril code: ' + str(peril_analysis))
         except:
             LOGGER.error('Error: Failed to fetch Base analysis SID/Template ID/Peril Analysis')
+            file_skeleton(OUTFILE)
+            sys.exit()
 
         try:
             baseResultSID = db.result_sid(base_analysis_sid)
@@ -115,6 +129,8 @@ if __name__ == '__main__':
             LOGGER.info('Mod Result SID: ' + str(modResultSID))
         except:
             LOGGER.error('Error: Failed to extract result SID from analysis SID')
+            file_skeleton(OUTFILE)
+            sys.exit()
 
         try:
             LOGGER.info('\n********** Loss Mod Options **********\n')
@@ -133,12 +149,16 @@ if __name__ == '__main__':
             LOGGER.info('Factor: ' + str(factor))
         except:
             LOGGER.error('Error: Failed to extract Loss Mod template information')
+            file_skeleton(OUTFILE)
+            sys.exit()
 
         try:
             perilsAnalysisGrouped = db.group_analysis_perils(analysis_sid, perilsTemp)
             LOGGER.info('Grouped Perils used in analysis: ' + str(perilsAnalysisGrouped))
         except:
             LOGGER.error('Error: Failed to group perils')
+            file_skeleton(OUTFILE)
+            sys.exit()
 
         try:
             template_info = loss_mod.check_rule(analysis_sid, perilsAnalysisGrouped, coverage,
@@ -146,16 +166,22 @@ if __name__ == '__main__':
                                                stories, contractID, locationID, factor, modResultSID, result_db)
         except:
             LOGGER.error('Error: Failed to check rule')
+            file_skeleton(OUTFILE)
+            sys.exit()
 
         try:
             resultDF = loss_mod.get_loss_df(analysis_sid, result_db, baseResultSID, modResultSID, coverage)
         except:
             LOGGER.error('Error: Failed to get loss numbers')
+            file_skeleton(OUTFILE)
+            sys.exit()
 
         try:
             validatedDF = loss_mod.validate(resultDF, template_info, coverage, analysis_sid, tolerance)
         except:
             LOGGER.error('Error: Failed to validate numbers')
+            file_skeleton(OUTFILE)
+            sys.exit()
 
         validatedDF.to_csv(OUTFILE, index=False)
 

@@ -94,11 +94,16 @@ if __name__ == "__main__":
             LOGGER.info('Server: ' + str(server))
         except:
             LOGGER.error('Error: Check connection to database server')
+            file_skeleton(OUTFILE)
+            sys.exit()
+
         try:
             contract_analysis_sid = db.analysis_sid(contract_analysis_name)
             LOGGER.info('Analysis SID: ' + str(contract_analysis_sid))
         except:
             LOGGER.error('Error: Failed to extract the contract analysis SID from contract analysis name')
+            file_skeleton(OUTFILE)
+            sys.exit()
 
         try:
             intra_correlation_fac, inter_correlation_fac = inter_correlation.correlation_factor(contract_analysis_sid)
@@ -106,12 +111,17 @@ if __name__ == "__main__":
             LOGGER.info('Inter Correlation Factor: ' + str(inter_correlation_fac))
         except:
             LOGGER.error('Error: Failed to fetch the correlation factors')
+            file_skeleton(OUTFILE)
+            sys.exit()
 
         try:
             contractResultSID = db.result_sid(contract_analysis_sid)
             LOGGER.info('Result SID: ' + str(contractResultSID))
         except:
             LOGGER.error('Error: Failed to get contract result SID from analysis SID')
+            file_skeleton(OUTFILE)
+            sys.exit()
+
         try:
 
             resultDF_detailed, resultDF_summary = inter_correlation.loss_sd(contractResultSID, result_db, 'Inter',
@@ -119,6 +129,8 @@ if __name__ == "__main__":
                                                                             tolerance=tolerance)
         except:
             LOGGER.error('Error: Failed to get loss numbers')
+            file_skeleton(OUTFILE)
+            sys.exit()
 
         sequence = ['CatalogTypeCode', 'ModelCode', 'PortGuSD', 'CalculatedPortGuSD',
                     'DifferencePortGuSD_Percent', 'PortGrSD', 'CalculatedPortGrSD',
