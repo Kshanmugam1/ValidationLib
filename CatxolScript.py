@@ -94,35 +94,46 @@ if __name__ == "__main__":
             LOGGER.info('Server: ' + str(server))
         except:
             LOGGER.error('Error: Check connection to database server')
+            file_skeleton(OUTFILE)
+            sys.exit()
 
         try:
             analysis_sid = db.analysis_sid(analysis_name)
             LOGGER.info('Analysis SID: ' + str(analysis_sid))
         except:
             LOGGER.error('Error: Failed to extract the analysis SID from analysis name')
+            file_skeleton(OUTFILE)
+            sys.exit()
 
         try:
             result_sid = db.result_sid(analysis_sid)
             LOGGER.info('Result SID: ' + str(result_sid))
         except:
             LOGGER.error('Error: Failed to extract the result SID from analysis SID')
+            file_skeleton(OUTFILE)
+            sys.exit()
 
         try:
             programSID = db.program_id(analysis_sid)
             LOGGER.info('Program ID: ' + str(programSID))
         except:
             LOGGER.error('Error: Failed to extract program ID')
+            file_skeleton(OUTFILE)
+            sys.exit()
 
         try:
 
             programInfo = db.program_info(programSID, 'catxol')
-            programInfo = pd.DataFrame(data=zip(*programInfo), columns=['Occ_Limit', 'Occ_Ret', 'Agg_Limit',
-                                                                        'Agg_Ret', '%Placed', 'Ins_CoIns',
-                                                                        'Inuring'])
+            programInfo = pd.DataFrame(data=list(zip(*programInfo)), columns=['Occ_Limit', 'Occ_Ret', 'Agg_Limit',
+                                                                              'Agg_Ret', '%Placed', 'Ins_CoIns',
+                                                                              'Inuring'])
             LOGGER.info('Program Info: ')
             LOGGER.info(programInfo)
         except:
             LOGGER.error('Error: Failed to get program information')
+            file_skeleton(OUTFILE)
+            sys.exit()
+
         try:
             tasks, lossDF = catxol.get_tasks(result_db, result_sid)
             '''
@@ -154,11 +165,15 @@ if __name__ == "__main__":
                 recovery = []
         except:
             LOGGER.error('Error: Failed multi-threading task')
+            file_skeleton(OUTFILE)
+            sys.exit()
 
         try:
             resultDF = catxol.validate(lossDF)
         except:
             LOGGER.error('Error: Failed to validate')
+            file_skeleton(OUTFILE)
+            sys.exit()
 
         sequence = ['CatalogTypeCode', 'ModelCode', 'YearID', 'EventID', 'NetOfPreCATLoss', 'Recovery',
                     'PostCATNetLoss', 'CalculatedPostCATNetLoss', 'DifferencePercent', 'Status']
