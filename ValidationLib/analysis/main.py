@@ -260,7 +260,7 @@ class LossMod:
                     try:
                         self.cursor.execute('Select ContractSID, ContractID from [' + result_db + '].dbo.t' +
                                             str(mod_result_sid) + '_LOSS_DimContract WHERE ContractID in ' + str(
-                                            tuple(contract_id[i].split(','))))
+                            tuple(contract_id[i].split(','))))
                     except:
                         self.cursor.execute('Select ContractSID, COntractID from [' + result_db + '].dbo.t' +
                                             str(mod_result_sid) + '_LOSS_DimContract WHERE ContractID  = ' + "'" +
@@ -660,7 +660,7 @@ class LossMod:
                                              resultDF['GroundUpLoss' + j + '_Ratio'] != 1), 'Difference_' + j] = \
                                 resultDF.loc[(resultDF['PerilSetCode'].isin(template_info[i][0])) & (
                                     resultDF.iloc[:, 2].isin(template_info[i][1])) & (
-                                    resultDF['GroundUpLoss' + j + '_Ratio'] != 1),
+                                                 resultDF['GroundUpLoss' + j + '_Ratio'] != 1),
                                              'GroundUpLoss' + j + '_Ratio'] - float(template_info[i][2])
 
                             if (abs(resultDF[(resultDF['PerilSetCode'].isin(template_info[i][0])) &
@@ -780,7 +780,7 @@ class LossMod:
 
         return resultDF
 
-class DissAggregation:
+class Disaggregation:
 
     def __init__(self, server):
 
@@ -804,5 +804,182 @@ class DissAggregation:
         self.connection = self.setup.connection
         self.cursor = self.setup.cursor
 
+    def staging_table(self, analysis_sid, exposure_db):
 
+        staging_location_tables = self.setup.table_names('AIRWork',
+                                                         criteria = 't' + str(analysis_sid) + '%LOSS_StagingLocation%')
+        staging_contract_tables = self.setup.table_names('AIRWork',
+                                                         criteria = 't' + str(analysis_sid) + '%LOSS_StagingContract%')
+        staging = pd.DataFrame()
+        for i in range(len(staging_location_tables['TABLE_NAME'].values)):
+            staging = pd.concat([staging, self.setup.staging_locations('AIRWork',
+                                                                       staging_location_tables['TABLE_NAME'].values[i],
+                                                                       staging_contract_tables['TABLE_NAME'].values[i],
+                                                                       exposure_db)], axis=0).reset_index()
+
+        staging.drop('index', axis=1, inplace=True)
+        parent_staging = staging.loc[staging['LocationTypeCode']=='R', :]
+        staging_output = pd.DataFrame(columns=parent_staging.columns.values)
+        '''
+        for each parent location, concat the child location and match the count and sum
+        '''
+        for i in range(len(parent_staging)):
+            staging_output = pd.concat([staging_output, parent_staging.iloc[[i]]], axis=0)
+            frame = staging.loc[staging.GuidLocationParent==parent_staging.iloc[i, 2], :]
+            staging_output = pd.concat([staging_output, frame], axis=0)
+
+            if (len(frame) == parent_staging.iloc[i, 5]) & ((frame.iloc[:, 6:10].values.sum() - parent_staging.iloc[i, 6:10].values.sum()) < 0.001).all():
+                staging_output['Status'] = 'Pass'
+            else:
+                staging_output['Status'] = 'Fail'
+
+        staging_output.reset_index(inplace=True)
+        staging_output.drop(['index', 'GuidLocation', 'GuidLocationParent'], axis=1, inplace=True)
+
+        return staging_output
+
+    def calc_disaggregation(self, loc_info, staging_output):
+
+        calculatedReplacement = pd.DataFrame()
+        for i in range(len(loc_info)):
+
+            location_info = loc_info.iloc[i, :]
+            #  Check if the location was selected for the analysis based on event set
+            if not location_info[0] in staging_output['GeographySID'].values:
+                continue
+            else:
+                replacement_values = self.setup.disagg_rv(location_info)
+                if replacement_values.empty:
+                    continue
+                else:
+                    replacement_values['Resolution'] = location_info[5]
+                    replacement_values ['GeoCoding'] = location_info[15]
+
+                    # check for geo level code
+                    given_geo_level_id = location_info[5]
+                    if not location_info[4] == 'US':
+                        required_geo_level_id = self.setup.required_disagg_geo(location_info)
+                    else:
+                        if location_info[15] == 'TIG':
+                            required_geo_level_id = ['POST', 'CITY', 'COUNT', 'CNTY']
+                        elif location_info[15] == 'GEO':
+                            required_geo_level_id = ['POST', 'SUBA', 'AREA', 'COUN']
+                        elif location_info[16] in ['USER', 'UN']:
+                            required_geo_level_id = ['POST']
+                        else:
+                            required_geo_level_id = ['']
+
+                    if not given_geo_level_id in required_geo_level_id:
+                        columns = copy.deepcopy(replacement_values.columns.values)
+                        replacement_values_min_risk = pd.DataFrame()
+                        latitude = staging_output.loc[(staging_output['GeographySID'] == location_info[0]) &
+                                                      (staging_output['LocationID'] == location_info[2]) &
+                                                      (staging_output['ContractID'] == location_info[3]), 'Latitude'].values[0]
+                        longitude = staging_output.loc[(staging_output['GeographySID'] == location_info[0]) &
+                                                       (staging_output['LocationID'] == location_info[2]) &
+                                                       (staging_output['ContractID'] == location_info[3]), 'Longitude'].values[0]
+                        data = pd.Series([latitude,longitude,1.0, '', '', '', '',
+                                          location_info[6]*location_info[8],
+                                          location_info[6]*location_info[9],
+                                          location_info[6]*location_info[10],
+                                          location_info[6]*location_info[11], location_info[19], location_info[5], location_info[15]])
+                        replacement_values_min_risk = replacement_values_min_risk.append(data, ignore_index=True)
+                        replacement_values_min_risk.columns = columns
+                        replacement_values_min_risk['ContractID'] = location_info.values[3]
+                        replacement_values_min_risk['LocationID'] = location_info.values[2]
+                        replacement_values_min_risk['CountryCode'] = location_info[4]
+
+                        calculatedReplacement = pd.concat([calculatedReplacement, replacement_values_min_risk], axis=0)
+
+                    else:
+                        if ((replacement_values.iloc[:, 3] - replacement_values.iloc[:, 4]) < 0.001).all() and \
+                                ((replacement_values.iloc[:, 3] - replacement_values.iloc[:, 5]) < 0.001).all() and \
+                                ((replacement_values.iloc[:, 3] - replacement_values.iloc[:, 6]) < 0.001).all():
+
+                            cutoffs= replacement_values.iloc[:, 7:11].max(axis=1)
+                            replacement_values_min_risk = replacement_values.loc[replacement_values['dblMinCovD'] < cutoffs, :]
+                        else:
+                            replacement_values_min_risk = replacement_values.loc[((location_info[8]*replacement_values['ExchangeRate']) >
+                                                                                  (replacement_values['ExchangeRate'] *
+                                                                                   replacement_values['dblMinCovA'])) |
+                                                                                 ((location_info[9]*replacement_values['ExchangeRate']) >
+                                                                                  (replacement_values['ExchangeRate'] *
+                                                                                   replacement_values['dblMinCovB'])) |
+                                                                                 ((location_info[10]*replacement_values['ExchangeRate']) >
+                                                                                  (replacement_values['ExchangeRate'] *
+                                                                                   replacement_values['dblMinCovC'])) |
+                                                                                 ((location_info[11]*replacement_values['ExchangeRate']) >
+                                                                                  (replacement_values['ExchangeRate'] *
+                                                                                   replacement_values['dblMinCovD'])), :]
+
+                        if replacement_values_min_risk.empty:
+                            columns = copy.deepcopy(replacement_values_min_risk.columns.values)
+                            replacement_values_min_risk = pd.DataFrame()
+                            data = pd.Series(['','',1.0, '', '', '', '',
+                                              location_info[6]*location_info[8],
+                                              location_info[6]*location_info[9],
+                                              location_info[6]*location_info[10],
+                                              location_info[6]*location_info[11], location_info[19], location_info[5], location_info[15]])
+                            replacement_values_min_risk = replacement_values_min_risk.append(data, ignore_index=True)
+                            replacement_values_min_risk.columns = columns
+                            try:
+                                replacement_values_min_risk['Latitude'] = replacement_values.loc[replacement_values['fltWeight'].argmax(), 'Latitude']
+                                replacement_values_min_risk['Longitude'] = replacement_values.loc[replacement_values['fltWeight'].argmax(), 'Longitude']
+                            except:
+                                replacement_values_min_risk['Latitude'] = \
+                                    staging_output.loc[(staging_output['GeographySID'] == location_info[0]) &
+                                                       (staging_output['LocationID'] == location_info[2]) &
+                                                       (staging_output['ContractID'] == location_info[3]), 'Latitude'].values[0]
+                                replacement_values_min_risk['Longitude'] = \
+                                    staging_output.loc[(staging_output['GeographySID'] == location_info[0]) &
+                                                       (staging_output['LocationID'] == location_info[2]) &
+                                                       (staging_output['ContractID'] == location_info[3]), 'Longitude'].values[0]
+
+                        elif len(replacement_values_min_risk) != len(replacement_values):
+
+                            x = replacement_values_min_risk['fltWeight'].argmax()
+                            fltWeightMax = 1 - replacement_values_min_risk.loc[~replacement_values_min_risk.index.isin([x]),
+                                                                               'fltWeight'].sum()
+                            replacement_values_min_risk.loc[replacement_values_min_risk['fltWeight'].argmax(),
+                                                            'CalcReplacementValueA'] = \
+                                fltWeightMax * location_info[6] * location_info[8]
+                            replacement_values_min_risk.loc[replacement_values_min_risk['fltWeight'].argmax(),
+                                                            'CalcReplacementValueB'] = \
+                                fltWeightMax * location_info[6] * location_info[9]
+                            replacement_values_min_risk.loc[replacement_values_min_risk['fltWeight'].argmax(),
+                                                            'CalcReplacementValueC'] = \
+                                fltWeightMax * location_info[6] * location_info[10]
+                            replacement_values_min_risk.loc[replacement_values_min_risk['fltWeight'].argmax(),
+                                                            'CalcReplacementValueD'] = \
+                                fltWeightMax * location_info[6] * location_info[11]
+
+                        replacement_values_min_risk['ContractID'] = location_info.values[3]
+                        replacement_values_min_risk['LocationID'] = location_info.values[2]
+                        replacement_values_min_risk['CountryCode'] = location_info[4]
+                        calculatedReplacement = pd.concat([calculatedReplacement, replacement_values_min_risk], axis=0)
+
+        calculatedReplacement = calculatedReplacement.reset_index()
+        calculatedReplacement.drop('index', axis=1, inplace=True)
+        try:
+            resultDF = pd.merge(staging_output, calculatedReplacement, on=['Latitude', 'Longitude', 'ContractID',
+                                                                           'LocationID'], how='outer')
+        except:
+            calculatedReplacement = pd.DataFrame(columns=['Latitude', 'Longitude', 'fltWeight', 'dblMinCovA',
+                                                          'dblMinCovB', 'dblMinCovC', 'dblMinCovD',
+                                                          'CalcReplacementValueA', 'CalcReplacementValueB',
+                                                          'CalcReplacementValueC', 'CalcReplacementValueD',
+                                                          'ExchangeRate', 'Resolution', 'GeoCoding', 'ContractID',
+                                                          'LocationID', 'CountryCode'])
+
+            resultDF = pd.merge(staging_output, calculatedReplacement, on=['Latitude', 'Longitude', 'ContractID',
+                                                                           'LocationID'], how='outer')
+
+        sequence = ['ContractID', 'LocationID', 'GeographySID', 'Latitude', 'Longitude',
+                    'GeoCoding', 'Resolution', 'LocationTypeCode',
+                    'fltWeight', 'dblMinCovA', 'dblMinCovB', 'dblMinCovC', 'dblMinCovD', 'ReplacementValueA',
+                    'ReplacementValueB', 'ReplacementValueC', 'ReplacementValueD', 'CalcReplacementValueA',
+                    'CalcReplacementValueB', 'CalcReplacementValueC', 'CalcReplacementValueD', 'Status']
+        resultDF = set_column_sequence(resultDF, sequence)
+
+        return resultDF
 
