@@ -10,85 +10,139 @@ Disaggregation Validation Script
 """
 
 # Import standard Python packages and read outfile
+import getopt
+import warnings
 import time
-import logging
+import datetime
 
-from ValidationLib.general.main import *
-from ValidationLib.database.main import *
+# Import internal packages
+from ValidationLib.analysis.main import *
+
+warnings.filterwarnings('ignore')
+
+
+OPTLIST, ARGS = getopt.getopt(sys.argv[1:], [''], ['outfile='])
+
+OUTFILE = None
+for o, a in OPTLIST:
+    if o == "--outfile":
+        OUTFILE = a
+    print ("Outfile: " + OUTFILE)
+
+# OUTFILE = 'C:\Users\i56228\Documents\Python\Git\ValidationLib\Disaggregation.csv'
+if OUTFILE is None:
+    print ('Outfile is not passed')
+    sys.exit()
+
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.INFO)
+
+HANDLER_INF0 = logging.FileHandler(OUTFILE[:-4] + '-info.log')
+HANDLER_INF0.setLevel(logging.INFO)
+LOGGER.addHandler(HANDLER_INF0)
+
+
+__author__ = 'Shashank Kapadia'
+__copyright__ = '2015 AIR Worldwide, Inc.. All rights reserved'
+__version__ = '1.0'
+__interpreter__ = 'Python 2.7.10 |Anaconda 2.3.0 (64-bit)'
+__maintainer__ = 'Shashank kapadia'
+__email__ = 'skapadia@air-worldwide.com'
+__status__ = 'Complete'
+
+
+def file_skeleton(outfile):
+
+    pd.DataFrame(columns=['ContractID', 'LocationID', 'GeographySID', 'Latitude', 'Longitude',
+                          'GeoCoding', 'Resolution', 'LocationTypeCode',
+                          'fltWeight', 'dblMinCovA', 'dblMinCovB', 'dblMinCovC',
+                          'dblMinCovD', 'ReplacementValueA',
+                          'ReplacementValueB', 'ReplacementValueC',
+                          'ReplacementValueD', 'CalcReplacementValueA',
+                          'CalcReplacementValueB', 'CalcReplacementValueC',
+                          'CalcReplacementValueD', 'Status']).to_csv(outfile, index=False)
 
 # Extract the given arguments
-server = 'QA-TS-P9-DB\SQL2014'
-result_db = 'SK_Res'
-exposure_db = 'SK_Exp'
-analysis_name = 'Can_AllLOB - Loss Analysis'
-exposure_name = 'Can_AllLOB'
+try:
+    server = sys.argv[3]
+    result_db = sys.argv[4]
+    exposure_db = sys.argv[5]
+    analysis_name = sys.argv[6]
+    exposure_name = sys.argv[7]
 
-# geo_level_ranks = {'COUN':1, 'AREA':2, 'CRES':2, 'SUBA':3, 'POST':4, 'SUBA2':5}
+except:
+    LOGGER.error('Please verify the inputs')
+    file_skeleton(OUTFILE)
+    sys.exit()
 
-db = Database(server)
+if __name__ == "__main__":
 
-loc_info = db.location_info(exposure_db, exposure_name)
+    try:
 
+        start = time.time()
+        LOGGER.info('********************************')
+        LOGGER.info('**      Touchstone v.3.0      **')
+        LOGGER.info('********************************')
 
-analysis_sid = db.analysis_sid(analysis_name)
-staging_location_tables = db.table_names('AIRWork',
-                                            criteria = 't' + str(analysis_sid) + '%LOSS_StagingLocation%')
-staging_contract_tables = db.table_names('AIRWork',
-                                            criteria = 't' + str(analysis_sid) + '%LOSS_StagingContract%')
+        LOGGER.info('\n********** Log header **********\n')
+        LOGGER.info('Description:   Disaggregation Validation')
+        LOGGER.info('Time Submitted: ' + str(datetime.datetime.now()))
+        LOGGER.info('Status:                Completed')
 
+        LOGGER.info('\n********** Log Import Options **********\n')
+        # Initialize the connection with the server
+        try:
+            db = Database(server)
+            disaggregation = Disaggregation(server)
+            LOGGER.info('Server: ' + str(server))
+        except:
+            LOGGER.error('Error: Check connection to database server')
+            file_skeleton(OUTFILE)
+            sys.exit()
 
-staging = pd.DataFrame()
-for i in range(len(staging_location_tables['TABLE_NAME'].values)):
-    staging = pd.concat([staging, db.staging_contract_location('AIRWork',
-                                                staging_location_tables['TABLE_NAME'].values[i],
+        try:
+            loc_info = db.location_info_disagg(exposure_db, exposure_name)
+            loc_info['ExchangeRate_Original'] = copy.deepcopy(loc_info['ExchangeRate'])
+            loc_info.loc[loc_info['CurrencyCode'] == 'USD', 'ExchangeRate'] = 1.0
+            LOGGER.info('Exposure DB: ' + str(exposure_db))
+            LOGGER.info('Exposure Name: ' + str(exposure_name))
+        except:
+            LOGGER.error('Error: Check the exposure db or exposure name')
+            file_skeleton(OUTFILE)
+            sys.exit()
 
-                                                staging_contract_tables['TABLE_NAME'].values[i])], axis=0).reset_index()
+        try:
+            analysis_sid = db.analysis_sid(analysis_name)
+            LOGGER.info('Analysis SID: ' + str(analysis_sid))
+        except:
+            LOGGER.error('Error: Failed to extract the analysis SID from analysis name')
+            file_skeleton(OUTFILE)
+            sys.exit()
 
-staging.drop('index', axis=1, inplace=True)
-# staging.set_index(['Latitude', 'Longitude'], inplace=True)
-parent_staging = staging.loc[staging['LocationTypeCode']=='R', :]
-print(parent_staging)
-staging_output = pd.DataFrame(columns=parent_staging.columns.values)
+        try:
+            staging_output = disaggregation.staging_table(analysis_sid, exposure_db)
+            staging_output.to_csv(OUTFILE[:-4] + '-StagingTable.csv')
+        except:
+            LOGGER.error('Error: Failed to extract staging locations table')
+            file_skeleton(OUTFILE)
+            sys.exit()
 
-for i in range(len(parent_staging)):
-    staging_output = pd.concat([staging_output, parent_staging.iloc[[i]]], axis=0)
-    frame = staging.loc[staging.GuidLocationParent==parent_staging.iloc[i, 2], :]
-    staging_output = pd.concat([staging_output, frame], axis=0)
-    if len(frame) == parent_staging.iloc[i, 5]:
-        staging_output['Count'] = 'Match'
-    else:
-        staging_output['Count'] = 'Mismatch'
+        try:
+            resultDF = disaggregation.calc_disaggregation(loc_info, staging_output)
+        except:
+            LOGGER.error('Error: Failed to disaggregate locations')
+            file_skeleton(OUTFILE)
+            sys.exit()
 
-staging_output.sort(['Latitude', 'Longitude'])
-staging_output.reset_index(inplace=True)
-staging_output.drop(['index', 'GuidLocation', 'GuidLocationParent'], axis=1, inplace=True)
-staging_output.to_csv('sample5.csv')
+        resultDF.to_csv(OUTFILE, index=False)
 
+        LOGGER.info('----------------------------------------------------------------------------------')
+        LOGGER.info('         Disaggregation Validation Completed Successfully                         ')
+        LOGGER.info('----------------------------------------------------------------------------------')
 
-# # child_staging = staging.loc[staging['LocationTypeCode']=='D', :].sort(['Latitude', 'Longitude']).reset_index()
-# # child_staging.drop('index', axis=1, inplace=True)
-#
-# calculatedReplacement = pd.DataFrame()
-# child_staging = pd.DataFrame()
-# for i in range(len(loc_info)):
-#
-#     calculatedReplacement = pd.concat([calculatedReplacement, db.disagg_loss(loc_info.iloc[i, :].values)], axis=0)
-#
-# calculatedReplacement = calculatedReplacement.sort(['Latitude', 'Longitude']).reset_index()
-# calculatedReplacement.drop('index', axis=1, inplace=True)
-#
-#
-# calculatedReplacement_min_risk = calculatedReplacement.loc[(calculatedReplacement['ReplacementValueA'] >
-#                                                             calculatedReplacement['dblMinCovA']) &
-#                                                            (calculatedReplacement['ReplacementValueB'] >
-#                                                             calculatedReplacement['dblMinCovB']) &
-#                                                            (calculatedReplacement['ReplacementValueC'] >
-#                                                             calculatedReplacement['dblMinCovC']) &
-#                                                            (calculatedReplacement['ReplacementValueD'] >
-#                                                             calculatedReplacement['dblMinCovD']), :]
-#
-# calculatedReplacement_min_risk = calculatedReplacement_min_risk.reset_index()
-# calculatedReplacement_min_risk.drop('index', axis=1, inplace=True)
-# # calculatedReplacement_min_risk.set_index(['Latitude', 'Longitude'], inplace=True)
-# calculatedReplacement_min_risk.to_csv('sample.csv')
-# pd.concat([staging, calculatedReplacement_min_risk], axis=1).to_csv('sample.csv', index=False)
+        LOGGER.info('********** Process Complete Time: ' + str(time.time() - start) + ' Seconds **********')
+
+    except:
+        LOGGER.error('Unknown error: Contact code maintainer: ' + __maintainer__)
+        file_skeleton(OUTFILE)
+        sys.exit()
