@@ -14,12 +14,18 @@ import getopt
 import warnings
 import time
 import datetime
+import logging
+import sys
+import pandas as pd
 
 # Import internal packages
-from ValidationLib.analysis.main import *
+from ValidationLib.analysis.main import Disaggregation
+from ValidationLib.database.main import Database
 
 warnings.filterwarnings('ignore')
 
+LOGGER = logging.getLogger(__name__)
+LOGGER.setLevel(logging.INFO)
 
 OPTLIST, ARGS = getopt.getopt(sys.argv[1:], [''], ['outfile='])
 
@@ -27,15 +33,12 @@ OUTFILE = None
 for o, a in OPTLIST:
     if o == "--outfile":
         OUTFILE = a
-    print ("Outfile: " + OUTFILE)
 
 # OUTFILE = 'C:\Users\i56228\Documents\Python\Git\ValidationLib\Disaggregation.csv'
 if OUTFILE is None:
-    print ('Outfile is not passed')
+    LOGGER.error('OUTFILE not passed')
     sys.exit()
 
-LOGGER = logging.getLogger(__name__)
-LOGGER.setLevel(logging.INFO)
 
 HANDLER_INF0 = logging.FileHandler(OUTFILE[:-4] + '-info.log')
 HANDLER_INF0.setLevel(logging.INFO)
@@ -136,11 +139,11 @@ if __name__ == "__main__":
 
         resultDF.to_csv(OUTFILE, index=False)
 
-        LOGGER.info('----------------------------------------------------------------------------------')
-        LOGGER.info('         Disaggregation Validation Completed Successfully                         ')
-        LOGGER.info('----------------------------------------------------------------------------------')
+        LOGGER.info('---------------------------------------------------------------------------')
+        LOGGER.info('         Disaggregation Validation Completed Successfully                  ')
+        LOGGER.info('---------------------------------------------------------------------------')
 
-        LOGGER.info('********** Process Complete Time: ' + str(time.time() - start) + ' Seconds **********')
+        LOGGER.info('Process Complete Time: ' + str(time.time() - start) + ' Seconds ')
 
     except:
         LOGGER.error('Unknown error: Contact code maintainer: ' + __maintainer__)
