@@ -536,7 +536,6 @@ class Database:
     def analysis_option(self, analysis_sid):
 
         script = 'SELECT ' \
-                 'a.AnalysisName, ' \
                  'a.AnalysisTypeCode, ' \
                  'a.SourceTemplateName, ' \
                  'd.EventSet, ' \
