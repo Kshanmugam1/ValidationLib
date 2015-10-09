@@ -1,4 +1,3 @@
-"""
 **ValidationLib** is a Python package providing fast, flexible, and expressive validation tools
 designed to validate AIR's Touchstone platform both easy and intuitive. It
 aims to be the fundamental high-level building block for doing practical,
@@ -10,4 +9,3 @@ pandas is well suited for many different kinds of validations:
   - Loss Analysis
   - Financial Module
   - Exports
-"""
