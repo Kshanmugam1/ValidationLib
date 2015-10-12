@@ -22,6 +22,7 @@ import pandas as pd
 
 # Import internal packages
 from ValidationLib.database.main import Database
+from ValidationLib.general.main import set_column_sequence
 
 warnings.filterwarnings('ignore')
 
@@ -63,7 +64,7 @@ def file_skeleton(outfile):
                           'LossModOption', 'MoveMarineCraftGeocodesToCoast', 'SaveGroundUp',
                           'SaveRetained', 'SavePreLayerGross',
                           'SaveGross', 'SaveNetOfPreCAT',
-                          'SavePostCATNet', 'OutputType', 'SaveCoverage', 'SaveClaims',
+                          'SavePostCATNet', 'OutputType', 'SaveCoverage', 'SavePeril', 'SaveClaims',
                           'SaveInjury', 'SaveMAOL', 'BaseAnalysisSID']).to_csv(outfile, index=False)
 
 
@@ -125,7 +126,18 @@ if __name__ == "__main__":
             LOGGER.error('Error: Failed to append secondary analysis')
             file_skeleton(OUTFILE)
             sys.exit()
+        analysis_information['SavePeril'] = 'IGNORE'
 
+        sequence = ['AnalysisTypeCode', 'SourceTemplateName', 'EventSet', 'PerilSet',
+                    'EventFilter', 'DemandSurgeOptionCode', 'EnableCorrelation',
+                    'ApplyDisaggregation', 'AveragePropertyOptionCode', 'RemapConstructionOccupancy',
+                    'LossModOption', 'MoveMarineCraftGeocodesToCoast', 'SaveGroundUp',
+                    'SaveRetained', 'SavePreLayerGross',
+                    'SaveGross', 'SaveNetOfPreCAT',
+                    'SavePostCATNet', 'OutputType', 'SaveCoverage', 'SavePeril', 'SaveClaims',
+                    'SaveInjury', 'SaveMAOL', 'BaseAnalysisSID']
+
+        analysis_information = set_column_sequence(analysis_information, sequence)
         analysis_information.to_csv(OUTFILE, index=False)
 
         LOGGER.info('---------------------------------------------------------------------------')

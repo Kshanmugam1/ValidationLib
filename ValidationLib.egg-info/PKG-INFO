@@ -1,0 +1,28 @@
+Metadata-Version: 1.1
+Name: ValidationLib
+Version: 1.0.1
+Summary: AIR Worldwide Touchstone validation
+Home-page: https://github.com/kapadias/ValidationLib
+Author: Shashank Kapadia
+Author-email: skapadia@air-worldwide.com
+License: 2015 AIR Worldwide, Inc.. All rights reserved
+Description: """
+        **ValidationLib** is a Python package providing fast, flexible, and expressive validation tools
+        designed to validate AIR's Touchstone platform both easy and intuitive. It
+        aims to be the fundamental high-level building block for doing practical,
+        **accurate** validation in Python. Additionally, it has the broader goal
+        of becoming **the most powerful and flexible open source data analysis /
+        manipulation tool available in any language**. It is already well on its way
+        toward this goal.
+        pandas is well suited for many different kinds of validations:
+          - Loss Analysis
+          - Financial Module
+          - Exports
+        """
+Keywords: Catastrophe Modelling validation
+Platform: UNKNOWN
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: Intended Audience :: AIR Worldwide QA Engineers
+Classifier: Topic :: Computational :: Core Package
+Classifier: Programming Language :: Python :: 2.7
+Classifier: Programming Language :: Python :: 3.4
