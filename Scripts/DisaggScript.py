@@ -21,9 +21,11 @@ import datetime
 import pandas as pd
 
 
+
 # Import internal packages
 from ValidationLib.analysis.main import Disaggregation
 from ValidationLib.database.main import Database
+from ValidationLib.general.main import set_column_sequence
 
 warnings.filterwarnings('ignore')
 
@@ -60,7 +62,8 @@ __status__ = 'Complete'
 def file_skeleton(outfile):
 
     pd.DataFrame(columns=['ContractID', 'LocationID', 'GeographySID', 'Latitude', 'Longitude',
-                          'GeoCoding', 'Resolution', 'LocationTypeCode',
+                          'CountryCode', 'ExchangeRate', 'GeoCoding',
+                          'Resolution', 'LocationTypeCode', 'ChildLocationCount',
                           'fltWeight', 'dblMinCovA', 'dblMinCovB', 'dblMinCovC',
                           'dblMinCovD', 'ReplacementValueA',
                           'ReplacementValueB', 'ReplacementValueC',
@@ -140,6 +143,16 @@ if __name__ == "__main__":
             file_skeleton(OUTFILE)
             sys.exit()
 
+        sequence = ['ContractID', 'LocationID', 'GeographySID', 'Latitude', 'Longitude',
+                    'CountryCode', 'ExchangeRate', 'GeoCoding',
+                    'Resolution', 'LocationTypeCode', 'ChildLocationCount',
+                    'fltWeight', 'dblMinCovA', 'dblMinCovB', 'dblMinCovC',
+                    'dblMinCovD', 'ReplacementValueA',
+                    'ReplacementValueB', 'ReplacementValueC',
+                    'ReplacementValueD', 'CalcReplacementValueA',
+                    'CalcReplacementValueB', 'CalcReplacementValueC',
+                    'CalcReplacementValueD', 'Status']
+        resultDF = set_column_sequence(resultDF, sequence)
         resultDF.to_csv(OUTFILE, index=False)
 
         LOGGER.info('---------------------------------------------------------------------------')
