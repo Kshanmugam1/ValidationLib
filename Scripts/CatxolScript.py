@@ -11,6 +11,8 @@ CATXOL Validation Script
 # Import standard Python packages and read outfile
 import getopt
 import sys
+
+sys.path.insert(0, r'\\qafile2\TS\Working Data\Shashank\Validation Library\ValidationLib')
 import datetime
 import warnings
 
