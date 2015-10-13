@@ -1,6 +1,8 @@
 # Import standard Python packages
 import copy
+
 import pip
+
 
 # Import external Python libraries
 try:
@@ -459,8 +461,8 @@ class Database:
                  '[EditedDate], ' \
                  '[Description], ' \
                  '[RowVersion] ' \
-                 'FROM [SK_Exp].[dbo].[tExposureSet] ' \
-                 'where ExposureSetName = '+ "'" + str(exp_name) + "'" + ') a ' \
+                 'FROM [' + str(exp_db) + '].[dbo].[tExposureSet] ' \
+                                          'where ExposureSetName = '+ "'" + str(exp_name) + "'" + ') a ' \
                  'JOIN ['+str(exp_db) + '].[dbo].[tLocation] b ON a.ExposureSetSID = b.ExposureSetSID ' \
                  'JOIN [AIRGeography].[dbo].[tGeography] c on b.GeographySID = c.GeographySID ' \
                  'JOIN [AIRReference].[dbo].[tCountryCurrencyXref] d on c.CountryCode=d.CountryCode ' \
