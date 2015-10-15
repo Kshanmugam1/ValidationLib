@@ -116,18 +116,18 @@ if __name__ == "__main__":
             file_skeleton(OUTFILE)
             sys.exit()
 
-        try:
-            if analysis_information['AnalysisTypeCode'].values[0] == 'LGRP' or 'IMPACT':
+        if analysis_information['AnalysisTypeCode'].values[0] in ['LGRP', 'IMPACT']:
+            try:
                 get_analysis = db.get_analysis(analysis_sid)
                 analyses = get_analysis.iloc[:, 0].values
                 for i in range (len(analyses)):
                     analysis_sid = db.analysis_sid(analyses[i])
                     analysis_information = pd.concat([analysis_information, db.analysis_option(analysis_sid)], axis=0)
-        except:
-            LOGGER.error('Error: Failed to append secondary analysis')
-            file_skeleton(OUTFILE)
-            sys.exit()
-        analysis_information['SavePeril'] = 'IGNORE'
+            except:
+                LOGGER.error('Error: Failed to append secondary analysis')
+                file_skeleton(OUTFILE)
+                sys.exit()
+        # analysis_information['SavePeril'] = 'IGNORE'
 
         sequence = ['AnalysisTypeCode', 'SourceTemplateName', 'EventSet', 'PerilSet',
                     'EventFilter', 'DemandSurgeOptionCode', 'EnableCorrelation',
