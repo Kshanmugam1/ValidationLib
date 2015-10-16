@@ -553,7 +553,7 @@ class Database:
                  'b.SaveGroundUp, b.SaveRetained, b.SavePreLayerGross, b.SaveGross, ' \
                  'b.SaveNetOfPreCAT, b.SavePostCATNet, ' \
                  'e.OutputType, ' \
-                 'b.SaveCoverage, b.SaveClaims, b.SaveInjury, b.SaveMAOL, ' \
+                 'b.SaveCoverage, b.SaveClaims, b.SaveSummaryByPeril as SavePeril, b.SaveInjury, b.SaveMAOL, ' \
                  'b.BaseAnalysisSID ' \
                  'FROM [AIRProject].[dbo].[tAnalysis] a ' \
                  'JOIN [AIRProject].[dbo].[tLossAnalysisOption] b on a.AnalysisSID = b.AnalysisSID ' \
@@ -561,6 +561,7 @@ class Database:
                  'JOIN [AIRUserSetting].[dbo].[tEventSet] d on b.EventSetSID = d.EventSetSID ' \
                  'JOIN [AIRReference].[dbo].[tOutputType] e on b.OutputTypeCode = e.OutputTypeCode ' \
                  'WHERE a.AnalysisSID = ' + str(analysis_sid)
+        print(script)
         return copy.deepcopy(pd.read_sql(script, self.connection))
 
     def get_analysis(self, analysis_sid):
