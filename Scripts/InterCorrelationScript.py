@@ -12,6 +12,8 @@ Inter Correlation Validation Script
 # Import standard Python packages and read outfile
 import getopt
 import sys
+
+sys.path.insert(0, r'\\qafile2\TS\Working Data\Shashank\Validation Library\ValidationLib')
 import datetime
 import warnings
 
@@ -42,7 +44,6 @@ LOGGER.addHandler(HANDLER_INF0)
 
 # Import internal packages
 from ValidationLib.general.main import *
-from ValidationLib.database.main import *
 from ValidationLib.financials.main import *
 
 

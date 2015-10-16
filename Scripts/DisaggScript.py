@@ -13,14 +13,21 @@ Disaggregation Validation Script
 import getopt
 import warnings
 import time
-import datetime
 import logging
 import sys
+
+sys.path.insert(0, r'\\qafile2\TS\Working Data\Shashank\Validation Library\ValidationLib')
+import copy
+
+import datetime
 import pandas as pd
+
+
 
 # Import internal packages
 from ValidationLib.analysis.main import Disaggregation
 from ValidationLib.database.main import Database
+from ValidationLib.general.main import set_column_sequence
 
 warnings.filterwarnings('ignore')
 
@@ -48,7 +55,7 @@ LOGGER.addHandler(HANDLER_INF0)
 __author__ = 'Shashank Kapadia'
 __copyright__ = '2015 AIR Worldwide, Inc.. All rights reserved'
 __version__ = '1.0'
-__interpreter__ = 'Python 2.7.10 |Anaconda 2.3.0 (64-bit)'
+__interpreter__ = 'Python 2.7.10 | Anaconda 2.3.0 (64-bit)'
 __maintainer__ = 'Shashank kapadia'
 __email__ = 'skapadia@air-worldwide.com'
 __status__ = 'Complete'
@@ -57,7 +64,8 @@ __status__ = 'Complete'
 def file_skeleton(outfile):
 
     pd.DataFrame(columns=['ContractID', 'LocationID', 'GeographySID', 'Latitude', 'Longitude',
-                          'GeoCoding', 'Resolution', 'LocationTypeCode',
+                          'CountryCode', 'ExchangeRate', 'GeoCoding',
+                          'Resolution', 'LocationTypeCode', 'ChildLocationCount',
                           'fltWeight', 'dblMinCovA', 'dblMinCovB', 'dblMinCovC',
                           'dblMinCovD', 'ReplacementValueA',
                           'ReplacementValueB', 'ReplacementValueC',
@@ -137,6 +145,16 @@ if __name__ == "__main__":
             file_skeleton(OUTFILE)
             sys.exit()
 
+        sequence = ['ContractID', 'LocationID', 'GeographySID', 'Latitude', 'Longitude',
+                    'CountryCode', 'ExchangeRate', 'GeoCoding',
+                    'Resolution', 'LocationTypeCode', 'ChildLocationCount',
+                    'fltWeight', 'dblMinCovA', 'dblMinCovB', 'dblMinCovC',
+                    'dblMinCovD', 'ReplacementValueA',
+                    'ReplacementValueB', 'ReplacementValueC',
+                    'ReplacementValueD', 'CalcReplacementValueA',
+                    'CalcReplacementValueB', 'CalcReplacementValueC',
+                    'CalcReplacementValueD', 'Status']
+        resultDF = set_column_sequence(resultDF, sequence)
         resultDF.to_csv(OUTFILE, index=False)
 
         LOGGER.info('---------------------------------------------------------------------------')

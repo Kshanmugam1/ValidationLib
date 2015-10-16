@@ -11,8 +11,6 @@ This script demonstrates the flow of logic to validate Quota Share Treaty.
 
 # Import standard Python packages
 import time
-import getopt
-import sys
 import logging
 import multiprocessing as mp
 
@@ -26,7 +24,6 @@ handler_info.setLevel(logging.INFO)
 logger.addHandler(handler_info)
 
 # Import internal packages
-from ValidationLib.database.main import *
 from ValidationLib.financials.main import *
 
 __author__ = 'Shashank Kapadia'
@@ -127,7 +124,7 @@ if __name__ == '__main__':
 
     logger.info('*****************************************************************************************************')
     logger.info('Ste 7. Saving the results')
-    _saveDFCsv(lossDF, outfile)
+    lossDF.to_csv(outfile, index=False)
 
     logger.info('----------------------------------------------------------------------------------')
     logger.info('                     Quota Share Validation Completed                             ')

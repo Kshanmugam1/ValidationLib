@@ -1,6 +1,8 @@
 # Import standard Python packages
 import copy
+
 import pip
+
 
 # Import external Python libraries
 try:
@@ -459,8 +461,8 @@ class Database:
                  '[EditedDate], ' \
                  '[Description], ' \
                  '[RowVersion] ' \
-                 'FROM [SK_Exp].[dbo].[tExposureSet] ' \
-                 'where ExposureSetName = '+ "'" + str(exp_name) + "'" + ') a ' \
+                 'FROM [' + str(exp_db) + '].[dbo].[tExposureSet] ' \
+                                          'where ExposureSetName = '+ "'" + str(exp_name) + "'" + ') a ' \
                  'JOIN ['+str(exp_db) + '].[dbo].[tLocation] b ON a.ExposureSetSID = b.ExposureSetSID ' \
                  'JOIN [AIRGeography].[dbo].[tGeography] c on b.GeographySID = c.GeographySID ' \
                  'JOIN [AIRReference].[dbo].[tCountryCurrencyXref] d on c.CountryCode=d.CountryCode ' \
@@ -532,3 +534,40 @@ class Database:
         script = 'SELECT GeoLevelCode FROM [AIRGeography].[dbo].[tDisaggregatedGeoLevel] WHERE CountryCode = ' + "'" + str(location_info[4]) + "'"
         data = copy.deepcopy(pd.read_sql(script, self.connection))
         return data.iloc[:, 0].values.tolist()
+
+    def analysis_option(self, analysis_sid):
+
+        script = 'SELECT ' \
+                 'a.AnalysisTypeCode, ' \
+                 'a.SourceTemplateName, ' \
+                 'd.EventSet, ' \
+                 'c.PerilSet, ' \
+                 'b.EventFilter, ' \
+                 'b.DemandSurgeOptionCode, ' \
+                 'b.EnableCorrelation, ' \
+                 'b.ApplyDisaggregation, ' \
+                 'b.AveragePropertyOptionCode, ' \
+                 'b.RemapConstructionOccupancy, ' \
+                 'b.LossModOption, ' \
+                 'b.MoveMarineCraftGeocodesToCoast, ' \
+                 'b.SaveGroundUp, b.SaveRetained, b.SavePreLayerGross, b.SaveGross, ' \
+                 'b.SaveNetOfPreCAT, b.SavePostCATNet, ' \
+                 'e.OutputType, ' \
+                 'b.SaveCoverage, b.SaveClaims, b.SaveSummaryByPeril as SavePeril, b.SaveInjury, b.SaveMAOL, ' \
+                 'b.BaseAnalysisSID ' \
+                 'FROM [AIRProject].[dbo].[tAnalysis] a ' \
+                 'JOIN [AIRProject].[dbo].[tLossAnalysisOption] b on a.AnalysisSID = b.AnalysisSID ' \
+                 'JOIN [AIRReference].[dbo].[tPerilSet] c on b.PerilSetCode = c.PerilSetCode ' \
+                 'JOIN [AIRUserSetting].[dbo].[tEventSet] d on b.EventSetSID = d.EventSetSID ' \
+                 'JOIN [AIRReference].[dbo].[tOutputType] e on b.OutputTypeCode = e.OutputTypeCode ' \
+                 'WHERE a.AnalysisSID = ' + str(analysis_sid)
+        print(script)
+        return copy.deepcopy(pd.read_sql(script, self.connection))
+
+    def get_analysis(self, analysis_sid):
+
+        script = 'SELECT AnalysisTargetName ' \
+                 'FROM [AIRProject].[dbo].[tAnalysisTargetXref] a ' \
+                 'JOIN [AIRProject].[dbo].[tAnalysis] b on a.AnalysisSID = b.AnalysisSID ' \
+                 'WHERE a.AnalysisSID = ' + str(analysis_sid)
+        return copy.deepcopy(pd.read_sql(script, self.connection))
