@@ -571,3 +571,23 @@ class Database:
                  'JOIN [AIRProject].[dbo].[tAnalysis] b on a.AnalysisSID = b.AnalysisSID ' \
                  'WHERE a.AnalysisSID = ' + str(analysis_sid)
         return copy.deepcopy(pd.read_sql(script, self.connection))
+
+    def get_loc_info_policy(self, exposure_db, exposure_name, result_db, result_sid):
+
+        script = 'SELECT ' \
+                 'ContractID, LocationID, ' \
+                 'AIROccupancyCode, ' \
+                 'ReplacementValueA, ReplacementValueB, ReplacementValueC, ReplacementValueD, ' \
+                 'LimitTypeCode, Limit1, Limit2, Limit3, Limit4, ' \
+                 'DeductibleTypeCode, Deductible1, Deductible2, Deductible3, Deductible4, ' \
+                 'Participation1, Participation2, ' \
+                 'e.exposedGroundUp, e.exposedGross ' \
+                 'FROM ' + exposure_db + '..tLocation a ' \
+                                         'JOIN ' + exposure_db + '..tContract b ON a.ContractSID = b.ContractSID ' \
+                                                                 'JOIN ' + exposure_db + '..tLocTerm c ON a.ContractSID = c.ContractSID and a.LocationSID = c.LocationSID ' \
+                                                                                         'JOIN ' + exposure_db + '..tExposureSet d ON a.ExposureSetSID = d.ExposureSetSID  ' \
+                                                                                                                 'JOIN ' + result_db + '..t' + str(
+            result_sid) + '_EC_ByLocation e ON e.LocationSID = a.LocationSID ' \
+                          'WHERE d.ExposureSetName = ' + "'" + exposure_name + "'"
+        print(script)
+        return copy.deepcopy(pd.read_sql(script, self.connection))
