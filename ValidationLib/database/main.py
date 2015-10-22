@@ -578,6 +578,7 @@ class Database:
                  'ContractID, LocationID, ' \
                  'AIROccupancyCode, ' \
                  'ReplacementValueA, ReplacementValueB, ReplacementValueC, ReplacementValueD, ' \
+                 'f.DamageRatio/100.0 as DamageRatio, ' \
                  'LimitTypeCode, Limit1, Limit2, Limit3, Limit4, ' \
                  'DeductibleTypeCode, Deductible1, Deductible2, Deductible3, Deductible4, ' \
                  'Participation1, Participation2, ' \
@@ -588,6 +589,8 @@ class Database:
                                                                                          'JOIN ' + exposure_db + '..tExposureSet d ON a.ExposureSetSID = d.ExposureSetSID  ' \
                                                                                                                  'JOIN ' + result_db + '..t' + str(
             result_sid) + '_EC_ByLocation e ON e.LocationSID = a.LocationSID ' \
+                          'JOIN ' + result_db + '..t' + str(
+            result_sid) + '_EC_DimSubAccumulator f on e.AccumulatorID = f.AccumulatorID ' \
                           'WHERE d.ExposureSetName = ' + "'" + exposure_name + "'"
-        print(script)
+
         return copy.deepcopy(pd.read_sql(script, self.connection))
