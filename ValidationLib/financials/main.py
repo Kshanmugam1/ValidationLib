@@ -184,7 +184,6 @@ def apply_terms_multithread(location_information, i):
         elif location_information['DeductibleTypeCode'][i] == 'PL':
             coverage = ['A']
             ded = []
-            limit = []
             for j in range(len(coverage)):
                 if location_information['Deductible' + str(j + 1)][i] > 1:
                     pass
@@ -524,10 +523,8 @@ class QSValidation:
 
 
 class FinancialTerms:
-    def apply_terms(self, location_information):
 
-        def get_result(i):
-            return [i, results[i].get()]
+    def apply_terms(self, location_information):
 
         location_information['expectedGross'] = ""
         pool = mp.Pool()
