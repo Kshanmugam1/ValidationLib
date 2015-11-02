@@ -22,7 +22,7 @@ class Database:
     def __init__(self, server):
 
         # Initializing the connection and cursor
-        self.connection = pyodbc.connect('DRIVER={SQL Server};SERVER=' + server)
+        self.connection = pyodbc.connect('DRIVER={SQL Server};SERVER=' + server + '; UID=airadmin; PWD=Air$admin123')
         self.cursor = self.connection.cursor()
 
     def analysis_sid(self, analysisName):
@@ -623,7 +623,8 @@ class Database:
             return copy.deepcopy(pd.read_sql(script, self.connection))
 
         if peril_option == 'TR':
-            script = 'SELECT TerrorismOption FROM [AIRProject].[dbo].[tLossAnalysisTerrorismOption] a ' \
-                     'JOIN [AIRReference].[dbo].[tTerrorismOption] b on a.TerrorismOptionCode = b.TerrorismOptionCode ' \
+            script = 'SELECT isnull(Description+' + "'" + '_' + "'" ',' + "'" + "'"') + TerrorismOption FROM [AIRProject].[dbo].[tLossAnalysisTerrorismOption] a ' \
+                                                                                'JOIN [AIRReference].[dbo].[tTerrorismOption] b on a.TerrorismOptionCode = b.TerrorismOptionCode ' \
                      'where a.AnalysisSID = ' + str(analysis_sid)
+
             return copy.deepcopy(pd.read_sql(script, self.connection))
