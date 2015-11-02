@@ -58,14 +58,13 @@ __status__ = 'Production'
 
 
 def file_skeleton(outfile):
-
-    pd.DataFrame(columns=['AnalysisTypeCode', 'SourceTemplateName', 'EventSet', 'PerilSet',
+    pd.DataFrame(columns=['AnalysisTypeCode', 'SourceTemplateName', 'EventSet', 'PerilSet', 'PerilOption',
                           'EventFilter', 'DemandSurgeOptionCode', 'EnableCorrelation',
                           'ApplyDisaggregation', 'AveragePropertyOptionCode', 'RemapConstructionOccupancy',
                           'LossModOption', 'MoveMarineCraftGeocodesToCoast', 'SaveGroundUp',
                           'SaveRetained', 'SavePreLayerGross',
                           'SaveGross', 'SaveNetOfPreCAT',
-                          'SavePostCATNet', 'OutputType', 'SaveCoverage', 'SavePeril', 'SaveClaims',
+                          'SavePostCATNet', 'OutputType', 'SaveCoverage', 'SaveClaims',
                           'SaveInjury', 'SaveMAOL', 'BaseAnalysisSID']).to_csv(outfile, index=False)
 
 
@@ -127,18 +126,38 @@ if __name__ == "__main__":
                 LOGGER.error('Error: Failed to append secondary analysis')
                 file_skeleton(OUTFILE)
                 sys.exit()
-        # analysis_information['SavePeril'] = 'IGNORE'
 
-        sequence = ['AnalysisTypeCode', 'SourceTemplateName', 'EventSet', 'PerilSet',
+        peril_option = {}
+        analysis_information['PerilOption'] = ''
+        for i in range(len(analysis_information)):
+            if analysis_information['CoversStormSurge'][i]:
+                options = db.get_peril_option(analysis_sid, 'SS')
+                peril_option['SS'] = options.iloc[0].tolist()
+            if analysis_information['CoversPrecipitationFlood'][i]:
+                options = db.get_peril_option(analysis_sid, 'PF')
+                peril_option['PF'] = options.iloc[0].tolist()
+            if analysis_information['CoversThunderstorm'][i]:
+                options = db.get_peril_option(analysis_sid, 'ST')
+                peril_option['ST'] = options.iloc[:, 0].tolist()
+            if analysis_information['CoversInlandFlood'][i]:
+                options = db.get_peril_option(analysis_sid, 'IF')
+                peril_option['IF'] = options.iloc[:, 0].tolist()
+            if analysis_information['CoversTerrorism'][i]:
+                options = db.get_peril_option(analysis_sid, 'TR')
+                peril_option['TR'] = options.iloc[:, 0].tolist()
+            analysis_information['PerilOption'][i] = peril_option
+
+        sequence = ['AnalysisTypeCode', 'SourceTemplateName', 'EventSet', 'PerilSet', 'PerilOption',
                     'EventFilter', 'DemandSurgeOptionCode', 'EnableCorrelation',
                     'ApplyDisaggregation', 'AveragePropertyOptionCode', 'RemapConstructionOccupancy',
                     'LossModOption', 'MoveMarineCraftGeocodesToCoast', 'SaveGroundUp',
                     'SaveRetained', 'SavePreLayerGross',
                     'SaveGross', 'SaveNetOfPreCAT',
-                    'SavePostCATNet', 'OutputType', 'SaveCoverage', 'SavePeril', 'SaveClaims',
+                    'SavePostCATNet', 'OutputType', 'SaveCoverage', 'SaveClaims',
                     'SaveInjury', 'SaveMAOL', 'BaseAnalysisSID']
 
         analysis_information = set_column_sequence(analysis_information, sequence)
+
         analysis_information.to_csv(OUTFILE, index=False)
 
         LOGGER.info('---------------------------------------------------------------------------')
