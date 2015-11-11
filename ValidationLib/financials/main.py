@@ -7,6 +7,8 @@ __email__ = 'skapadia@air-worldwide.com'
 __status__ = 'Production'
 
 # Import internal packages
+import multiprocessing as mp
+
 from ValidationLib.database.main import *
 
 
@@ -76,6 +78,208 @@ def recovery_quota_share(tuple, lossDF, programInfo):
             agg_limit_temp -= copy.deepcopy(sample_lossDF['CalculatedRecovery'][i])
     sample_lossDF['CalculatedRecovery'] = copy.deepcopy(sample_lossDF['CalculatedRecovery'] * programInfo[3])
     return sample_lossDF[['CalculatedTotalPerRiskReRecoveryLoss', 'CalculatedRecovery']].values.tolist()
+
+
+def apply_terms_multithread(location_information, i):
+    if location_information['LimitTypeCode'][i] == 'S':
+
+        # Deductible type: "S"
+        if location_information['DeductibleTypeCode'][i] == 'S':
+            coverage = ['A', 'B', 'C', 'D']
+            ded = []
+            limit = []
+            for j in range(len(coverage)):
+
+                if location_information['Deductible' + str(j + 1)][i] > 1:
+                    ded.append(location_information['Deductible' + str(j + 1)][i])
+                else:
+                    ded.append(
+                        location_information['Deductible' + str(j + 1)][i] * location_information['Limit' + str(j + 1)][
+                            i])
+                limit.append(location_information['Limit' + str(j + 1)][i])
+
+            ded = sum(ded)
+            limit = sum(limit)
+            if location_information['AIROccupancyCode'][i] == 311:
+                return min(max((location_information['exposedGroundUp'][i] - ded), 0), limit)
+
+        # Deductible type: "C"
+        elif location_information['DeductibleTypeCode'][i] == 'C':
+            coverage = ['A', 'B', 'C', 'D']
+            total_gross = []
+            for j in range(len(coverage)):
+                if location_information['ReplacementValue' + coverage[j]][i] > 0.0:
+                    if location_information['Deductible' + str(j + 1)][i] > 1:
+                        ded = location_information['Deductible' + str(j + 1)][i]
+                    else:
+                        ded = location_information['Deductible' + str(j + 1)][i] * \
+                              location_information['Limit' + str(j + 1)][i]
+                    limit = location_information['Limit' + str(j + 1)][i]  # * location_information['DamageRatio'][i]
+                    # Add the condition for Residential Occupancy
+                    if location_information['AIROccupancyCode'][i] == 311:
+                        temp_gross = max((location_information['ReplacementValue' + coverage[j]][i] *
+                                          location_information['DamageRatio'][i]) - ded, 0)
+                        gross = min(temp_gross, limit)
+                else:
+                    gross = 0.0
+                total_gross.append(gross)
+            return sum(total_gross)
+
+        # Deductible type: "CB"
+        elif location_information['DeductibleTypeCode'][i] == 'CB':
+            coverage = ['A', 'B', 'C']
+            ded = []
+            limit = []
+            for j in range(len(coverage)):
+                if location_information['Deductible' + str(j + 1)][i] > 1:
+                    ded.append(location_information['Deductible' + str(j + 1)][i])
+                else:
+                    ded.append(
+                        location_information['Deductible' + str(j + 1)][i] * location_information['Limit' + str(j + 1)][
+                            i])
+                limit.append(location_information['Limit' + str(j + 1)][i])
+            ded = sum(ded)
+            limit = sum(limit)
+            # Add the condition for Residential Occupancy
+            if location_information['AIROccupancyCode'][i] == 311:
+                return min(max(((location_information['exposedGroundUp'][i] -
+                                 location_information['ReplacementValueD'][i] *
+                                 location_information['DamageRatio'][i]) - ded), 0), limit) + \
+                       location_information['ReplacementValueD'][i] * location_information['DamageRatio'][i]
+
+        # Deductible type: "CT"
+        elif location_information['DeductibleTypeCode'][i] == 'CT':
+            coverage = ['A', 'B', 'C']
+            ded = []
+            limit = []
+            for j in range(len(coverage)):
+                if location_information['Deductible' + str(j + 1)][i] > 1:
+                    ded.append(location_information['Deductible' + str(j + 1)][i])
+                else:
+                    ded.append(location_information['Deductible' + str(j + 1)][i] *
+                               location_information['Limit' + str(j + 1)][i])
+                limit.append(location_information['Limit' + str(j + 1)][i])  # * location_information['DamageRatio'][i]
+
+            ded = sum(ded)
+            limit = sum(limit)
+            if location_information['AIROccupancyCode'][i] == 311:
+                gross_bldg = \
+                    min(max(((location_information['exposedGroundUp'][i] -
+                              location_information['ReplacementValueD'][i] *
+                              location_information['DamageRatio'][i]) - ded), 0), limit)
+                if location_information['Deductible4'][i] > 1:
+                    gross_time = min(max(((location_information['ReplacementValueD'][i] *
+                                           location_information['DamageRatio'][i]) -
+                                          location_information['Deductible4'][i]), 0),
+                                     location_information['Limit4'][i])
+                else:
+                    gross_time = \
+                        min(max(((location_information['ReplacementValueD'][i] *
+                                  location_information['DamageRatio'][i]) -
+                                 (location_information['Deductible4'][i] * location_information['Limit4'][i])), 0),
+                            location_information['Limit4'][i])
+                return gross_bldg + gross_time
+
+        # Deductible type: "PL"
+        elif location_information['DeductibleTypeCode'][i] == 'PL':
+            coverage = ['A']
+            ded = []
+            for j in range(len(coverage)):
+                if location_information['Deductible' + str(j + 1)][i] > 1:
+                    pass
+                else:
+                    ded.append(location_information['Deductible' + str(j + 1)][i] *
+                               ((location_information['ReplacementValueA'][i] +
+                                 location_information['ReplacementValueB'][i] +
+                                 location_information['ReplacementValueC'][i] +
+                                 location_information['ReplacementValueD'][i]) * location_information['DamageRatio'][
+                                    i]))
+
+            ded = sum(ded)
+            limit = location_information['Limit1'][i] + \
+                    location_information['Limit2'][i] + \
+                    location_information['Limit3'][i] + \
+                    location_information['Limit4'][i]
+            # Add the condition for Residential Occupancy
+            if location_information['AIROccupancyCode'][i] == 311:
+                return min(max((location_information['exposedGroundUp'][i] - ded), 0), limit)
+
+        # Deductible type: "ML"
+        elif location_information['DeductibleTypeCode'][i] == 'ML':
+
+            if location_information['Deductible2'][i] > 1 or location_information['Deductible1'][i] < 1 or \
+                            location_information['Deductible4'][i] < 1:
+                pass
+            else:
+                ground_up_loss_1 = ((location_information['ReplacementValueA'][i] +
+                                     location_information['ReplacementValueB'][i] +
+                                     location_information['ReplacementValueC'][i]) *
+                                    location_information['DamageRatio'][i])
+
+                limit = location_information['Limit1'][i] + \
+                        location_information['Limit2'][i] + \
+                        location_information['Limit3'][i] + \
+                        location_information['Limit4'][i]
+
+                ded1 = location_information['Deductible2'][i] * ground_up_loss_1
+
+                ded2 = location_information['Deductible1'][i]
+
+                ded3 = location_information['Deductible4'][i]
+                # Add the condition for Residential Occupancy
+                if location_information['AIROccupancyCode'][i] == 311:
+                    if ded2 >= ded1:
+                        gross_1 = max(location_information['exposedGroundUp'][i] - ded2, 0)
+                    else:
+                        gross_1 = max(location_information['exposedGroundUp'][i] - ded1, 0)
+                    return min(max(gross_1 - ded3, 0), limit)
+
+        # deductible type: "MP"
+        elif location_information['DeductibleTypeCode'][i] == 'MP':
+
+            if location_information['Deductible1'][i] > 1:
+                ded = location_information['Deductible1'][i]
+            else:
+                ded = location_information['Deductible1'][i] * location_information['Limit1'][i]
+
+            limit = location_information['Limit1'][i] + \
+                    location_information['Limit2'][i] + \
+                    location_information['Limit3'][i] + \
+                    location_information['Limit4'][i]
+            # Add the condition for Residential Occupancy
+            if location_information['AIROccupancyCode'][i] == 311:
+                if location_information['Deductible1'][i] < location_information['ReplacementValueA'][i] * \
+                        location_information['DamageRatio'][i]:
+                    ded1 = max(location_information['ReplacementValueA'][i] * location_information['DamageRatio'][i] -
+                               ded, 0)
+                else:
+                    ded1 = max((location_information['ReplacementValueA'][i] +
+                                location_information['ReplacementValueB'][i]) * location_information['DamageRatio'][i] -
+                               ded, 0)
+                return min(ded1 + \
+                           (location_information['ReplacementValueB'][i] +
+                            location_information['ReplacementValueC'][i] +
+                            location_information['ReplacementValueD'][i]) *
+                           location_information['DamageRatio'][i], limit)
+
+        # Deductible type: "FR"
+        elif location_information['DeductibleTypeCode'][i] == 'FR':
+            coverage = ['A', 'B', 'C', 'D']
+            total_gross = []
+            if location_information['Deductible1'][i] < 1:
+                pass
+            else:
+                # Add the condition for Residential Occupancy
+                if location_information['AIROccupancyCode'][i] == 311:
+                    for j in range(len(coverage)):
+                        if location_information['ReplacementValue' + coverage[j]][i] * \
+                                location_information['DamageRatio'][i] > \
+                                location_information['Deductible' + str(j + 1)][i]:
+                            total_gross.append(location_information['ReplacementValue' + coverage[j]][i] *
+                                               location_information['DamageRatio'][i])
+                        else:
+                            total_gross.append(0.0)
+                    return sum(total_gross)
 
 
 class Catxol:
@@ -316,3 +520,21 @@ class QSValidation:
                     task_list.append(tuple([c,m,y]))
 
         return task_list, lossDF
+
+
+class FinancialTerms:
+
+    def apply_terms(self, location_information):
+
+        location_information['expectedGross'] = ""
+        pool = mp.Pool()
+        results = [pool.apply_async(apply_terms_multithread, args=(location_information, i))
+                   for i in range(len(location_information))]
+        output = [results[i].get() for i in range(len(results))]
+        location_information['expectedGross'] = output
+        location_information['Status'] = 'Fail'
+        for i in range(len(location_information)):
+            if (abs(location_information['exposedGross'][i] - location_information['expectedGross'][i]) <= 1):
+                location_information.loc[i, 'Status'] = 'Pass'
+
+        return location_information

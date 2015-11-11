@@ -22,7 +22,7 @@ class Database:
     def __init__(self, server):
 
         # Initializing the connection and cursor
-        self.connection = pyodbc.connect('DRIVER={SQL Server};SERVER=' + server)
+        self.connection = pyodbc.connect('DRIVER={SQL Server};SERVER=' + server + '; UID=airadmin; PWD=Air$admin123')
         self.cursor = self.connection.cursor()
 
     def analysis_sid(self, analysisName):
@@ -553,15 +553,20 @@ class Database:
                  'b.SaveGroundUp, b.SaveRetained, b.SavePreLayerGross, b.SaveGross, ' \
                  'b.SaveNetOfPreCAT, b.SavePostCATNet, ' \
                  'e.OutputType, ' \
-                 'b.SaveCoverage, b.SaveClaims, b.SaveSummaryByPeril as SavePeril, b.SaveInjury, b.SaveMAOL, ' \
-                 'b.BaseAnalysisSID ' \
+                 'b.SaveCoverage, b.SaveClaims, b.SaveInjury, b.SaveMAOL, ' \
+                 'b.BaseAnalysisSID, ' \
+                 'c.CoversStormSurge, ' \
+                 'c.CoversPrecipitationFlood, ' \
+                 'c.CoversThunderstorm, ' \
+                 'c.CoversInlandFlood,  ' \
+                 'c.CoversTerrorism ' \
                  'FROM [AIRProject].[dbo].[tAnalysis] a ' \
                  'JOIN [AIRProject].[dbo].[tLossAnalysisOption] b on a.AnalysisSID = b.AnalysisSID ' \
                  'JOIN [AIRReference].[dbo].[tPerilSet] c on b.PerilSetCode = c.PerilSetCode ' \
                  'JOIN [AIRUserSetting].[dbo].[tEventSet] d on b.EventSetSID = d.EventSetSID ' \
                  'JOIN [AIRReference].[dbo].[tOutputType] e on b.OutputTypeCode = e.OutputTypeCode ' \
                  'WHERE a.AnalysisSID = ' + str(analysis_sid)
-        print(script)
+
         return copy.deepcopy(pd.read_sql(script, self.connection))
 
     def get_analysis(self, analysis_sid):
@@ -571,3 +576,55 @@ class Database:
                  'JOIN [AIRProject].[dbo].[tAnalysis] b on a.AnalysisSID = b.AnalysisSID ' \
                  'WHERE a.AnalysisSID = ' + str(analysis_sid)
         return copy.deepcopy(pd.read_sql(script, self.connection))
+
+    def get_loc_info_policy(self, exposure_db, exposure_name, result_db, result_sid):
+
+        script = 'SELECT ' \
+                 'ContractID, LocationID, ' \
+                 'AIROccupancyCode, ' \
+                 'ReplacementValueA, ReplacementValueB, ReplacementValueC, ReplacementValueD, ' \
+                 'f.DamageRatio/100.0 as DamageRatio, ' \
+                 'LimitTypeCode, Limit1, Limit2, Limit3, Limit4, ' \
+                 'DeductibleTypeCode, Deductible1, Deductible2, Deductible3, Deductible4, ' \
+                 'Participation1, Participation2, ' \
+                 'e.exposedGroundUp, e.exposedGross ' \
+                 'FROM ' + exposure_db + '..tLocation a ' \
+                                         'JOIN ' + exposure_db + '..tContract b ON a.ContractSID = b.ContractSID ' \
+                                                                 'JOIN ' + exposure_db + '..tLocTerm c ON a.ContractSID = c.ContractSID and a.LocationSID = c.LocationSID ' \
+                                                                                         'JOIN ' + exposure_db + '..tExposureSet d ON a.ExposureSetSID = d.ExposureSetSID  ' \
+                                                                                                                 'JOIN ' + result_db + '..t' + str(
+            result_sid) + '_EC_ByLocation e ON e.LocationSID = a.LocationSID ' \
+                          'JOIN ' + result_db + '..t' + str(
+            result_sid) + '_EC_DimSubAccumulator f on e.AccumulatorID = f.AccumulatorID ' \
+                          'WHERE d.ExposureSetName = ' + "'" + exposure_name + "'"
+
+        return copy.deepcopy(pd.read_sql(script, self.connection))
+
+    def get_peril_option(self, analysis_sid, peril_option):
+
+        if peril_option == 'SS':
+            script = 'SELECT UserLineOfBusiness, Percentage FROM [AIRProject].[dbo].[tLossAnalysisPerilSetULOBOption] ' \
+                     'WHERE PerilSetCode = 256 and AnalysisSID = ' + str(analysis_sid)
+            return copy.deepcopy(pd.read_sql(script, self.connection))
+
+        if peril_option == 'PF':
+            script = 'SELECT UserLineOfBusiness, Percentage FROM [AIRProject].[dbo].[tLossAnalysisPerilSetULOBOption] ' \
+                     'WHERE PerilSetCode = 4096 and AnalysisSID = ' + str(analysis_sid)
+            return copy.deepcopy(pd.read_sql(script, self.connection))
+
+        if peril_option == 'ST':
+            script = 'SELECT STStormOptionCode FROM [AIRProject].[dbo].[tLossAnalysisSTStormOption] ' \
+                     'WHERE AnalysisSID = ' + str(analysis_sid)
+            return copy.deepcopy(pd.read_sql(script, self.connection))
+
+        if peril_option == 'IF':
+            script = 'SELECT CustomFloodZoneCode FROM [AIRProject].[dbo].[tLossAnalysisFloodOption] ' \
+                     'WHERE AnalysisSID = ' + str(analysis_sid)
+            return copy.deepcopy(pd.read_sql(script, self.connection))
+
+        if peril_option == 'TR':
+            script = 'SELECT isnull(Description+' + "'" + '_' + "'" ',' + "'" + "'"') + TerrorismOption FROM [AIRProject].[dbo].[tLossAnalysisTerrorismOption] a ' \
+                                                                                'JOIN [AIRReference].[dbo].[tTerrorismOption] b on a.TerrorismOptionCode = b.TerrorismOptionCode ' \
+                     'where a.AnalysisSID = ' + str(analysis_sid)
+
+            return copy.deepcopy(pd.read_sql(script, self.connection))
