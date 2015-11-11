@@ -31,13 +31,14 @@ def set_column_sequence(dataframe, seq):
     return dataframe[cols]
 
 def csv2ui(locationFile, outfile):
-
-    input_file = pd.read_csv(locationFile, encoding='utf-16').fillna('-')
+    input_file = pd.read_csv(locationFile, engine='python').fillna('-')
+    input_file['Geocode Match Level'] = ''
     columns = ['ContractID', 'LocationID', 'LocationName', 'LocationGroup', 'IsPrimary', 'ISOBIN', 'InceptionDate',
-               'ExpirationDate', 'Street', 'City', 'SubArea2', 'SubArea', 'Area', 'CRESTA', 'PostalCode',
-               'CountryISO', 'GeoMatchLevelCode', 'Latitude', 'Longitude']
+               'ExpirationDate', 'Street', 'City', 'CountryISO', 'Area', 'SubArea',
+               'SubArea2', 'CRESTA', 'PostalCode', 'Geocode Match Level', 'Latitude', 'Longitude']
     out_file = set_column_sequence(input_file, columns)
-    out_file.iloc[:, 0] = out_file.iloc[:, 0] + '_Custom'
+    out_file.iloc[:, 0] = 'Copy_' + out_file.iloc[:, 0]
+
     out_file.iloc[:, :19].to_csv(outfile, index=False)
 
 class UnicedeCompare:
