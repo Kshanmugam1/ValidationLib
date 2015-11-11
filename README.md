@@ -1,3 +1,5 @@
+<a href="https://codeclimate.com/github/kapadias/ValidationLib"><img src="https://codeclimate.com/github/kapadias/ValidationLib/badges/gpa.svg" /></a>
+
 **ValidationLib** is a Python package providing fast, flexible, and expressive validation tools
 designed to validate AIR's Touchstone platform both easy and intuitive. It
 aims to be the fundamental high-level building block for doing practical,
