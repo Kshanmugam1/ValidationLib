@@ -34,7 +34,7 @@ __status__ = 'Complete'
 
 # Extract the given arguments
 try:
-    location_file = sys.argv[3]
+    location_file = sys.argv[1]
     LOGGER = logging.getLogger(__name__)
     LOGGER.setLevel(logging.INFO)
 
@@ -54,7 +54,7 @@ if __name__ == "__main__":
         LOGGER.info('********************************')
 
         LOGGER.info('\n********** Log header **********\n')
-        LOGGER.info('Description:   CATXOL Validation')
+        LOGGER.info('Description:   Location CSV Exposure to UI Format')
         LOGGER.info('Time Submitted: ' + str(datetime.datetime.now()))
         LOGGER.info('Status:                Completed')
 
