@@ -554,6 +554,7 @@ class Database:
                  'b.SaveNetOfPreCAT, b.SavePostCATNet, ' \
                  'e.OutputType, ' \
                  'b.SaveCoverage, b.SaveClaims, b.SaveInjury, b.SaveMAOL, ' \
+                 'b.SaveSummaryByPeril, b.SaveSummaryByModel, ' \
                  'b.BaseAnalysisSID, ' \
                  'c.CoversStormSurge, ' \
                  'c.CoversPrecipitationFlood, ' \
@@ -628,3 +629,17 @@ class Database:
                      'where a.AnalysisSID = ' + str(analysis_sid)
 
             return copy.deepcopy(pd.read_sql(script, self.connection))
+
+    def exp_location_information(self, exposure_db, exposure_name):
+
+        script = 'SELECT ' \
+                 'c.ContractID, LocationID, LocationName, LocationGroup, ' \
+                 'IsPrimaryLocation, ISOBIN, ' \
+                 'a.InceptionDate, a.ExpirationDate, ' \
+                 'Address, City, CountryName, AreaName, SubareaName, Subarea2Name, ' \
+                 'CRESTAName, PostalCode, GeoMatchLevelCode, Latitude, Longitude ' \
+                 'FROM [SKExp].[dbo].[tLocation] a ' \
+                 'JOIN [SKExp].[dbo].[tExposureSet] b on a.ExposureSetSID = b.ExposureSetSID ' \
+                 'JOIN [SKExp].[dbo].[tContract] c on a.ContractSID = c.ContractSID ' \
+                 'WHERE b.ExposureSetName = ' + "'" + exposure_name + "'"
+        return copy.deepcopy(pd.read_sql(script, self.connection))
