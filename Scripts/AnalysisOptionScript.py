@@ -65,7 +65,8 @@ def file_skeleton(outfile):
                           'SaveRetained', 'SavePreLayerGross',
                           'SaveGross', 'SaveNetOfPreCAT',
                           'SavePostCATNet', 'OutputType', 'SaveCoverage', 'SaveClaims',
-                          'SaveInjury', 'SaveMAOL', 'BaseAnalysisSID']).to_csv(outfile, index=False)
+                          'SaveInjury', 'SaveMAOL', 'SaveSummaryByPeril', 'SaveSummaryByModel',
+                          'BaseAnalysisSID']).to_csv(outfile, index=False)
 
 
 # Extract the given arguments
@@ -154,7 +155,7 @@ if __name__ == "__main__":
                     'SaveRetained', 'SavePreLayerGross',
                     'SaveGross', 'SaveNetOfPreCAT',
                     'SavePostCATNet', 'OutputType', 'SaveCoverage', 'SaveClaims',
-                    'SaveInjury', 'SaveMAOL', 'BaseAnalysisSID']
+                    'SaveInjury', 'SaveMAOL', 'SaveSummaryByPeril', 'SaveSummaryByModel', 'BaseAnalysisSID']
 
         analysis_information = set_column_sequence(analysis_information, sequence)
 
