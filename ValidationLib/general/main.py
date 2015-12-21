@@ -41,6 +41,48 @@ def csv2ui(locationFile, outfile):
 
     out_file.iloc[:, :19].to_csv(outfile, index=False)
 
+
+def group_by_heading(some_source):
+    buffer = []
+    for line in some_source:
+        if 'Business Errors' in line:
+            if buffer: yield buffer
+            buffer = [line]
+        else:
+            buffer.append(line)
+    print(buffer)
+    yield buffer
+
+
+def parse_log_files(log_file, outfile):
+    print(log_file)
+    start_pattern = 'Business Errors'
+    end_pattern = 'Exceptions'
+    with open(outfile, 'wb') as out:
+        with open(log_file, "r") as file:
+            active_flag = False
+            for line in file:
+                if not active_flag:
+                    if start_pattern in line:
+                        active_flag = True
+                else:
+                    if end_pattern in line:
+                        active_flag = False  # or break if only one group possible
+                    else:
+                        if not line == '\n':
+                            # try:
+                            data = line.split(":")[1:]
+
+                            contract_id = data[:2][1].split()[0]
+
+                            print(data[:3])
+                            location_id = data[:3][2].split()[0].split("]")[0]
+
+                            error = data[:4][2].split("]")[1]
+                            out.writelines([contract_id, ',', location_id, ',', error, '\n'])
+                            # except:
+                            #     pass
+
 class UnicedeCompare:
 
     def __init__(self, sourceFile, testFile, resultFile):
@@ -210,3 +252,5 @@ class UnicedeCompare:
         self.lock.acquire(blocking=1)
         FinalDF.to_csv(self.resultFile + '/Log-Aggregated/' + str(uuid.uuid4()) + '-Log-Aggregated.csv', encoding='utf-8', mode='wb')
         self.lock.release()
+
+# parse_log_files('log.txt', 'output.txt')

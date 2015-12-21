@@ -300,77 +300,225 @@ class Database:
 
             return[occ_limit, agg_limit, ceded_amount, placed_percent, sequence_number]
 
-    def event_loss_ep(self, resultDB, resultSID, financial_prsp, type):
+    def event_loss_ep(self, resultDB, resultSID, financial_prsp, type, value=None, saveBy=None):
 
         if financial_prsp == 'GU':
 
             if type == 'OCC':
 
-                script = 'SELECT YearID, MAX(GroundUpLoss) as GU FROM ' \
-                         '[' + resultDB + '].dbo.t' + str(resultSID) + '_LOSS_ByEvent WHERE CatalogTypeCode = ' + "'STC'" + \
-                         ' Group By YearID ORDER By GU DESC'
+                if saveBy == 'Peril':
+
+                    script = 'SELECT YearID, PerilSetCode, MAX(GroundUpLoss) as GU FROM ' \
+                             '[' + resultDB + '].dbo.t' + str(
+                        resultSID) + '_LOSS_ByEvent WHERE CatalogTypeCode = ' + "'STC'" + \
+                             ' AND PerilSetCode = ' + str(value) + ' Group By YearID, PerilSetCode ORDER By GU DESC'
+                elif saveBy == 'Model':
+
+                    script = 'SELECT YearID, ModelCode, MAX(GroundUpLoss) as GU FROM ' \
+                             '[' + resultDB + '].dbo.t' + str(
+                        resultSID) + '_LOSS_ByEvent WHERE CatalogTypeCode = ' + "'STC'" + \
+                             ' AND ModelCode = ' + str(value) + ' Group By YearID, ModelCode ORDER By GU DESC'
+                else:
+                    script = 'SELECT YearID, MAX(GroundUpLoss) as GU FROM ' \
+                             '[' + resultDB + '].dbo.t' + str(
+                        resultSID) + '_LOSS_ByEvent WHERE CatalogTypeCode = ' + "'STC'" + \
+                             ' Group By YearID ORDER By GU DESC'
 
             elif type == 'AGG':
 
-                script = 'SELECT YearID, SUM(GroundUpLoss) as GU FROM ' \
-                         '[' + resultDB + '].dbo.t' + str(resultSID) + '_LOSS_ByEvent WHERE CatalogTypeCode = ' + "'STC'" + \
-                         ' Group By YearID ORDER By GU DESC'
+                if saveBy == 'Peril':
+                    script = 'SELECT YearID, PerilSetCode, SUM(GroundUpLoss) as GU FROM ' \
+                             '[' + resultDB + '].dbo.t' + str(
+                        resultSID) + '_LOSS_ByEvent WHERE CatalogTypeCode = ' + "'STC'" + \
+                             ' AND PerilSetCode = ' + str(value) + ' Group By YearID, PerilSetCode ORDER By GU DESC'
+                elif saveBy == 'Model':
+                    script = 'SELECT YearID, ModelCode, SUM(GroundUpLoss) as GU FROM ' \
+                             '[' + resultDB + '].dbo.t' + str(
+                        resultSID) + '_LOSS_ByEvent WHERE CatalogTypeCode = ' + "'STC'" + \
+                             ' AND ModelCode = ' + str(value) + ' Group By YearID, ModelCode ORDER By GU DESC'
+                else:
+                    script = 'SELECT YearID, SUM(GroundUpLoss) as GU FROM ' \
+                             '[' + resultDB + '].dbo.t' + str(
+                        resultSID) + '_LOSS_ByEvent WHERE CatalogTypeCode = ' + "'STC'" + \
+                             ' Group By YearID ORDER By GU DESC'
 
         elif financial_prsp == 'GR':
 
             if type == 'OCC':
 
-                script = 'SELECT YearID, MAX(GrossLoss) as GR FROM ' \
-                         '[' + resultDB + '].dbo.t' + str(resultSID) + '_LOSS_ByEvent WHERE CatalogTypeCode = ' + "'STC'" + \
-                         ' Group By YearID ORDER By GR DESC'
+                if saveBy == 'Peril':
+
+                    script = 'SELECT YearID, PerilSetCode, MAX(GrossLoss) as GR FROM ' \
+                             '[' + resultDB + '].dbo.t' + str(resultSID) + '_LOSS_ByEvent WHERE CatalogTypeCode = ' + "'STC'" + \
+                             ' AND PerilSetCode = ' + str(value) + ' Group By YearID, PerilSetCode ORDER By GR DESC'
+                elif saveBy == 'Model':
+
+                    script = 'SELECT YearID, ModelCode,  MAX(GrossLoss) as GR FROM ' \
+                             '[' + resultDB + '].dbo.t' + str(
+                        resultSID) + '_LOSS_ByEvent WHERE CatalogTypeCode = ' + "'STC'" + \
+                             ' AND ModelCode = ' + str(value) + ' Group By YearID, ModelCode ORDER By GR DESC'
+                else:
+
+                    script = 'SELECT YearID, MAX(GrossLoss) as GR FROM ' \
+                             '[' + resultDB + '].dbo.t' + str(
+                        resultSID) + '_LOSS_ByEvent WHERE CatalogTypeCode = ' + "'STC'" + \
+                             ' Group By YearID ORDER By GR DESC'
+
 
             elif type == 'AGG':
 
-                script = 'SELECT YearID, SUM(GrossLoss) as GR FROM ' \
-                         '[' + resultDB + '].dbo.t' + str(resultSID) + '_LOSS_ByEvent WHERE CatalogTypeCode = ' + "'STC'" + \
-                         ' Group By YearID ORDER By GR DESC'
+                if saveBy == 'Peril':
+
+                    script = 'SELECT YearID, PerilSetCode, SUM(GrossLoss) as GR FROM ' \
+                             '[' + resultDB + '].dbo.t' + str(resultSID) + '_LOSS_ByEvent WHERE CatalogTypeCode = ' + "'STC'" + \
+                             ' AND PerilSetCode = ' + str(value) + ' Group By YearID, PerilSetCode ORDER By GR DESC'
+                elif saveBy == 'Model':
+
+                    script = 'SELECT YearID, ModelCode,  SUM(GrossLoss) as GR FROM ' \
+                             '[' + resultDB + '].dbo.t' + str(
+                        resultSID) + '_LOSS_ByEvent WHERE CatalogTypeCode = ' + "'STC'" + \
+                             ' AND ModelCode = ' + str(value) + ' Group By YearID, ModelCode ORDER By GR DESC'
+                else:
+
+                    script = 'SELECT YearID, SUM(GrossLoss) as GR FROM ' \
+                             '[' + resultDB + '].dbo.t' + str(
+                        resultSID) + '_LOSS_ByEvent WHERE CatalogTypeCode = ' + "'STC'" + \
+                             ' Group By YearID ORDER By GR DESC'
+
 
         elif financial_prsp == 'NT':
 
             if type == 'OCC':
 
-                script = 'SELECT YearID, MAX(NetOfPreCATLoss) as NT FROM ' \
-                         '[' + resultDB + '].dbo.t' + str(resultSID) + '_LOSS_ByEvent WHERE CatalogTypeCode = ' + "'STC'" + \
-                         ' Group By YearID ORDER By NT DESC'
+                if saveBy == 'Peril':
+
+                    script = 'SELECT YearID, PerilSetCode, MAX(NetOfPreCATLoss) as NT FROM ' \
+                             '[' + resultDB + '].dbo.t' + str(resultSID) + '_LOSS_ByEvent WHERE CatalogTypeCode = ' + "'STC'" + \
+                             ' AND PerilSetCode = ' + str(value) + ' Group By YearID, PerilSetCode ORDER By NT DESC'
+
+                elif saveBy == 'Model':
+
+                    script = 'SELECT YearID, ModelCode,  MAX(NetOfPreCATLoss) as NT FROM ' \
+                             '[' + resultDB + '].dbo.t' + str(
+                        resultSID) + '_LOSS_ByEvent WHERE CatalogTypeCode = ' + "'STC'" + \
+                             ' AND ModelCode = ' + str(value) + ' Group By YearID, ModelCode ORDER By NT DESC'
+                else:
+
+                    script = 'SELECT YearID, MAX(NetOfPreCATLoss) as NT FROM ' \
+                             '[' + resultDB + '].dbo.t' + str(
+                        resultSID) + '_LOSS_ByEvent WHERE CatalogTypeCode = ' + "'STC'" + \
+                             ' Group By YearID ORDER By NT DESC'
 
             elif type == 'AGG':
 
-                script = 'SELECT YearID, SUM(NetOfPreCATLoss) as NT FROM ' \
-                         '[' + resultDB + '].dbo.t' + str(resultSID) + '_LOSS_ByEvent WHERE CatalogTypeCode = ' + "'STC'" + \
-                         ' Group By YearID ORDER By NT DESC'
+                if saveBy == 'Peril':
+
+                    script = 'SELECT YearID, PerilSetCode, SUM(NetOfPreCATLoss) as NT FROM ' \
+                             '[' + resultDB + '].dbo.t' + str(resultSID) + '_LOSS_ByEvent WHERE CatalogTypeCode = ' + "'STC'" + \
+                             ' AND PerilSetCode = ' + str(value) + ' Group By YearID, PerilSetCode ORDER By NT DESC'
+
+                elif saveBy == 'Model':
+
+                    script = 'SELECT YearID, ModelCode,  SUM(NetOfPreCATLoss) as NT FROM ' \
+                             '[' + resultDB + '].dbo.t' + str(
+                        resultSID) + '_LOSS_ByEvent WHERE CatalogTypeCode = ' + "'STC'" + \
+                             ' AND ModelCode = ' + str(value) + ' Group By YearID, ModelCode ORDER By NT DESC'
+                else:
+
+                    script = 'SELECT YearID, SUM(NetOfPreCATLoss) as NT FROM ' \
+                             '[' + resultDB + '].dbo.t' + str(
+                        resultSID) + '_LOSS_ByEvent WHERE CatalogTypeCode = ' + "'STC'" + \
+                             ' Group By YearID ORDER By NT DESC'
 
         elif financial_prsp == 'POST':
 
             if type == 'OCC':
 
-                script = 'SELECT YearID, MAX(PostCATNetLoss) as POST FROM ' \
-                         '[' + resultDB + '].dbo.t' + str(resultSID) + '_LOSS_ByEvent WHERE CatalogTypeCode = ' + "'STC'" + \
-                         ' Group By YearID ORDER By POST DESC'
+                if saveBy == 'Peril':
+
+                    script = 'SELECT YearID, PerilSetCode, MAX(PostCATNetLoss) as POST FROM ' \
+                             '[' + resultDB + '].dbo.t' + str(resultSID) + '_LOSS_ByEvent WHERE CatalogTypeCode = ' + "'STC'" + \
+                             ' AND PerilSetCode = ' + str(value) + ' Group By YearID, PerilSetCode ORDER By NT DESC'
+
+                elif saveBy == 'Model':
+
+                    script = 'SELECT YearID, ModelCode,  MAX(PostCATNetLoss) as POST FROM ' \
+                             '[' + resultDB + '].dbo.t' + str(
+                        resultSID) + '_LOSS_ByEvent WHERE CatalogTypeCode = ' + "'STC'" + \
+                             ' AND ModelCode = ' + str(value) + ' Group By YearID, ModelCode ORDER By NT DESC'
+                else:
+
+                    script = 'SELECT YearID, MAX(PostCATNetLoss) as POST FROM ' \
+                             '[' + resultDB + '].dbo.t' + str(
+                        resultSID) + '_LOSS_ByEvent WHERE CatalogTypeCode = ' + "'STC'" + \
+                             ' Group By YearID ORDER By NT DESC'
+
 
             elif type == 'AGG':
 
-                script = 'SELECT YearID, SUM(PostCATNetLoss) as POST FROM ' \
-                         '[' + resultDB + '].dbo.t' + str(resultSID) + '_LOSS_ByEvent WHERE CatalogTypeCode = ' + "'STC'" + \
-                         ' Group By YearID ORDER By POST DESC'
+                if saveBy == 'Peril':
+
+                    script = 'SELECT YearID, PerilSetCode, SUM(PostCATNetLoss) as POST FROM ' \
+                             '[' + resultDB + '].dbo.t' + str(resultSID) + '_LOSS_ByEvent WHERE CatalogTypeCode = ' + "'STC'" + \
+                             ' AND PerilSetCode = ' + str(value) + ' Group By YearID, PerilSetCode ORDER By POST DESC'
+
+                elif saveBy == 'Model':
+
+                    script = 'SELECT YearID, ModelCode,  SUM(PostCATNetLoss) as POST FROM ' \
+                             '[' + resultDB + '].dbo.t' + str(
+                        resultSID) + '_LOSS_ByEvent WHERE CatalogTypeCode = ' + "'STC'" + \
+                             ' AND ModelCode = ' + str(value) + ' Group By YearID, ModelCode ORDER By POST DESC'
+                else:
+
+                    script = 'SELECT YearID, SUM(PostCATNetLoss) as POST FROM ' \
+                             '[' + resultDB + '].dbo.t' + str(
+                        resultSID) + '_LOSS_ByEvent WHERE CatalogTypeCode = ' + "'STC'" + \
+                             ' Group By YearID ORDER By POST DESC'
 
         elif financial_prsp == 'RT':
 
             if type == 'OCC':
 
-                script = 'SELECT YearID, MAX(RetainedLoss) as RT FROM ' \
-                         '[' + resultDB + '].dbo.t' + str(resultSID) + '_LOSS_ByEvent WHERE CatalogTypeCode = ' + "'STC'" + \
-                         ' Group By YearID ORDER By RT DESC'
+                if saveBy == 'Peril':
+
+                    script = 'SELECT YearID, PerilSetCode, MAX(RetainedLoss) as RT FROM ' \
+                             '[' + resultDB + '].dbo.t' + str(resultSID) + '_LOSS_ByEvent WHERE CatalogTypeCode = ' + "'STC'" + \
+                             ' AND PerilSetCode = ' + str(value) + ' Group By YearID, PerilSetCode ORDER By RT DESC'
+
+                elif saveBy == 'Model':
+
+                    script = 'SELECT YearID, ModelCode,  MAX(RetainedLoss) as RT FROM ' \
+                             '[' + resultDB + '].dbo.t' + str(
+                        resultSID) + '_LOSS_ByEvent WHERE CatalogTypeCode = ' + "'STC'" + \
+                             ' AND ModelCode = ' + str(value) + ' Group By YearID, ModelCode ORDER By RT DESC'
+                else:
+
+                    script = 'SELECT YearID, MAX(RetainedLoss) as RT FROM ' \
+                             '[' + resultDB + '].dbo.t' + str(
+                        resultSID) + '_LOSS_ByEvent WHERE CatalogTypeCode = ' + "'STC'" + \
+                             ' Group By YearID ORDER By RT DESC'
 
             elif type == 'AGG':
 
-                script = 'SELECT YearID, SUM(RetainedLoss) as RT FROM ' \
-                         '[' + resultDB + '].dbo.t' + str(resultSID) + '_LOSS_ByEvent WHERE CatalogTypeCode = ' + "'STC'" + \
-                         ' Group By YearID ORDER By RT DESC'
+                if saveBy == 'Peril':
+
+                    script = 'SELECT YearID, PerilSetCode, SUM(RetainedLoss) as RT FROM ' \
+                             '[' + resultDB + '].dbo.t' + str(resultSID) + '_LOSS_ByEvent WHERE CatalogTypeCode = ' + "'STC'" + \
+                             ' AND PerilSetCode = ' + str(value) + ' Group By YearID, PerilSetCode ORDER By RT DESC'
+
+                elif saveBy == 'Model':
+
+                    script = 'SELECT YearID, ModelCode,  SUM(RetainedLoss) as RT FROM ' \
+                             '[' + resultDB + '].dbo.t' + str(
+                        resultSID) + '_LOSS_ByEvent WHERE CatalogTypeCode = ' + "'STC'" + \
+                             ' AND ModelCode = ' + str(value) + ' Group By YearID, ModelCode ORDER By RT DESC'
+                else:
+
+                    script = 'SELECT YearID, SUM(RetainedLoss) as RT FROM ' \
+                             '[' + resultDB + '].dbo.t' + str(
+                        resultSID) + '_LOSS_ByEvent WHERE CatalogTypeCode = ' + "'STC'" + \
+                             ' Group By YearID ORDER By RT DESC'
+
         return copy.deepcopy(pd.read_sql(script, self.connection))
 
     def rei_loss_ep(self, resultDB, resultSID, financial_prsp, type):
