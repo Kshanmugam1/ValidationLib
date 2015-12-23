@@ -158,7 +158,6 @@ if __name__ == "__main__":
                     'SaveInjury', 'SaveMAOL', 'SaveSummaryByPeril', 'SaveSummaryByModel', 'BaseAnalysisSID']
 
         analysis_information = set_column_sequence(analysis_information, sequence)
-
         analysis_information.to_csv(OUTFILE, index=False)
 
         LOGGER.info('---------------------------------------------------------------------------')
