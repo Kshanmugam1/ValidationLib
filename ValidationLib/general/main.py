@@ -55,7 +55,7 @@ def group_by_heading(some_source):
 
 
 def parse_log_files(log_file, outfile):
-    print(log_file)
+
     start_pattern = 'Business Errors'
     end_pattern = 'Exceptions'
     with open(outfile, 'wb') as out:
@@ -70,18 +70,13 @@ def parse_log_files(log_file, outfile):
                         active_flag = False  # or break if only one group possible
                     else:
                         if not line == '\n':
-                            # try:
                             data = line.split(":")[1:]
-
                             contract_id = data[:2][1].split()[0]
-
-                            print(data[:3])
                             location_id = data[:3][2].split()[0].split("]")[0]
+                            error_code = line.split('|')[0].split(' ')[0]
+                            error = ' '.join(data[:4][2].split("]")[1].split(' ')[1:])
+                            out.writelines([contract_id, ',', location_id, ',', error_code, ',', error, '\n'])
 
-                            error = data[:4][2].split("]")[1]
-                            out.writelines([contract_id, ',', location_id, ',', error, '\n'])
-                            # except:
-                            #     pass
 
 class UnicedeCompare:
 
@@ -252,5 +247,3 @@ class UnicedeCompare:
         self.lock.acquire(blocking=1)
         FinalDF.to_csv(self.resultFile + '/Log-Aggregated/' + str(uuid.uuid4()) + '-Log-Aggregated.csv', encoding='utf-8', mode='wb')
         self.lock.release()
-
-# parse_log_files('log.txt', 'output.txt')
