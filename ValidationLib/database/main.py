@@ -85,7 +85,7 @@ class Database:
 
         return (copy.deepcopy(self.cursor.fetchall()))
 
-    def loss_df(self, resultDB, resultSID, type):
+    def loss_df(self, resultDB, resultSID, type, option=None):
 
         if type in ['EA', 'LOB']:
 
@@ -129,8 +129,15 @@ class Database:
             return copy.deepcopy(pd.read_sql(script, self.connection))
 
         if type in ['EP']:
+            if option == 'Peril':
+                script = 'SELECT * FROM [' + resultDB + '].dbo.t' + str(resultSID) + '_LOSS_AnnualEP_ByPeril'
+            elif option == 'Model':
+                script = 'SELECT * FROM [' + resultDB + '].dbo.t' + str(resultSID) + '_LOSS_AnnualEP_ByModel'
+            elif option == 'PerilModel':
+                script = 'SELECT * FROM [' + resultDB + '].dbo.t' + str(resultSID) + '_LOSS_AnnualEP_ByPerilModel'
+            else:
+                script = 'SELECT * FROM [' + resultDB + '].dbo.t' + str(resultSID) + '_LOSS_AnnualEP'
 
-            script = 'SELECT * FROM [' + resultDB + '].dbo.t' + str(resultSID) + '_LOSS_AnnualEP'
             return copy.deepcopy(pd.read_sql(script, self.connection))
 
         if type in ['GEOL']:
@@ -308,16 +315,43 @@ class Database:
 
                 if saveBy == 'Peril':
 
-                    script = 'SELECT YearID, PerilSetCode, MAX(GroundUpLoss) as GU FROM ' \
-                             '[' + resultDB + '].dbo.t' + str(
-                        resultSID) + '_LOSS_ByEvent WHERE CatalogTypeCode = ' + "'STC'" + \
-                             ' AND PerilSetCode = ' + str(value) + ' Group By YearID, PerilSetCode ORDER By GU DESC'
+                    script = 'SELECT ' \
+                             'YearID, Code as PerilSetCode, MAX(GU) as GU ' \
+                             'FROM (SELECT YearID, PerilSetCode, MAX(GroundUpLoss) as GU ' \
+                             'FROM [' + resultDB + '].dbo.t' + str(resultSID) + '_LOSS_ByEvent ' \
+                                                                                'WHERE CatalogTypeCode = ' + "'STC'" + ' GROUP BY YearID, PerilSetCode) a ' \
+                                                                                                                       'JOIN ( SELECT MIN(c.PerilSetCode) as Parent, b.PerilSetCode as Child, ' \
+                                                                                                                       'CASE c.PerilDisplayGroup ' \
+                                                                                                                       'WHEN ' + "'Earthquake'" + ' then 4 ' \
+                                                                                                                                                  'WHEN ' + "'Tropical Cyclone'" + ' THEN 1 ' \
+                                                                                                                                                                                   'WHEN ' + "'Severe Storm'" + ' THEN b.PerilSetCode ' \
+                                                                                                                                                                                                                'ELSE b.PerilSetCode ' \
+                                                                                                                                                                                                                'END as Code ' \
+                                                                                                                                                                                                                'FROM [AIRReference].[dbo].[tPerilSetXref] b ' \
+                                                                                                                                                                                                                'JOIN [AIRReference].[dbo].[tPeril] c on b.PerilCode = c.PerilCode GROUP BY b.PerilSetCode, c.PerilDisplayGroup' \
+                                                                                                                                                                                                                ') d ON a.PerilSetCode = d.Child ' \
+                                                                                                                                                                                                                'WHERE Code = ' + str(
+                        value) + ' GROUP BY YearID, Code ORDER BY GU DESC'
+
                 elif saveBy == 'Model':
 
-                    script = 'SELECT YearID, ModelCode, MAX(GroundUpLoss) as GU FROM ' \
-                             '[' + resultDB + '].dbo.t' + str(
-                        resultSID) + '_LOSS_ByEvent WHERE CatalogTypeCode = ' + "'STC'" + \
-                             ' AND ModelCode = ' + str(value) + ' Group By YearID, ModelCode ORDER By GU DESC'
+                    script = 'SELECT ' \
+                             'YearID, ModelCode, MAX(GU) as GU ' \
+                             'FROM (SELECT YearID, PerilSetCode, ModelCode, MAX(GroundUpLoss) as GU ' \
+                             'FROM [' + resultDB + '].dbo.t' + str(resultSID) + '_LOSS_ByEvent ' \
+                                                                                'WHERE CatalogTypeCode = ' + "'STC'" + ' GROUP BY YearID, PerilSetCode, ModelCode) a ' \
+                                                                                                                       'JOIN ( SELECT MIN(c.PerilSetCode) as Parent, b.PerilSetCode as Child, ' \
+                                                                                                                       'CASE c.PerilDisplayGroup ' \
+                                                                                                                       'WHEN ' + "'Earthquake'" + ' then 4 ' \
+                                                                                                                                                  'WHEN ' + "'Tropical Cyclone'" + ' THEN 1 ' \
+                                                                                                                                                                                   'WHEN ' + "'Severe Storm'" + ' THEN b.PerilSetCode ' \
+                                                                                                                                                                                                                'ELSE b.PerilSetCode ' \
+                                                                                                                                                                                                                'END as Code ' \
+                                                                                                                                                                                                                'FROM [AIRReference].[dbo].[tPerilSetXref] b ' \
+                                                                                                                                                                                                                'JOIN [AIRReference].[dbo].[tPeril] c on b.PerilCode = c.PerilCode GROUP BY b.PerilSetCode, c.PerilDisplayGroup' \
+                                                                                                                                                                                                                ') d ON a.PerilSetCode = d.Child ' \
+                                                                                                                                                                                                                'WHERE ModelCode = ' + str(
+                        value) + ' GROUP BY YearID, ModelCode ORDER BY GU DESC'
                 else:
                     script = 'SELECT YearID, MAX(GroundUpLoss) as GU FROM ' \
                              '[' + resultDB + '].dbo.t' + str(
@@ -327,15 +361,43 @@ class Database:
             elif type == 'AGG':
 
                 if saveBy == 'Peril':
-                    script = 'SELECT YearID, PerilSetCode, SUM(GroundUpLoss) as GU FROM ' \
-                             '[' + resultDB + '].dbo.t' + str(
-                        resultSID) + '_LOSS_ByEvent WHERE CatalogTypeCode = ' + "'STC'" + \
-                             ' AND PerilSetCode = ' + str(value) + ' Group By YearID, PerilSetCode ORDER By GU DESC'
+                    script = 'SELECT ' \
+                             'YearID, Code as PerilSetCode, SUM(GU) as GU ' \
+                             'FROM (SELECT YearID, PerilSetCode, SUM(GroundUpLoss) as GU ' \
+                             'FROM [' + resultDB + '].dbo.t' + str(resultSID) + '_LOSS_ByEvent ' \
+                                                                                'WHERE CatalogTypeCode = ' + "'STC'" + ' GROUP BY YearID, PerilSetCode) a ' \
+                                                                                                                       'JOIN ( SELECT MIN(c.PerilSetCode) as Parent, b.PerilSetCode as Child, ' \
+                                                                                                                       'CASE c.PerilDisplayGroup ' \
+                                                                                                                       'WHEN ' + "'Earthquake'" + ' then 4 ' \
+                                                                                                                                                  'WHEN ' + "'Tropical Cyclone'" + ' THEN 1 ' \
+                                                                                                                                                                                   'WHEN ' + "'Severe Storm'" + ' THEN b.PerilSetCode ' \
+                                                                                                                                                                                                                'ELSE b.PerilSetCode ' \
+                                                                                                                                                                                                                'END as Code ' \
+                                                                                                                                                                                                                'FROM [AIRReference].[dbo].[tPerilSetXref] b ' \
+                                                                                                                                                                                                                'JOIN [AIRReference].[dbo].[tPeril] c on b.PerilCode = c.PerilCode GROUP BY b.PerilSetCode, c.PerilDisplayGroup' \
+                                                                                                                                                                                                                ') d ON a.PerilSetCode = d.Child ' \
+                                                                                                                                                                                                                'WHERE Code = ' + str(
+                        value) + ' GROUP BY YearID, Code ORDER BY GU DESC'
+
                 elif saveBy == 'Model':
-                    script = 'SELECT YearID, ModelCode, SUM(GroundUpLoss) as GU FROM ' \
-                             '[' + resultDB + '].dbo.t' + str(
-                        resultSID) + '_LOSS_ByEvent WHERE CatalogTypeCode = ' + "'STC'" + \
-                             ' AND ModelCode = ' + str(value) + ' Group By YearID, ModelCode ORDER By GU DESC'
+
+                    script = 'SELECT ' \
+                             'YearID, ModelCode, SUM(GU) as GU ' \
+                             'FROM (SELECT YearID, PerilSetCode, ModelCode, SUM(GroundUpLoss) as GU ' \
+                             'FROM [' + resultDB + '].dbo.t' + str(resultSID) + '_LOSS_ByEvent ' \
+                                                                                'WHERE CatalogTypeCode = ' + "'STC'" + ' GROUP BY YearID, PerilSetCode, ModelCode) a ' \
+                                                                                                                       'JOIN ( SELECT MIN(c.PerilSetCode) as Parent, b.PerilSetCode as Child, ' \
+                                                                                                                       'CASE c.PerilDisplayGroup ' \
+                                                                                                                       'WHEN ' + "'Earthquake'" + ' then 4 ' \
+                                                                                                                                                  'WHEN ' + "'Tropical Cyclone'" + ' THEN 1 ' \
+                                                                                                                                                                                   'WHEN ' + "'Severe Storm'" + ' THEN b.PerilSetCode ' \
+                                                                                                                                                                                                                'ELSE b.PerilSetCode ' \
+                                                                                                                                                                                                                'END as Code ' \
+                                                                                                                                                                                                                'FROM [AIRReference].[dbo].[tPerilSetXref] b ' \
+                                                                                                                                                                                                                'JOIN [AIRReference].[dbo].[tPeril] c on b.PerilCode = c.PerilCode GROUP BY b.PerilSetCode, c.PerilDisplayGroup' \
+                                                                                                                                                                                                                ') d ON a.PerilSetCode = d.Child ' \
+                                                                                                                                                                                                                'WHERE ModelCode = ' + str(
+                        value) + ' GROUP BY YearID, ModelCode ORDER BY GU DESC'
                 else:
                     script = 'SELECT YearID, SUM(GroundUpLoss) as GU FROM ' \
                              '[' + resultDB + '].dbo.t' + str(
@@ -348,15 +410,44 @@ class Database:
 
                 if saveBy == 'Peril':
 
-                    script = 'SELECT YearID, PerilSetCode, MAX(GrossLoss) as GR FROM ' \
-                             '[' + resultDB + '].dbo.t' + str(resultSID) + '_LOSS_ByEvent WHERE CatalogTypeCode = ' + "'STC'" + \
-                             ' AND PerilSetCode = ' + str(value) + ' Group By YearID, PerilSetCode ORDER By GR DESC'
+                    script = 'SELECT ' \
+                             'YearID, Code as PerilSetCode, MAX(GR) as GR ' \
+                             'FROM (SELECT YearID, PerilSetCode, MAX(GrossLoss) as GR ' \
+                             'FROM [' + resultDB + '].dbo.t' + str(resultSID) + '_LOSS_ByEvent ' \
+                                                                                'WHERE CatalogTypeCode = ' + "'STC'" + ' GROUP BY YearID, PerilSetCode) a ' \
+                                                                                                                       'JOIN ( SELECT MIN(c.PerilSetCode) as Parent, b.PerilSetCode as Child, ' \
+                                                                                                                       'CASE c.PerilDisplayGroup ' \
+                                                                                                                       'WHEN ' + "'Earthquake'" + ' then 4 ' \
+                                                                                                                                                  'WHEN ' + "'Tropical Cyclone'" + ' THEN 1 ' \
+                                                                                                                                                                                   'WHEN ' + "'Severe Storm'" + ' THEN b.PerilSetCode ' \
+                                                                                                                                                                                                                'ELSE b.PerilSetCode ' \
+                                                                                                                                                                                                                'END as Code ' \
+                                                                                                                                                                                                                'FROM [AIRReference].[dbo].[tPerilSetXref] b ' \
+                                                                                                                                                                                                                'JOIN [AIRReference].[dbo].[tPeril] c on b.PerilCode = c.PerilCode GROUP BY b.PerilSetCode, c.PerilDisplayGroup' \
+                                                                                                                                                                                                                ') d ON a.PerilSetCode = d.Child ' \
+                                                                                                                                                                                                                'WHERE Code = ' + str(
+                        value) + ' GROUP BY YearID, Code ORDER BY GR DESC'
+
                 elif saveBy == 'Model':
 
-                    script = 'SELECT YearID, ModelCode,  MAX(GrossLoss) as GR FROM ' \
-                             '[' + resultDB + '].dbo.t' + str(
-                        resultSID) + '_LOSS_ByEvent WHERE CatalogTypeCode = ' + "'STC'" + \
-                             ' AND ModelCode = ' + str(value) + ' Group By YearID, ModelCode ORDER By GR DESC'
+                    script = 'SELECT ' \
+                             'YearID, ModelCode, MAX(GR) as GR ' \
+                             'FROM (SELECT YearID, PerilSetCode, ModelCode, MAX(GrossLoss) as GR ' \
+                             'FROM [' + resultDB + '].dbo.t' + str(resultSID) + '_LOSS_ByEvent ' \
+                                                                                'WHERE CatalogTypeCode = ' + "'STC'" + ' GROUP BY YearID, PerilSetCode, ModelCode) a ' \
+                                                                                                                       'JOIN ( SELECT MIN(c.PerilSetCode) as Parent, b.PerilSetCode as Child, ' \
+                                                                                                                       'CASE c.PerilDisplayGroup ' \
+                                                                                                                       'WHEN ' + "'Earthquake'" + ' then 4 ' \
+                                                                                                                                                  'WHEN ' + "'Tropical Cyclone'" + ' THEN 1 ' \
+                                                                                                                                                                                   'WHEN ' + "'Severe Storm'" + ' THEN b.PerilSetCode ' \
+                                                                                                                                                                                                                'ELSE b.PerilSetCode ' \
+                                                                                                                                                                                                                'END as Code ' \
+                                                                                                                                                                                                                'FROM [AIRReference].[dbo].[tPerilSetXref] b ' \
+                                                                                                                                                                                                                'JOIN [AIRReference].[dbo].[tPeril] c on b.PerilCode = c.PerilCode GROUP BY b.PerilSetCode, c.PerilDisplayGroup' \
+                                                                                                                                                                                                                ') d ON a.PerilSetCode = d.Child ' \
+                                                                                                                                                                                                                'WHERE ModelCode = ' + str(
+                        value) + ' GROUP BY YearID, ModelCode ORDER BY GR DESC'
+
                 else:
 
                     script = 'SELECT YearID, MAX(GrossLoss) as GR FROM ' \
@@ -369,15 +460,43 @@ class Database:
 
                 if saveBy == 'Peril':
 
-                    script = 'SELECT YearID, PerilSetCode, SUM(GrossLoss) as GR FROM ' \
-                             '[' + resultDB + '].dbo.t' + str(resultSID) + '_LOSS_ByEvent WHERE CatalogTypeCode = ' + "'STC'" + \
-                             ' AND PerilSetCode = ' + str(value) + ' Group By YearID, PerilSetCode ORDER By GR DESC'
+                    script = 'SELECT ' \
+                             'YearID, Code as PerilSetCode, SUM(GR) as GR ' \
+                             'FROM (SELECT YearID, PerilSetCode, SUM(GrossLoss) as GR ' \
+                             'FROM [' + resultDB + '].dbo.t' + str(resultSID) + '_LOSS_ByEvent ' \
+                                                                                'WHERE CatalogTypeCode = ' + "'STC'" + ' GROUP BY YearID, PerilSetCode) a ' \
+                                                                                                                       'JOIN ( SELECT MIN(c.PerilSetCode) as Parent, b.PerilSetCode as Child, ' \
+                                                                                                                       'CASE c.PerilDisplayGroup ' \
+                                                                                                                       'WHEN ' + "'Earthquake'" + ' then 4 ' \
+                                                                                                                                                  'WHEN ' + "'Tropical Cyclone'" + ' THEN 1 ' \
+                                                                                                                                                                                   'WHEN ' + "'Severe Storm'" + ' THEN b.PerilSetCode ' \
+                                                                                                                                                                                                                'ELSE b.PerilSetCode ' \
+                                                                                                                                                                                                                'END as Code ' \
+                                                                                                                                                                                                                'FROM [AIRReference].[dbo].[tPerilSetXref] b ' \
+                                                                                                                                                                                                                'JOIN [AIRReference].[dbo].[tPeril] c on b.PerilCode = c.PerilCode GROUP BY b.PerilSetCode, c.PerilDisplayGroup' \
+                                                                                                                                                                                                                ') d ON a.PerilSetCode = d.Child ' \
+                                                                                                                                                                                                                'WHERE Code = ' + str(
+                        value) + ' GROUP BY YearID, Code ORDER BY GR DESC'
+
                 elif saveBy == 'Model':
 
-                    script = 'SELECT YearID, ModelCode,  SUM(GrossLoss) as GR FROM ' \
-                             '[' + resultDB + '].dbo.t' + str(
-                        resultSID) + '_LOSS_ByEvent WHERE CatalogTypeCode = ' + "'STC'" + \
-                             ' AND ModelCode = ' + str(value) + ' Group By YearID, ModelCode ORDER By GR DESC'
+                    script = 'SELECT ' \
+                             'YearID, ModelCode, SUM(GR) as GR ' \
+                             'FROM (SELECT YearID, PerilSetCode, ModelCode, SUM(GrossLoss) as GR ' \
+                             'FROM [' + resultDB + '].dbo.t' + str(resultSID) + '_LOSS_ByEvent ' \
+                                                                                'WHERE CatalogTypeCode = ' + "'STC'" + ' GROUP BY YearID, PerilSetCode, ModelCode) a ' \
+                                                                                                                       'JOIN ( SELECT MIN(c.PerilSetCode) as Parent, b.PerilSetCode as Child, ' \
+                                                                                                                       'CASE c.PerilDisplayGroup ' \
+                                                                                                                       'WHEN ' + "'Earthquake'" + ' then 4 ' \
+                                                                                                                                                  'WHEN ' + "'Tropical Cyclone'" + ' THEN 1 ' \
+                                                                                                                                                                                   'WHEN ' + "'Severe Storm'" + ' THEN b.PerilSetCode ' \
+                                                                                                                                                                                                                'ELSE b.PerilSetCode ' \
+                                                                                                                                                                                                                'END as Code ' \
+                                                                                                                                                                                                                'FROM [AIRReference].[dbo].[tPerilSetXref] b ' \
+                                                                                                                                                                                                                'JOIN [AIRReference].[dbo].[tPeril] c on b.PerilCode = c.PerilCode GROUP BY b.PerilSetCode, c.PerilDisplayGroup' \
+                                                                                                                                                                                                                ') d ON a.PerilSetCode = d.Child ' \
+                                                                                                                                                                                                                'WHERE ModelCode = ' + str(
+                        value) + ' GROUP BY YearID, ModelCode ORDER BY GR DESC'
                 else:
 
                     script = 'SELECT YearID, SUM(GrossLoss) as GR FROM ' \
@@ -392,16 +511,43 @@ class Database:
 
                 if saveBy == 'Peril':
 
-                    script = 'SELECT YearID, PerilSetCode, MAX(NetOfPreCATLoss) as NT FROM ' \
-                             '[' + resultDB + '].dbo.t' + str(resultSID) + '_LOSS_ByEvent WHERE CatalogTypeCode = ' + "'STC'" + \
-                             ' AND PerilSetCode = ' + str(value) + ' Group By YearID, PerilSetCode ORDER By NT DESC'
+                    script = 'SELECT ' \
+                             'YearID, Code as PerilSetCode, MAX(NT) as NT ' \
+                             'FROM (SELECT YearID, PerilSetCode, MAX(NetOfPreCATLoss) as NT ' \
+                             'FROM [' + resultDB + '].dbo.t' + str(resultSID) + '_LOSS_ByEvent ' \
+                                                                                'WHERE CatalogTypeCode = ' + "'STC'" + ' GROUP BY YearID, PerilSetCode) a ' \
+                                                                                                                       'JOIN ( SELECT MIN(c.PerilSetCode) as Parent, b.PerilSetCode as Child, ' \
+                                                                                                                       'CASE c.PerilDisplayGroup ' \
+                                                                                                                       'WHEN ' + "'Earthquake'" + ' then 4 ' \
+                                                                                                                                                  'WHEN ' + "'Tropical Cyclone'" + ' THEN 1 ' \
+                                                                                                                                                                                   'WHEN ' + "'Severe Storm'" + ' THEN b.PerilSetCode ' \
+                                                                                                                                                                                                                'ELSE b.PerilSetCode ' \
+                                                                                                                                                                                                                'END as Code ' \
+                                                                                                                                                                                                                'FROM [AIRReference].[dbo].[tPerilSetXref] b ' \
+                                                                                                                                                                                                                'JOIN [AIRReference].[dbo].[tPeril] c on b.PerilCode = c.PerilCode GROUP BY b.PerilSetCode, c.PerilDisplayGroup' \
+                                                                                                                                                                                                                ') d ON a.PerilSetCode = d.Child ' \
+                                                                                                                                                                                                                'WHERE Code = ' + str(
+                        value) + ' GROUP BY YearID, Code ORDER BY NT DESC'
 
                 elif saveBy == 'Model':
 
-                    script = 'SELECT YearID, ModelCode,  MAX(NetOfPreCATLoss) as NT FROM ' \
-                             '[' + resultDB + '].dbo.t' + str(
-                        resultSID) + '_LOSS_ByEvent WHERE CatalogTypeCode = ' + "'STC'" + \
-                             ' AND ModelCode = ' + str(value) + ' Group By YearID, ModelCode ORDER By NT DESC'
+                    script = 'SELECT ' \
+                             'YearID, ModelCode, MAX(NT) as NT ' \
+                             'FROM (SELECT YearID, PerilSetCode, ModelCode, MAX(NetOfPreCATLoss) as NT ' \
+                             'FROM [' + resultDB + '].dbo.t' + str(resultSID) + '_LOSS_ByEvent ' \
+                                                                                'WHERE CatalogTypeCode = ' + "'STC'" + ' GROUP BY YearID, PerilSetCode, ModelCode) a ' \
+                                                                                                                       'JOIN ( SELECT MIN(c.PerilSetCode) as Parent, b.PerilSetCode as Child, ' \
+                                                                                                                       'CASE c.PerilDisplayGroup ' \
+                                                                                                                       'WHEN ' + "'Earthquake'" + ' then 4 ' \
+                                                                                                                                                  'WHEN ' + "'Tropical Cyclone'" + ' THEN 1 ' \
+                                                                                                                                                                                   'WHEN ' + "'Severe Storm'" + ' THEN b.PerilSetCode ' \
+                                                                                                                                                                                                                'ELSE b.PerilSetCode ' \
+                                                                                                                                                                                                                'END as Code ' \
+                                                                                                                                                                                                                'FROM [AIRReference].[dbo].[tPerilSetXref] b ' \
+                                                                                                                                                                                                                'JOIN [AIRReference].[dbo].[tPeril] c on b.PerilCode = c.PerilCode GROUP BY b.PerilSetCode, c.PerilDisplayGroup' \
+                                                                                                                                                                                                                ') d ON a.PerilSetCode = d.Child ' \
+                                                                                                                                                                                                                'WHERE ModelCode = ' + str(
+                        value) + ' GROUP BY YearID, ModelCode ORDER BY NT DESC'
                 else:
 
                     script = 'SELECT YearID, MAX(NetOfPreCATLoss) as NT FROM ' \
@@ -413,16 +559,43 @@ class Database:
 
                 if saveBy == 'Peril':
 
-                    script = 'SELECT YearID, PerilSetCode, SUM(NetOfPreCATLoss) as NT FROM ' \
-                             '[' + resultDB + '].dbo.t' + str(resultSID) + '_LOSS_ByEvent WHERE CatalogTypeCode = ' + "'STC'" + \
-                             ' AND PerilSetCode = ' + str(value) + ' Group By YearID, PerilSetCode ORDER By NT DESC'
+                    script = 'SELECT ' \
+                             'YearID, Code as PerilSetCode, SUM(NT) as NT ' \
+                             'FROM (SELECT YearID, PerilSetCode, SUM(NetOfPreCATLoss) as NT ' \
+                             'FROM [' + resultDB + '].dbo.t' + str(resultSID) + '_LOSS_ByEvent ' \
+                                                                                'WHERE CatalogTypeCode = ' + "'STC'" + ' GROUP BY YearID, PerilSetCode) a ' \
+                                                                                                                       'JOIN ( SELECT MIN(c.PerilSetCode) as Parent, b.PerilSetCode as Child, ' \
+                                                                                                                       'CASE c.PerilDisplayGroup ' \
+                                                                                                                       'WHEN ' + "'Earthquake'" + ' then 4 ' \
+                                                                                                                                                  'WHEN ' + "'Tropical Cyclone'" + ' THEN 1 ' \
+                                                                                                                                                                                   'WHEN ' + "'Severe Storm'" + ' THEN b.PerilSetCode ' \
+                                                                                                                                                                                                                'ELSE b.PerilSetCode ' \
+                                                                                                                                                                                                                'END as Code ' \
+                                                                                                                                                                                                                'FROM [AIRReference].[dbo].[tPerilSetXref] b ' \
+                                                                                                                                                                                                                'JOIN [AIRReference].[dbo].[tPeril] c on b.PerilCode = c.PerilCode GROUP BY b.PerilSetCode, c.PerilDisplayGroup' \
+                                                                                                                                                                                                                ') d ON a.PerilSetCode = d.Child ' \
+                                                                                                                                                                                                                'WHERE Code = ' + str(
+                        value) + ' GROUP BY YearID, Code ORDER BY NT DESC'
 
                 elif saveBy == 'Model':
 
-                    script = 'SELECT YearID, ModelCode,  SUM(NetOfPreCATLoss) as NT FROM ' \
-                             '[' + resultDB + '].dbo.t' + str(
-                        resultSID) + '_LOSS_ByEvent WHERE CatalogTypeCode = ' + "'STC'" + \
-                             ' AND ModelCode = ' + str(value) + ' Group By YearID, ModelCode ORDER By NT DESC'
+                    script = 'SELECT ' \
+                             'YearID, ModelCode, SUM(NT) as NT ' \
+                             'FROM (SELECT YearID, PerilSetCode, ModelCode, SUM(NetOfPreCATLoss) as NT ' \
+                             'FROM [' + resultDB + '].dbo.t' + str(resultSID) + '_LOSS_ByEvent ' \
+                                                                                'WHERE CatalogTypeCode = ' + "'STC'" + ' GROUP BY YearID, PerilSetCode, ModelCode) a ' \
+                                                                                                                       'JOIN ( SELECT MIN(c.PerilSetCode) as Parent, b.PerilSetCode as Child, ' \
+                                                                                                                       'CASE c.PerilDisplayGroup ' \
+                                                                                                                       'WHEN ' + "'Earthquake'" + ' then 4 ' \
+                                                                                                                                                  'WHEN ' + "'Tropical Cyclone'" + ' THEN 1 ' \
+                                                                                                                                                                                   'WHEN ' + "'Severe Storm'" + ' THEN b.PerilSetCode ' \
+                                                                                                                                                                                                                'ELSE b.PerilSetCode ' \
+                                                                                                                                                                                                                'END as Code ' \
+                                                                                                                                                                                                                'FROM [AIRReference].[dbo].[tPerilSetXref] b ' \
+                                                                                                                                                                                                                'JOIN [AIRReference].[dbo].[tPeril] c on b.PerilCode = c.PerilCode GROUP BY b.PerilSetCode, c.PerilDisplayGroup' \
+                                                                                                                                                                                                                ') d ON a.PerilSetCode = d.Child ' \
+                                                                                                                                                                                                                'WHERE ModelCode = ' + str(
+                        value) + ' GROUP BY YearID, ModelCode ORDER BY NT DESC'
                 else:
 
                     script = 'SELECT YearID, SUM(NetOfPreCATLoss) as NT FROM ' \
@@ -436,38 +609,92 @@ class Database:
 
                 if saveBy == 'Peril':
 
-                    script = 'SELECT YearID, PerilSetCode, MAX(PostCATNetLoss) as POST FROM ' \
-                             '[' + resultDB + '].dbo.t' + str(resultSID) + '_LOSS_ByEvent WHERE CatalogTypeCode = ' + "'STC'" + \
-                             ' AND PerilSetCode = ' + str(value) + ' Group By YearID, PerilSetCode ORDER By NT DESC'
+                    script = 'SELECT ' \
+                             'YearID, Code as PerilSetCode, MAX(POST) as POST ' \
+                             'FROM (SELECT YearID, PerilSetCode, MAX(PostCATNetLoss) as POST ' \
+                             'FROM [' + resultDB + '].dbo.t' + str(resultSID) + '_LOSS_ByEvent ' \
+                                                                                'WHERE CatalogTypeCode = ' + "'STC'" + ' GROUP BY YearID, PerilSetCode) a ' \
+                                                                                                                       'JOIN ( SELECT MIN(c.PerilSetCode) as Parent, b.PerilSetCode as Child, ' \
+                                                                                                                       'CASE c.PerilDisplayGroup ' \
+                                                                                                                       'WHEN ' + "'Earthquake'" + ' then 4 ' \
+                                                                                                                                                  'WHEN ' + "'Tropical Cyclone'" + ' THEN 1 ' \
+                                                                                                                                                                                   'WHEN ' + "'Severe Storm'" + ' THEN b.PerilSetCode ' \
+                                                                                                                                                                                                                'ELSE b.PerilSetCode ' \
+                                                                                                                                                                                                                'END as Code ' \
+                                                                                                                                                                                                                'FROM [AIRReference].[dbo].[tPerilSetXref] b ' \
+                                                                                                                                                                                                                'JOIN [AIRReference].[dbo].[tPeril] c on b.PerilCode = c.PerilCode GROUP BY b.PerilSetCode, c.PerilDisplayGroup' \
+                                                                                                                                                                                                                ') d ON a.PerilSetCode = d.Child ' \
+                                                                                                                                                                                                                'WHERE Code = ' + str(
+                        value) + ' GROUP BY YearID, Code ORDER BY POST DESC'
 
                 elif saveBy == 'Model':
 
-                    script = 'SELECT YearID, ModelCode,  MAX(PostCATNetLoss) as POST FROM ' \
-                             '[' + resultDB + '].dbo.t' + str(
-                        resultSID) + '_LOSS_ByEvent WHERE CatalogTypeCode = ' + "'STC'" + \
-                             ' AND ModelCode = ' + str(value) + ' Group By YearID, ModelCode ORDER By NT DESC'
+                    script = 'SELECT ' \
+                             'YearID, ModelCode, MAX(POST) as POST ' \
+                             'FROM (SELECT YearID, PerilSetCode, ModelCode, MAX(PostCATNetLoss) as POST ' \
+                             'FROM [' + resultDB + '].dbo.t' + str(resultSID) + '_LOSS_ByEvent ' \
+                                                                                'WHERE CatalogTypeCode = ' + "'STC'" + ' GROUP BY YearID, PerilSetCode, ModelCode) a ' \
+                                                                                                                       'JOIN ( SELECT MIN(c.PerilSetCode) as Parent, b.PerilSetCode as Child, ' \
+                                                                                                                       'CASE c.PerilDisplayGroup ' \
+                                                                                                                       'WHEN ' + "'Earthquake'" + ' then 4 ' \
+                                                                                                                                                  'WHEN ' + "'Tropical Cyclone'" + ' THEN 1 ' \
+                                                                                                                                                                                   'WHEN ' + "'Severe Storm'" + ' THEN b.PerilSetCode ' \
+                                                                                                                                                                                                                'ELSE b.PerilSetCode ' \
+                                                                                                                                                                                                                'END as Code ' \
+                                                                                                                                                                                                                'FROM [AIRReference].[dbo].[tPerilSetXref] b ' \
+                                                                                                                                                                                                                'JOIN [AIRReference].[dbo].[tPeril] c on b.PerilCode = c.PerilCode GROUP BY b.PerilSetCode, c.PerilDisplayGroup' \
+                                                                                                                                                                                                                ') d ON a.PerilSetCode = d.Child ' \
+                                                                                                                                                                                                                'WHERE ModelCode = ' + str(
+                        value) + ' GROUP BY YearID, ModelCode ORDER BY POST DESC'
                 else:
 
                     script = 'SELECT YearID, MAX(PostCATNetLoss) as POST FROM ' \
                              '[' + resultDB + '].dbo.t' + str(
                         resultSID) + '_LOSS_ByEvent WHERE CatalogTypeCode = ' + "'STC'" + \
-                             ' Group By YearID ORDER By NT DESC'
+                             ' Group By YearID ORDER By POST DESC'
 
 
             elif type == 'AGG':
 
                 if saveBy == 'Peril':
 
-                    script = 'SELECT YearID, PerilSetCode, SUM(PostCATNetLoss) as POST FROM ' \
-                             '[' + resultDB + '].dbo.t' + str(resultSID) + '_LOSS_ByEvent WHERE CatalogTypeCode = ' + "'STC'" + \
-                             ' AND PerilSetCode = ' + str(value) + ' Group By YearID, PerilSetCode ORDER By POST DESC'
+                    script = 'SELECT ' \
+                             'YearID, Code as PerilSetCode, SUM(POST) as POST ' \
+                             'FROM (SELECT YearID, PerilSetCode, SUM(PostCATNetLoss) as POST ' \
+                             'FROM [' + resultDB + '].dbo.t' + str(resultSID) + '_LOSS_ByEvent ' \
+                                                                                'WHERE CatalogTypeCode = ' + "'STC'" + ' GROUP BY YearID, PerilSetCode) a ' \
+                                                                                                                       'JOIN ( SELECT MIN(c.PerilSetCode) as Parent, b.PerilSetCode as Child, ' \
+                                                                                                                       'CASE c.PerilDisplayGroup ' \
+                                                                                                                       'WHEN ' + "'Earthquake'" + ' then 4 ' \
+                                                                                                                                                  'WHEN ' + "'Tropical Cyclone'" + ' THEN 1 ' \
+                                                                                                                                                                                   'WHEN ' + "'Severe Storm'" + ' THEN b.PerilSetCode ' \
+                                                                                                                                                                                                                'ELSE b.PerilSetCode ' \
+                                                                                                                                                                                                                'END as Code ' \
+                                                                                                                                                                                                                'FROM [AIRReference].[dbo].[tPerilSetXref] b ' \
+                                                                                                                                                                                                                'JOIN [AIRReference].[dbo].[tPeril] c on b.PerilCode = c.PerilCode GROUP BY b.PerilSetCode, c.PerilDisplayGroup' \
+                                                                                                                                                                                                                ') d ON a.PerilSetCode = d.Child ' \
+                                                                                                                                                                                                                'WHERE Code = ' + str(
+                        value) + ' GROUP BY YearID, Code ORDER BY POST DESC'
 
                 elif saveBy == 'Model':
 
-                    script = 'SELECT YearID, ModelCode,  SUM(PostCATNetLoss) as POST FROM ' \
-                             '[' + resultDB + '].dbo.t' + str(
-                        resultSID) + '_LOSS_ByEvent WHERE CatalogTypeCode = ' + "'STC'" + \
-                             ' AND ModelCode = ' + str(value) + ' Group By YearID, ModelCode ORDER By POST DESC'
+                    script = 'SELECT ' \
+                             'YearID, ModelCode, MAX(POST) as POST ' \
+                             'FROM (SELECT YearID, PerilSetCode, ModelCode, MAX(PostCATNetLoss) as POST ' \
+                             'FROM [' + resultDB + '].dbo.t' + str(resultSID) + '_LOSS_ByEvent ' \
+                                                                                'WHERE CatalogTypeCode = ' + "'STC'" + ' GROUP BY YearID, PerilSetCode, ModelCode) a ' \
+                                                                                                                       'JOIN ( SELECT MIN(c.PerilSetCode) as Parent, b.PerilSetCode as Child, ' \
+                                                                                                                       'CASE c.PerilDisplayGroup ' \
+                                                                                                                       'WHEN ' + "'Earthquake'" + ' then 4 ' \
+                                                                                                                                                  'WHEN ' + "'Tropical Cyclone'" + ' THEN 1 ' \
+                                                                                                                                                                                   'WHEN ' + "'Severe Storm'" + ' THEN b.PerilSetCode ' \
+                                                                                                                                                                                                                'ELSE b.PerilSetCode ' \
+                                                                                                                                                                                                                'END as Code ' \
+                                                                                                                                                                                                                'FROM [AIRReference].[dbo].[tPerilSetXref] b ' \
+                                                                                                                                                                                                                'JOIN [AIRReference].[dbo].[tPeril] c on b.PerilCode = c.PerilCode GROUP BY b.PerilSetCode, c.PerilDisplayGroup' \
+                                                                                                                                                                                                                ') d ON a.PerilSetCode = d.Child ' \
+                                                                                                                                                                                                                'WHERE ModelCode = ' + str(
+                        value) + ' GROUP BY YearID, ModelCode ORDER BY POST DESC'
                 else:
 
                     script = 'SELECT YearID, SUM(PostCATNetLoss) as POST FROM ' \
@@ -481,9 +708,23 @@ class Database:
 
                 if saveBy == 'Peril':
 
-                    script = 'SELECT YearID, PerilSetCode, MAX(RetainedLoss) as RT FROM ' \
-                             '[' + resultDB + '].dbo.t' + str(resultSID) + '_LOSS_ByEvent WHERE CatalogTypeCode = ' + "'STC'" + \
-                             ' AND PerilSetCode = ' + str(value) + ' Group By YearID, PerilSetCode ORDER By RT DESC'
+                    script = 'SELECT ' \
+                             'YearID, Code as PerilSetCode, MAX(RT) as RT ' \
+                             'FROM (SELECT YearID, PerilSetCode, MAX(RetainedLoss) as RT ' \
+                             'FROM [' + resultDB + '].dbo.t' + str(resultSID) + '_LOSS_ByEvent ' \
+                                                                                'WHERE CatalogTypeCode = ' + "'STC'" + ' GROUP BY YearID, PerilSetCode) a ' \
+                                                                                                                       'JOIN ( SELECT MIN(c.PerilSetCode) as Parent, b.PerilSetCode as Child, ' \
+                                                                                                                       'CASE c.PerilDisplayGroup ' \
+                                                                                                                       'WHEN ' + "'Earthquake'" + ' then 4 ' \
+                                                                                                                                                  'WHEN ' + "'Tropical Cyclone'" + ' THEN 1 ' \
+                                                                                                                                                                                   'WHEN ' + "'Severe Storm'" + ' THEN b.PerilSetCode ' \
+                                                                                                                                                                                                                'ELSE b.PerilSetCode ' \
+                                                                                                                                                                                                                'END as Code ' \
+                                                                                                                                                                                                                'FROM [AIRReference].[dbo].[tPerilSetXref] b ' \
+                                                                                                                                                                                                                'JOIN [AIRReference].[dbo].[tPeril] c on b.PerilCode = c.PerilCode GROUP BY b.PerilSetCode, c.PerilDisplayGroup' \
+                                                                                                                                                                                                                ') d ON a.PerilSetCode = d.Child ' \
+                                                                                                                                                                                                                'WHERE Code = ' + str(
+                        value) + ' GROUP BY YearID, Code ORDER BY RT DESC'
 
                 elif saveBy == 'Model':
 
@@ -502,9 +743,23 @@ class Database:
 
                 if saveBy == 'Peril':
 
-                    script = 'SELECT YearID, PerilSetCode, SUM(RetainedLoss) as RT FROM ' \
-                             '[' + resultDB + '].dbo.t' + str(resultSID) + '_LOSS_ByEvent WHERE CatalogTypeCode = ' + "'STC'" + \
-                             ' AND PerilSetCode = ' + str(value) + ' Group By YearID, PerilSetCode ORDER By RT DESC'
+                    script = 'SELECT ' \
+                             'YearID, Code as PerilSetCode, SUM(RT) as RT ' \
+                             'FROM (SELECT YearID, PerilSetCode, SUM(RetainedLoss) as RT ' \
+                             'FROM [' + resultDB + '].dbo.t' + str(resultSID) + '_LOSS_ByEvent ' \
+                                                                                'WHERE CatalogTypeCode = ' + "'STC'" + ' GROUP BY YearID, PerilSetCode) a ' \
+                                                                                                                       'JOIN ( SELECT MIN(c.PerilSetCode) as Parent, b.PerilSetCode as Child, ' \
+                                                                                                                       'CASE c.PerilDisplayGroup ' \
+                                                                                                                       'WHEN ' + "'Earthquake'" + ' then 4 ' \
+                                                                                                                                                  'WHEN ' + "'Tropical Cyclone'" + ' THEN 1 ' \
+                                                                                                                                                                                   'WHEN ' + "'Severe Storm'" + ' THEN b.PerilSetCode ' \
+                                                                                                                                                                                                                'ELSE b.PerilSetCode ' \
+                                                                                                                                                                                                                'END as Code ' \
+                                                                                                                                                                                                                'FROM [AIRReference].[dbo].[tPerilSetXref] b ' \
+                                                                                                                                                                                                                'JOIN [AIRReference].[dbo].[tPeril] c on b.PerilCode = c.PerilCode GROUP BY b.PerilSetCode, c.PerilDisplayGroup' \
+                                                                                                                                                                                                                ') d ON a.PerilSetCode = d.Child ' \
+                                                                                                                                                                                                                'WHERE Code = ' + str(
+                        value) + ' GROUP BY YearID, Code ORDER BY RT DESC'
 
                 elif saveBy == 'Model':
 
@@ -562,9 +817,18 @@ class Database:
         info = copy.deepcopy(self.cursor.fetchall())
         return info[0]
 
-    def ep_summary(self, resultDB, resultSID):
+    def ep_summary(self, resultDB, resultSID, option=None):
 
-        script = 'SELECT * from [' + resultDB + '].dbo.t' + str(resultSID) + '_LOSS_AnnualEPSummary'
+        if option == 'Peril':
+            script = 'SELECT * from [' + resultDB + '].dbo.t' + str(resultSID) + '_LOSS_AnnualEPSummary_ByPerilModel ' \
+                                                                                 'WHERE EPCurveTypeCode = ' + "'PERIL'"
+        elif option == 'Model':
+            script = 'SELECT * from [' + resultDB + '].dbo.t' + str(resultSID) + '_LOSS_AnnualEPSummary_ByPerilModel ' \
+                                                                                 'WHERE EPCurveTypeCode = ' + "'MODEL'"
+        else:
+            script = 'SELECT * from [' + resultDB + '].dbo.t' + str(resultSID) + '_LOSS_AnnualEPSummary'
+
+
         return copy.deepcopy(pd.read_sql(script, self.connection))
 
     def table_names(self, db, criteria=None):
