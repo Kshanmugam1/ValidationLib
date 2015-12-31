@@ -207,6 +207,7 @@ if __name__ == '__main__':
                                 result_ep_df['CalcYearID'] = loss_by_event['YearID'].values
                                 result_ep_df['CalcRank'] = loss_by_event.index.values + 1
                                 result_ep_df['CalcExceedanceProb'] = result_ep_df['CalcRank'] / catalog_size
+                                result_ep_df['CalcModelCode'] = 0
                                 result_ep_detail = pd.concat([result_ep_detail, result_ep_df], axis=0)
 
                                 result_ep_summary_df = pd.DataFrame(columns=columns_summary)
