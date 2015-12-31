@@ -72,6 +72,12 @@ try:
     analysis_name = sys.argv[5]
     option = sys.argv[6]
     tolerance = 10
+
+    LOGGER.info('Server: ' + str(server))
+    LOGGER.info('Result DB: ' + str(result_db))
+    LOGGER.info('Analysis Name: ' + str(analysis_name))
+    LOGGER.info('Option: ' + str(option))
+
 except:
     LOGGER.error('Please verify the inputs')
     file_skeleton(OUTFILE)
@@ -118,11 +124,11 @@ if __name__ == '__main__':
             sys.exit()
 
         try:
-            if option == 'PerilModel':
+            if option == 'ViewByBoth':
                 ep_lossDf = db.loss_df(result_db, result_sid, 'EP', option='PerilModel').iloc[:, :14]
-            elif option == 'Peril':
+            elif option == 'ViewByPeril':
                 ep_lossDf = db.loss_df(result_db, result_sid, 'EP', option='Peril').iloc[:, :14]
-            elif option =='Model':
+            elif option == 'ViewByModel':
                 ep_lossDf = db.loss_df(result_db, result_sid, 'EP', option='Model').iloc[:, :14]
             else:
                 ep_lossDf = db.loss_df(result_db, result_sid, 'EP').iloc[:, :14]
@@ -168,69 +174,8 @@ if __name__ == '__main__':
             for k in range(len(ep_points)):
                 columns_summary.append('CalcEP' + str(k+1) + 'Loss')
 
-            #  Option = ''
-            if option == '':
-                for l in ep_target_type:
-                    for i in ep_type_code:
-                        for j in financial_perspective:
-                            if l == 'EVNT':
-                                try:
-                                    loss_by_event = db.event_loss_ep(result_db, result_sid, j, i)
-                                    loss_by_event = loss_by_event.loc[loss_by_event[j] > 0, :]
-                                    if len(loss_by_event) == 0:
-                                        continue
-                                except:
-                                    continue
-                            else:
-                                if not (l == 'REI' and j in ['NT', 'POST', 'RT']):
-                                    try:
-                                        loss_by_event = db.rei_loss_ep(result_db, result_sid, j, i)
-                                        loss_by_event = loss_by_event.loc[loss_by_event[j] > 0, :]
-                                        if len(loss_by_event) == 0:
-                                            break
-                                    except:
-                                        continue
-                                else:
-                                    continue
-                            result_ep_df = ep_lossDf.loc[(ep_lossDf['EPCurveTypeCode'] == 'STD') &
-                                                         (ep_lossDf['FinancialPerspectiveCode'] == j) &
-                                                         (ep_lossDf['EPTargetTypeCode'] == l) &
-                                                         (ep_lossDf['EPAnnualTypeCode'] == i), columns_detail]
-
-                            result_ep_df['CalcLoss'] = loss_by_event[j].values
-                            result_ep_df['CalcYearID'] = loss_by_event['YearID'].values
-                            result_ep_df['CalcRank'] = loss_by_event.index.values + 1
-                            result_ep_df['CalcExceedanceProb'] = result_ep_df['CalcRank'] / catalog_size
-                            result_ep_detail = pd.concat([result_ep_detail, result_ep_df], axis=0)
-
-                            result_ep_summary_df = pd.DataFrame(columns=columns_summary)
-                            result_ep_summary_df.loc[0, 'CalcEPAnnualTypeCode'] = i
-                            result_ep_summary_df.loc[0, 'CalcEPCurveTypeCode'] = 'STD'
-                            result_ep_summary_df.loc[0, 'CalcEPTypeCode'] = 'EP'
-                            result_ep_summary_df.loc[0, 'CalcFinancialPerspectiveCode'] = j
-                            result_ep_summary_df.loc[0, 'CalcEPTargetTypeCode'] = l
-                            for k in range(len(ep_points)):
-                                try:
-                                    result_ep_summary_df.loc[(result_ep_summary_df['CalcFinancialPerspectiveCode'] == j) &
-                                                             (result_ep_summary_df['CalcEPAnnualTypeCode'] == i),
-                                                             'CalcEP' + str(k+1) + 'Loss'] = \
-                                        result_ep_df.loc[result_ep_df['CalcExceedanceProb'] == ep_points[k], 'CalcLoss'].values[0]
-                                except:
-                                    result_ep_summary_df.loc[(result_ep_summary_df['CalcFinancialPerspectiveCode'] == j) &
-                                                             (result_ep_summary_df['CalcEPAnnualTypeCode'] == i),
-                                                             'CalcEP' + str(k+1) + 'Loss'] = 0.0
-                            result_ep_summary_df.loc[(result_ep_summary_df['CalcFinancialPerspectiveCode'] == j) &
-                                                     (result_ep_summary_df['CalcEPAnnualTypeCode'] == i),
-                                                     'CalcExpectedValue'] = result_ep_df['CalcLoss'].sum()/10000.0
-                            result_ep_summary_df.loc[(result_ep_summary_df['CalcFinancialPerspectiveCode'] == j) &
-                                                     (result_ep_summary_df['CalcEPAnnualTypeCode'] == i),
-                                                     'CalcStandardDeviation'] = \
-                                math.sqrt(((result_ep_df['CalcLoss']**2).sum() -
-                                           (result_ep_df['CalcLoss'].sum())**2/catalog_size)/(catalog_size - 1))
-                            result_ep_summary = pd.concat([result_ep_summary, result_ep_summary_df], axis=0)
-
             #  Option = 'Peril'
-            if option == 'Peril':
+            if option == 'ViewByPeril':
                 for l in ep_target_type:
                     for i in ep_type_code:
                         for j in financial_perspective:
@@ -291,7 +236,7 @@ if __name__ == '__main__':
                                                (result_ep_df['CalcLoss'].sum())**2/catalog_size)/(catalog_size - 1))
                                 result_ep_summary = pd.concat([result_ep_summary, result_ep_summary_df], axis=0)
             #  Option = 'Model' or 'Peril/Model'
-            if option == 'Model':
+            if option == 'ViewByModel' or option == 'ViewByBoth':
                 for l in ep_target_type:
                     for i in ep_type_code:
                         for j in financial_perspective:
@@ -351,11 +296,74 @@ if __name__ == '__main__':
                                     math.sqrt(((result_ep_df['CalcLoss']**2).sum() -
                                                (result_ep_df['CalcLoss'].sum())**2/catalog_size)/(catalog_size - 1))
                                 result_ep_summary = pd.concat([result_ep_summary, result_ep_summary_df], axis=0)
+            #
+            elif option == None or option == '' or option == 'ViewByNone':
+                for l in ep_target_type:
+                    for i in ep_type_code:
+                        for j in financial_perspective:
+                            if l == 'EVNT':
+                                try:
+                                    loss_by_event = db.event_loss_ep(result_db, result_sid, j, i)
+                                    loss_by_event = loss_by_event.loc[loss_by_event[j] > 0, :]
+                                    if len(loss_by_event) == 0:
+                                        continue
+                                except:
+                                    continue
+                            else:
+                                if not (l == 'REI' and j in ['NT', 'POST', 'RT']):
+                                    try:
+                                        loss_by_event = db.rei_loss_ep(result_db, result_sid, j, i)
+                                        loss_by_event = loss_by_event.loc[loss_by_event[j] > 0, :]
+                                        if len(loss_by_event) == 0:
+                                            break
+                                    except:
+                                        continue
+                                else:
+                                    continue
+                            result_ep_df = ep_lossDf.loc[(ep_lossDf['EPCurveTypeCode'] == 'STD') &
+                                                         (ep_lossDf['FinancialPerspectiveCode'] == j) &
+                                                         (ep_lossDf['EPTargetTypeCode'] == l) &
+                                                         (ep_lossDf['EPAnnualTypeCode'] == i), columns_detail]
+
+                            result_ep_df['CalcLoss'] = loss_by_event[j].values
+                            result_ep_df['CalcYearID'] = loss_by_event['YearID'].values
+                            result_ep_df['CalcRank'] = loss_by_event.index.values + 1
+                            result_ep_df['CalcExceedanceProb'] = result_ep_df['CalcRank'] / catalog_size
+                            result_ep_detail = pd.concat([result_ep_detail, result_ep_df], axis=0)
+
+                            result_ep_summary_df = pd.DataFrame(columns=columns_summary)
+                            result_ep_summary_df.loc[0, 'CalcEPAnnualTypeCode'] = i
+                            result_ep_summary_df.loc[0, 'CalcEPCurveTypeCode'] = 'STD'
+                            result_ep_summary_df.loc[0, 'CalcEPTypeCode'] = 'EP'
+                            result_ep_summary_df.loc[0, 'CalcFinancialPerspectiveCode'] = j
+                            result_ep_summary_df.loc[0, 'CalcEPTargetTypeCode'] = l
+                            for k in range(len(ep_points)):
+                                try:
+                                    result_ep_summary_df.loc[
+                                        (result_ep_summary_df['CalcFinancialPerspectiveCode'] == j) &
+                                        (result_ep_summary_df['CalcEPAnnualTypeCode'] == i),
+                                        'CalcEP' + str(k + 1) + 'Loss'] = \
+                                        result_ep_df.loc[
+                                            result_ep_df['CalcExceedanceProb'] == ep_points[k], 'CalcLoss'].values[0]
+                                except:
+                                    result_ep_summary_df.loc[
+                                        (result_ep_summary_df['CalcFinancialPerspectiveCode'] == j) &
+                                        (result_ep_summary_df['CalcEPAnnualTypeCode'] == i),
+                                        'CalcEP' + str(k + 1) + 'Loss'] = 0.0
+                            result_ep_summary_df.loc[(result_ep_summary_df['CalcFinancialPerspectiveCode'] == j) &
+                                                     (result_ep_summary_df['CalcEPAnnualTypeCode'] == i),
+                                                     'CalcExpectedValue'] = result_ep_df['CalcLoss'].sum() / 10000.0
+                            result_ep_summary_df.loc[(result_ep_summary_df['CalcFinancialPerspectiveCode'] == j) &
+                                                     (result_ep_summary_df['CalcEPAnnualTypeCode'] == i),
+                                                     'CalcStandardDeviation'] = \
+                                math.sqrt(((result_ep_df['CalcLoss'] ** 2).sum() -
+                                           (result_ep_df['CalcLoss'].sum()) ** 2 / catalog_size) / (catalog_size - 1))
+                            result_ep_summary = pd.concat([result_ep_summary, result_ep_summary_df], axis=0)
 
             ep_summary = db.ep_summary(result_db, result_sid, option)
-            if option == 'Peril':
+            if option == 'ViewByPeril':
                 temp = 'PERIL'
-            elif option == 'Model':
+            elif option == 'ViewByModel' or option == 'ViewByBoth':
                 temp = 'MODEL'
             else:
                 temp = 'STD'
@@ -373,8 +381,9 @@ if __name__ == '__main__':
                              [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]].reset_index()
 
             ep_summary = ep_summary.drop('index', axis=1)
-            if option == 'Model':
+            if option == 'ViewByModel' or option == 'ViewByBoth':
                 ep_summary = ep_summary.sort(['EPAnnualTypeCode', 'FinancialPerspectiveCode', 'ModelCode'])
+                result_ep_summary['CalcPerilSetCode'] = ep_summary['PerilSetCode'].values
             else:
                 ep_summary = ep_summary.sort(['EPAnnualTypeCode', 'FinancialPerspectiveCode'])
 
@@ -385,7 +394,7 @@ if __name__ == '__main__':
                                                         'CalcEPTargetTypeCode']).reset_index()
             result_ep_summary = result_ep_summary.drop('index', axis=1)
             result_ep_summary = set_column_sequence(result_ep_summary, columns_summary)
-            ep_summary.to_csv('Model.csv')
+
             for count in range(len(result_ep_summary.iloc[:, 1])):
                 result_ep_summary.loc[count, 'CalcEPSum'] = result_ep_summary.iloc[count, 7:22].sum()
                 if not option == '':

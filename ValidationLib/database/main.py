@@ -131,10 +131,10 @@ class Database:
         if type in ['EP']:
             if option == 'Peril':
                 script = 'SELECT * FROM [' + resultDB + '].dbo.t' + str(resultSID) + '_LOSS_AnnualEP_ByPeril'
-            elif option == 'Model':
+            elif option == 'Model' or option == 'PerilModel':
                 script = 'SELECT * FROM [' + resultDB + '].dbo.t' + str(resultSID) + '_LOSS_AnnualEP_ByModel'
-            elif option == 'PerilModel':
-                script = 'SELECT * FROM [' + resultDB + '].dbo.t' + str(resultSID) + '_LOSS_AnnualEP_ByPerilModel'
+            # elif option == 'PerilModel':
+            #     script = 'SELECT * FROM [' + resultDB + '].dbo.t' + str(resultSID) + '_LOSS_AnnualEP_ByPerilModel'
             else:
                 script = 'SELECT * FROM [' + resultDB + '].dbo.t' + str(resultSID) + '_LOSS_AnnualEP'
 
@@ -819,10 +819,10 @@ class Database:
 
     def ep_summary(self, resultDB, resultSID, option=None):
 
-        if option == 'Peril':
+        if option == 'ViewByPeril':
             script = 'SELECT * from [' + resultDB + '].dbo.t' + str(resultSID) + '_LOSS_AnnualEPSummary_ByPerilModel ' \
                                                                                  'WHERE EPCurveTypeCode = ' + "'PERIL'"
-        elif option == 'Model':
+        elif option == 'ViewByModel' or option == 'ViewByBoth':
             script = 'SELECT * from [' + resultDB + '].dbo.t' + str(resultSID) + '_LOSS_AnnualEPSummary_ByPerilModel ' \
                                                                                  'WHERE EPCurveTypeCode = ' + "'MODEL'"
         else:
