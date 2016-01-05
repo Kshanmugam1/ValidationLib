@@ -398,7 +398,7 @@ if __name__ == '__main__':
 
             for count in range(len(result_ep_summary.iloc[:, 1])):
                 result_ep_summary.loc[count, 'CalcEPSum'] = result_ep_summary.iloc[count, 7:22].sum()
-                if not option == '':
+                if not option == None or option == '' or option == 'ViewByNone':
                     ep_summary.loc[count, 'EPSum'] = ep_summary.iloc[count, 11:26].sum()
                 else:
                     ep_summary.loc[count, 'EPSum'] = ep_summary.iloc[count, 9:22].sum()
