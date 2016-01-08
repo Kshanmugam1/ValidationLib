@@ -54,7 +54,7 @@ __status__ = 'Complete'
 
 
 def file_skeleton(outfile):
-    pd.DataFrame(columns=['ContractID', 'LocationID', 'ErrorCode', 'Error']).to_csv(outfile, index=False)
+    pd.DataFrame(columns=['ContractID', 'LocationID', 'ErrorType', 'ErrorCode', 'Error']).to_csv(outfile, index=False)
 
 
 # Extract the given arguments
@@ -84,8 +84,8 @@ if __name__ == "__main__":
 
         LOGGER.info('\n********** Log Import Options **********\n')
         parse_log_files(import_log, (OUTFILE[:-4] + '-Errors.txt'))
-        data = pd.read_csv(OUTFILE[:-4] + '-Errors.txt', header=None)
-        data.columns = ['ContractID', 'LocationID', 'ErrorCode', 'Error']
+        data = pd.read_csv(OUTFILE[:-4] + '-Errors.txt', header=None, error_bad_lines=False, sep='|')
+        data.columns = ['ContractID', 'LocationID', 'ErrorType', 'ErrorCode', 'Error']
         data.to_csv(OUTFILE, index=False)
 
         LOGGER.info('----------------------------------------------------------------------------------')

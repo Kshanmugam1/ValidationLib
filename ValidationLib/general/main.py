@@ -57,7 +57,7 @@ def group_by_heading(some_source):
 def parse_log_files(log_file, outfile):
 
     start_pattern = 'Business Errors'
-    end_pattern = 'Exceptions'
+    end_pattern = 'Exceptions' or ''
     with open(outfile, 'wb') as out:
         with open(log_file, "r") as file:
             active_flag = False
@@ -70,12 +70,23 @@ def parse_log_files(log_file, outfile):
                         active_flag = False  # or break if only one group possible
                     else:
                         if not line == '\n':
+
                             data = line.split(":")[1:]
                             contract_id = data[:2][1].split()[0]
-                            location_id = data[:3][2].split()[0].split("]")[0]
                             error_code = line.split('|')[0].split(' ')[0]
-                            error = ' '.join(data[:4][2].split("]")[1].split(' ')[1:])
-                            out.writelines([contract_id, ',', location_id, ',', error_code, ',', error, '\n'])
+                            try:
+                                location_id = data[:3][2].split()[0].split("]")[0]
+                                error = ' '.join(data[:4][2].split("]")[1].split(' ')[1:])
+                                error_type = 'Location'
+                            except:
+                                contract_id = data[:2][1].split()[0].split("]")[0]
+                                location_id = 'NA'
+                                error = (data[1].split("]")[1])
+                                error_type = 'Contract'
+
+                            out.writelines(
+                                    [contract_id, '|', location_id, '|', error_type, '|', error_code, '|', error, '\n'])
+
 
 
 class UnicedeCompare:
