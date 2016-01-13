@@ -72,20 +72,24 @@ def parse_log_files(log_file, outfile):
                         if not line == '\n':
 
                             data = line.split(":")[1:]
-                            contract_id = data[:2][1].split()[0]
-                            error_code = line.split('|')[0].split(' ')[0]
                             try:
-                                location_id = data[:3][2].split()[0].split("]")[0]
-                                error = ' '.join(data[:4][2].split("]")[1].split(' ')[1:])
-                                error_type = 'Location'
-                            except:
-                                contract_id = data[:2][1].split()[0].split("]")[0]
-                                location_id = 'NA'
-                                error = (data[1].split("]")[1])
-                                error_type = 'Contract'
+                                contract_id = data[:2][1].split()[0]
+                                error_code = line.split('|')[0].split(' ')[0]
+                                try:
+                                    location_id = data[:3][2].split()[0].split("]")[0]
+                                    error = ' '.join(data[:4][2].split("]")[1].split(' ')[1:])
+                                    error_type = 'Location'
+                                except:
+                                    contract_id = data[:2][1].split()[0].split("]")[0]
+                                    location_id = 'NA'
+                                    error = (data[1].split("]")[1])
+                                    error_type = 'Contract'
 
-                            out.writelines(
-                                    [contract_id, '|', location_id, '|', error_type, '|', error_code, '|', error, '\n'])
+                                out.writelines(
+                                        [contract_id, '|', location_id, '|', error_type, '|', error_code, '|', error,
+                                         '\n'])
+                            except:
+                                continue
 
 
 
