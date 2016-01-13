@@ -125,10 +125,10 @@ if __name__ == '__main__':
 
         try:
             analysis_option = db.analysis_option(analysis_sid)
-            if analysis_option.iloc[0, 0] == 'CATLOSS':
-                option = "ViewByNone"
+
         except:
             pass
+
         try:
             if option == 'ViewByBoth':
                 ep_lossDf = db.loss_df(result_db, result_sid, 'EP', option='PerilModel').iloc[:, :14]
@@ -170,7 +170,7 @@ if __name__ == '__main__':
 
             financial_perspective = ['GR', 'GU', 'NT', 'POST', 'RT']
             ep_type_code = ['AGG', 'OCC']
-            ep_target_type = ['EVNT', 'REI']
+            ep_target_type = ['EVNT']
             peril_codes = ep_lossDf.PerilSetCode.unique()
             model_codes = ep_lossDf.ModelCode.unique()
 
@@ -404,19 +404,24 @@ if __name__ == '__main__':
 
             for count in range(len(result_ep_summary.iloc[:, 1])):
                 result_ep_summary.loc[count, 'CalcEPSum'] = result_ep_summary.iloc[count, 7:22].sum()
-                if not option == None or option == '' or option == 'ViewByNone':
+                if not (option == None or option == '' or option == 'ViewByNone'):
+                    ep_summary.loc[count, 'EPSum'] = ep_summary.iloc[count, 11:26].sum()
+
+                else:
                     if analysis_option.iloc[0, 0] == 'CATLOSS':
                         ep_summary.loc[count, 'EPSum'] = ep_summary.iloc[count, 9:24].sum()
                     else:
-                        ep_summary.loc[count, 'EPSum'] = ep_summary.iloc[count, 11:26].sum()
+                        ep_summary.loc[count, 'EPSum'] = ep_summary.iloc[count, 9:22].sum()
 
-                else:
-                    ep_summary.loc[count, 'EPSum'] = ep_summary.iloc[count, 9:22].sum()
             result_ep_summary_output = result_ep_summary.drop(result_ep_summary.columns.values[7:22], axis=1)
             if not (option == None or option == '' or option == 'ViewByNone'):
                 ep_summary_output = ep_summary.drop(ep_summary.columns.values[11:26], axis=1)
+
             else:
-                ep_summary_output = ep_summary.drop(ep_summary.columns.values[9:22], axis=1)
+                if analysis_option.iloc[0, 0] == 'CATLOSS':
+                    ep_summary_output = ep_summary.drop(ep_summary.columns.values[9:24], axis=1)
+                else:
+                    ep_summary_output = ep_summary.drop(ep_summary.columns.values[9:22], axis=1)
 
             summary_output = pd.concat([ep_summary_output, result_ep_summary_output.iloc[:, 5:]], axis=1).fillna('-')
             detailed_output = pd.concat([ep_summary, result_ep_summary], axis=1).fillna('-')
