@@ -25,7 +25,7 @@ for o, a in OPTLIST:
     if o == "--outfile":
         OUTFILE = a
     print ("Outfile: " + OUTFILE)
-
+# OUTFILE = 'C:\Users\i56228\Documents\Python\Git\ValidationLib\Error.csv'
 if OUTFILE is None:
     print ('Outfile is not passed')
     sys.exit()
@@ -33,6 +33,7 @@ if OUTFILE is None:
 # Import standard Python packages and read outfile
 import time
 import logging
+from ValidationLib.database.main import Database
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
@@ -86,6 +87,16 @@ if __name__ == "__main__":
         parse_log_files(import_log, (OUTFILE[:-4] + '-Errors.txt'))
         data = pd.read_csv(OUTFILE[:-4] + '-Errors.txt', header=None, error_bad_lines=False, sep='|')
         data.columns = ['ContractID', 'LocationID', 'ErrorType', 'ErrorCode', 'Error']
+        db = Database('QA-TS-CI3-DB\SQL2012')
+        for i in range(len(data)):
+            try:
+                script = 'SELECT ValidationErrorCode as ErrorCode, ValidationErrorMessage ' \
+                         'FROM [AIRReference].[dbo].[tValidationError] WHERE ValidationErrorCode = ' + str(
+                        data.ErrorCode[i])
+                db_data = copy.deepcopy(pd.read_sql(script, db.connection))
+                data.loc[i, 'ValidationErrorMessage'] = db_data.ValidationErrorMessage[0]
+            except:
+                pass
         data.to_csv(OUTFILE, index=False)
 
         LOGGER.info('----------------------------------------------------------------------------------')
