@@ -60,8 +60,10 @@ def file_skeleton(outfile):
 
 # Extract the given arguments
 try:
-    server = 'QAWUDB2\SQL2012'
-    output_location = r'\\qafile2\TS\Working Data\Shashank\backup'
+    server = sys.argv[3]
+
+    database = sys.argv[4]
+    output_location = sys.argv[5]
     LOGGER.info(output_location)
 except:
     LOGGER.error('Please verify the inputs')
@@ -83,7 +85,10 @@ if __name__ == "__main__":
         LOGGER.info('Status:                Completed')
 
         db = Database(server)
-        database_list = db.get_database_list()
+        if database is not 'All':
+            database_list = [database]
+        else:
+            database_list = db.get_database_list()
         backup_database = []
 
         excluded_database = ['master', 'model', 'msdb', 'tempdb', 'ReportServer', 'ReportServerTempDB', 'AIRPSOLD',
@@ -97,8 +102,8 @@ if __name__ == "__main__":
                 backup_database.append(str(database_list[i]))
 
         thread_list = []
-        for database in (backup_database[:5]):
-            t = threading.Thread(target=db.backup_db, args=(database, output_location, server,))
+        for dbase in (backup_database):
+            t = threading.Thread(target=db.backup_db, args=(dbase, output_location, server,))
             thread_list.append(t)
 
         for thread in thread_list:
