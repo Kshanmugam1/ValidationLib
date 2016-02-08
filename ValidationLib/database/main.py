@@ -1,8 +1,8 @@
 # Import standard Python packages
 import copy
+import os
 
 import pip
-
 
 # Import external Python libraries
 try:
@@ -1081,3 +1081,36 @@ class Database:
                  'JOIN [SKExp].[dbo].[tContract] c on a.ContractSID = c.ContractSID ' \
                  'WHERE b.ExposureSetName = ' + "'" + exposure_name + "'"
         return copy.deepcopy(pd.read_sql(script, self.connection))
+
+    # List databases function
+    def get_database_list(self):
+        dbs = []
+        cur = self.connection.cursor()
+        result = cur.execute('SELECT name from sysdatabases').fetchall()
+        cur.close()
+        for db in result:
+            dbs.append(db[0])
+        return dbs
+
+    def backup_db(self, database, location, server):
+        try:
+            # you need to remove the previous file because it just appends the information every time you run the
+            # backup function, i am using try/except because the first time the file doesnt exist.
+            os.remove(str(location + '\\' + database + '.BAK'))
+        except:
+            print database + ' doesnt exist yet...'
+        connection = pyodbc.connect('DRIVER={SQL Server};SERVER=' + server + '; UID=airadmin; PWD=Air$admin123')
+        cur = connection.cursor()
+        connection.autocommit = True
+        # try:
+        # here i am using try/except because some system databases cant be backed up such as tempdb or
+        # a database might be problematic for any reason, perhaps an exclude mechanism is better, its
+        # up to you.
+        cur.execute('BACKUP DATABASE ? TO DISK=?', [database, location + '\\' + database + '.BAK'])
+        while cur.nextset():
+            pass
+        cur.close()
+        connection.autocommit = False
+        connection.close()
+        # except:
+        #   print 'cant backup: ' + database
