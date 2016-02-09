@@ -1098,19 +1098,43 @@ class Database:
             # backup function, i am using try/except because the first time the file doesnt exist.
             os.remove(str(location + '\\' + database + '.BAK'))
         except:
-            print database + ' doesnt exist yet...'
+            pass
         connection = pyodbc.connect('DRIVER={SQL Server};SERVER=' + server + '; UID=airadmin; PWD=Air$admin123')
         cur = connection.cursor()
         connection.autocommit = True
-        # try:
-        # here i am using try/except because some system databases cant be backed up such as tempdb or
-        # a database might be problematic for any reason, perhaps an exclude mechanism is better, its
-        # up to you.
-        cur.execute('BACKUP DATABASE ? TO DISK=?', [database, location + '\\' + database + '.BAK'])
-        while cur.nextset():
+        try:
+            # here i am using try/except because some system databases cant be backed up such as tempdb or
+            # a database might be problematic for any reason, perhaps an exclude mechanism is better, its
+            # up to you.
+            cur.execute('BACKUP DATABASE ? TO DISK=?', [database, location + '\\' + database + '.BAK'])
+            while cur.nextset():
+                pass
+            cur.close()
+            connection.autocommit = False
+            connection.close()
+        except:
             pass
-        cur.close()
-        connection.autocommit = False
-        connection.close()
-        # except:
-        #   print 'cant backup: ' + database
+
+    def iter_islast(self, row):
+        it = iter(row)
+        prev = it.next()
+        for item in it:
+            yield prev, False
+            prev = item
+        yield prev, True
+
+    def restore_db(self, file, server):
+
+        connection = pyodbc.connect('DRIVER={SQL Server};SERVER=' + server + '; UID=airadmin; PWD=Air$admin123')
+        cursor = connection.cursor()
+        connection.autocommit = True
+
+        cursor.execute("restore headeronly from disk = '%s';" % file)
+        rows = cursor.fetchall()
+        for row in rows:
+            TempSQL = "RESTORE DATABASE  " + row.DatabaseName + " FROM DISK = '" + file + "' WITH REPLACE, RECOVERY"
+            print(TempSQL)
+            cursor.execute(TempSQL)
+            while cursor.nextset():
+                pass
+            cursor.close()
