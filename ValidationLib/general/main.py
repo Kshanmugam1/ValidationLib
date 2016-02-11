@@ -58,7 +58,7 @@ def parse_log_files(log_file, outfile):
 
     start_pattern = 'Business Errors'
     end_pattern = 'Exceptions' or ''
-    with open(outfile, 'wb') as out:
+    with open(outfile, 'wt') as out:
         with open(log_file, "r") as file:
             active_flag = False
             for line in file:

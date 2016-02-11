@@ -1,8 +1,8 @@
 # Import standard Python packages
 import copy
+import os
 
 import pip
-
 
 # Import external Python libraries
 try:
@@ -319,19 +319,18 @@ class Database:
                              'YearID, Code as PerilSetCode, MAX(GU) as GU ' \
                              'FROM (SELECT YearID, PerilSetCode, MAX(GroundUpLoss) as GU ' \
                              'FROM [' + resultDB + '].dbo.t' + str(resultSID) + '_LOSS_ByEvent ' \
-                                                                                'WHERE CatalogTypeCode = ' + "'STC'" + ' GROUP BY YearID, PerilSetCode) a ' \
-                                                                                                                       'JOIN ( SELECT MIN(c.PerilSetCode) as Parent, b.PerilSetCode as Child, ' \
-                                                                                                                       'CASE c.PerilDisplayGroup ' \
-                                                                                                                       'WHEN ' + "'Earthquake'" + ' then 4 ' \
-                                                                                                                                                  'WHEN ' + "'Tropical Cyclone'" + ' THEN 1 ' \
-                                                                                                                                                                                   'WHEN ' + "'Severe Storm'" + ' THEN b.PerilSetCode ' \
-                                                                                                                                                                                                                'ELSE b.PerilSetCode ' \
-                                                                                                                                                                                                                'END as Code ' \
-                                                                                                                                                                                                                'FROM [AIRReference].[dbo].[tPerilSetXref] b ' \
-                                                                                                                                                                                                                'JOIN [AIRReference].[dbo].[tPeril] c on b.PerilCode = c.PerilCode GROUP BY b.PerilSetCode, c.PerilDisplayGroup' \
-                                                                                                                                                                                                                ') d ON a.PerilSetCode = d.Child ' \
-                                                                                                                                                                                                                'WHERE Code = ' + str(
-                        value) + ' GROUP BY YearID, Code ORDER BY GU DESC'
+                             'WHERE CatalogTypeCode = ' + "'STC'" + ' GROUP BY YearID, PerilSetCode) a ' \
+                             'JOIN ( SELECT MIN(c.PerilSetCode) as Parent, b.PerilSetCode as Child, ' \
+                             'CASE c.PerilDisplayGroup ' \
+                             'WHEN ' + "'Earthquake'" + ' then 4 ' \
+                             'WHEN ' + "'Tropical Cyclone'" + ' THEN 1 ' \
+                             'WHEN ' + "'Severe Storm'" + ' THEN b.PerilSetCode ' \
+                             'ELSE b.PerilSetCode ' \
+                             'END as Code ' \
+                             'FROM [AIRReference].[dbo].[tPerilSetXref] b ' \
+                             'JOIN [AIRReference].[dbo].[tPeril] c on b.PerilCode = c.PerilCode GROUP BY b.PerilSetCode, c.PerilDisplayGroup' \
+                             ') d ON a.PerilSetCode = d.Child ' \
+                             'WHERE Code = ' + str(value) + ' GROUP BY YearID, Code ORDER BY GU DESC'
 
                 elif saveBy == 'Model':
 
@@ -1081,3 +1080,60 @@ class Database:
                  'JOIN [SKExp].[dbo].[tContract] c on a.ContractSID = c.ContractSID ' \
                  'WHERE b.ExposureSetName = ' + "'" + exposure_name + "'"
         return copy.deepcopy(pd.read_sql(script, self.connection))
+
+    # List databases function
+    def get_database_list(self):
+        dbs = []
+        cur = self.connection.cursor()
+        result = cur.execute('SELECT name from sysdatabases').fetchall()
+        cur.close()
+        for db in result:
+            dbs.append(db[0])
+        return dbs
+
+    def backup_db(self, database, location, server):
+        try:
+            # you need to remove the previous file because it just appends the information every time you run the
+            # backup function, i am using try/except because the first time the file doesnt exist.
+            os.remove(str(location + '\\' + database + '.BAK'))
+        except:
+            pass
+        connection = pyodbc.connect('DRIVER={SQL Server};SERVER=' + server + '; UID=airadmin; PWD=Air$admin123')
+        cur = connection.cursor()
+        connection.autocommit = True
+        try:
+            # here i am using try/except because some system databases cant be backed up such as tempdb or
+            # a database might be problematic for any reason, perhaps an exclude mechanism is better, its
+            # up to you.
+            cur.execute('BACKUP DATABASE ? TO DISK=?', [database, location + '\\' + database + '.BAK'])
+            while cur.nextset():
+                pass
+            cur.close()
+            connection.autocommit = False
+            connection.close()
+        except:
+            pass
+
+    def iter_islast(self, row):
+        it = iter(row)
+        prev = it.next()
+        for item in it:
+            yield prev, False
+            prev = item
+        yield prev, True
+
+    def restore_db(self, file, server):
+
+        connection = pyodbc.connect('DRIVER={SQL Server};SERVER=' + server + '; UID=airadmin; PWD=Air$admin123')
+        cursor = connection.cursor()
+        connection.autocommit = True
+
+        cursor.execute("restore headeronly from disk = '%s';" % file)
+        rows = cursor.fetchall()
+        for row in rows:
+            TempSQL = "RESTORE DATABASE  " + row.DatabaseName + " FROM DISK = '" + file + "' WITH REPLACE, RECOVERY"
+            print(TempSQL)
+            cursor.execute(TempSQL)
+            while cursor.nextset():
+                pass
+            cursor.close()
