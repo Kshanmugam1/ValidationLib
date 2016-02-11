@@ -319,19 +319,18 @@ class Database:
                              'YearID, Code as PerilSetCode, MAX(GU) as GU ' \
                              'FROM (SELECT YearID, PerilSetCode, MAX(GroundUpLoss) as GU ' \
                              'FROM [' + resultDB + '].dbo.t' + str(resultSID) + '_LOSS_ByEvent ' \
-                                                                                'WHERE CatalogTypeCode = ' + "'STC'" + ' GROUP BY YearID, PerilSetCode) a ' \
-                                                                                                                       'JOIN ( SELECT MIN(c.PerilSetCode) as Parent, b.PerilSetCode as Child, ' \
-                                                                                                                       'CASE c.PerilDisplayGroup ' \
-                                                                                                                       'WHEN ' + "'Earthquake'" + ' then 4 ' \
-                                                                                                                                                  'WHEN ' + "'Tropical Cyclone'" + ' THEN 1 ' \
-                                                                                                                                                                                   'WHEN ' + "'Severe Storm'" + ' THEN b.PerilSetCode ' \
-                                                                                                                                                                                                                'ELSE b.PerilSetCode ' \
-                                                                                                                                                                                                                'END as Code ' \
-                                                                                                                                                                                                                'FROM [AIRReference].[dbo].[tPerilSetXref] b ' \
-                                                                                                                                                                                                                'JOIN [AIRReference].[dbo].[tPeril] c on b.PerilCode = c.PerilCode GROUP BY b.PerilSetCode, c.PerilDisplayGroup' \
-                                                                                                                                                                                                                ') d ON a.PerilSetCode = d.Child ' \
-                                                                                                                                                                                                                'WHERE Code = ' + str(
-                        value) + ' GROUP BY YearID, Code ORDER BY GU DESC'
+                             'WHERE CatalogTypeCode = ' + "'STC'" + ' GROUP BY YearID, PerilSetCode) a ' \
+                             'JOIN ( SELECT MIN(c.PerilSetCode) as Parent, b.PerilSetCode as Child, ' \
+                             'CASE c.PerilDisplayGroup ' \
+                             'WHEN ' + "'Earthquake'" + ' then 4 ' \
+                             'WHEN ' + "'Tropical Cyclone'" + ' THEN 1 ' \
+                             'WHEN ' + "'Severe Storm'" + ' THEN b.PerilSetCode ' \
+                             'ELSE b.PerilSetCode ' \
+                             'END as Code ' \
+                             'FROM [AIRReference].[dbo].[tPerilSetXref] b ' \
+                             'JOIN [AIRReference].[dbo].[tPeril] c on b.PerilCode = c.PerilCode GROUP BY b.PerilSetCode, c.PerilDisplayGroup' \
+                             ') d ON a.PerilSetCode = d.Child ' \
+                             'WHERE Code = ' + str(value) + ' GROUP BY YearID, Code ORDER BY GU DESC'
 
                 elif saveBy == 'Model':
 
