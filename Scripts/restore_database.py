@@ -62,7 +62,8 @@ def file_skeleton(outfile):
 # Extract the given arguments
 try:
     server = sys.argv[3]
-    backup_location = sys.argv[4]
+    database = sys.argv[4]
+    backup_location = sys.argv[5]
 
 except:
     LOGGER.error('Please verify the inputs')
@@ -84,8 +85,15 @@ if __name__ == "__main__":
         LOGGER.info('Status:                Completed')
 
         db = Database(server)
-        files = [str(backup_location + '\\' + filename) for filename in os.listdir(backup_location) if
-                 filename.endswith('.BAK')]
+        if database is not 'All':
+            if os.path.exists(str(backup_location + '\\' + database + '.BAK')):
+                files = [str(backup_location + '\\' + database + '.BAK')]
+            else:
+                LOGGER.info('Database does not exist')
+                sys.exit()
+        else:
+            files = [str(backup_location + '\\' + filename) for filename in os.listdir(backup_location) if
+                     filename.endswith('.BAK')]
 
         thread_list = []
         for dbase in (files):
@@ -101,12 +109,12 @@ if __name__ == "__main__":
         output = pd.DataFrame()
         output.to_csv(OUTFILE, index=False)
         LOGGER.info('----------------------------------------------------------------------------------')
-        LOGGER.info('              Import Log Completed Successfully                            ')
+        LOGGER.info('              Import Log Completed Successfully                                   ')
         LOGGER.info('----------------------------------------------------------------------------------')
 
         LOGGER.info('********** Process Complete Time: ' + str(time.time() - start) + ' Seconds **********')
 
     except:
-        LOGGER.error('Unknown error: Contact code maintainer: ' + __maintainer__)
+        LOGGER.error('Unknown error: Contact code maintainer: ' + __maintainer__, exc_info=True)
         file_skeleton(OUTFILE)
         sys.exit()
