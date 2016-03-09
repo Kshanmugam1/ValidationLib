@@ -1137,3 +1137,34 @@ class Database:
             while cursor.nextset():
                 pass
             cursor.close()
+
+    def get_country_list(self):
+
+        script = 'SELECT [CountryCode], ' \
+                 '[Description], ' \
+                 '[IsModeled], ' \
+                 '[IsOffshore] ' \
+                 'FROM [AIRReference].[dbo].[tCountry]' \
+                 'WHERE IsModeled > 0 or IsOffshore > 0'
+
+        return copy.deepcopy(pd.read_sql(script, self.connection))
+
+    def get_country_resolution(self, country_code):
+        script = 'SELECT DISTINCT [GeoLevelCode] FROM AIRGeography.dbo.tGeography  WHERE [CountryCode]= ' + "'" +  country_code + "'"
+
+        return copy.deepcopy(pd.read_sql(script, self.connection))
+
+    def get_address_information(self, country_code, geo_level):
+
+        script = 'SELECT TOP 2 [CountryCode], ' \
+                 '[CRESTACode], ' \
+                 '[AreaCode], ' \
+                 '[SubareaCode], ' \
+                 '[PostalCode], ' \
+                 '[Subarea2Code], ' \
+                 '[Latitude], ' \
+                 '[Longitude] ' \
+                 'FROM [AIRGeography].[dbo].[tGeography] ' \
+                 'where Latitude <> 0 and Longitude <> 0 and CountryCode = ' + \
+                 "'" + country_code + "'" + ' and GeoLevelCode = ' + "'" + geo_level + "'" + ' order by NEWID()'
+        return copy.deepcopy(pd.read_sql(script, self.connection))
