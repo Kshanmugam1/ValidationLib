@@ -4,15 +4,13 @@
 """
 
 ******************************************************
-Database Provisioning Script
+Exposure Generator: Driver File driven
 ******************************************************
 
 """
 # Import standard Python packages and read outfile
 import getopt
-import os
 import sys
-import threading
 
 sys.path.insert(0, r'\\qafile2\TS\Working Data\Shashank\Validation Library\ValidationLib')
 import datetime
@@ -27,7 +25,7 @@ for o, a in OPTLIST:
     if o == "--outfile":
         OUTFILE = a
     print ("Outfile: " + OUTFILE)
-# OUTFILE = 'C:\Users\i56228\Documents\Python\Git\ValidationLib\provisioning.csv'
+OUTFILE = 'C:\Users\i56228\Documents\Python\Git\ValidationLib\provisioning.csv'
 if OUTFILE is None:
     print ('Outfile is not passed')
     sys.exit()
@@ -37,7 +35,6 @@ import time
 import logging
 import pandas as pd
 
-from ValidationLib.database.main import Database
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.setLevel(logging.INFO)
@@ -54,20 +51,20 @@ __maintainer__ = 'Shashank kapadia'
 __email__ = 'skapadia@air-worldwide.com'
 __status__ = 'Complete'
 
-
 def file_skeleton(outfile):
-    pd.DataFrame(columns=['BackupLocation', 'Status']).to_csv(outfile, index=False)
-
+    pd.DataFrame(columns=['Status']).to_csv(outfile, index=False)
 
 # Extract the given arguments
 try:
-    server = sys.argv[3]
-    database = sys.argv[4]
-    backup_location = sys.argv[5]
 
+    driver_file = r'\\qafile2\TS\Working Data\MalloryHarper\CSV Import\Boundary\PWC_Reinsurance.csv'
+    LOGGER = logging.getLogger(__name__)
+    LOGGER.setLevel(logging.INFO)
+
+    HANDLER_INFO = logging.FileHandler(driver_file[:-4] + '-info.log')
+    HANDLER_INFO.setLevel(logging.INFO)
+    LOGGER.addHandler(HANDLER_INFO)
 except:
-    LOGGER.error('Please verify the inputs')
-    file_skeleton(OUTFILE)
     sys.exit()
 
 if __name__ == "__main__":
@@ -80,39 +77,15 @@ if __name__ == "__main__":
         LOGGER.info('********************************')
 
         LOGGER.info('\n********** Log header **********\n')
-        LOGGER.info('Description:   Import Log Validation')
+        LOGGER.info('Description:   Location CSV Exposure to UI Format')
         LOGGER.info('Time Submitted: ' + str(datetime.datetime.now()))
         LOGGER.info('Status:                Completed')
-
-        db = Database(server)
-        if database is not 'All':
-            if os.path.exists(str(backup_location + '\\' + database + '.BAK')):
-                files = [str(backup_location + '\\' + database + '.BAK')]
-            else:
-                LOGGER.info('Database does not exist')
-                sys.exit()
-        else:
-            files = [str(backup_location + '\\' + filename) for filename in os.listdir(backup_location) if
-                     filename.endswith('.BAK')]
-
-        thread_list = []
-        for dbase in (files):
-            t = threading.Thread(target=db.restore_db, args=(dbase, server,))
-            thread_list.append(t)
-
-        for thread in thread_list:
-            thread.start()
-
-        for thread in thread_list:
-            thread.join()
-
-        output = pd.DataFrame()
-        output.to_csv(OUTFILE, index=False)
-        LOGGER.info('----------------------------------------------------------------------------------')
-        LOGGER.info('              Import Log Completed Successfully                                   ')
-        LOGGER.info('----------------------------------------------------------------------------------')
-
-        LOGGER.info('********** Process Complete Time: ' + str(time.time() - start) + ' Seconds **********')
+        data = pd.read_csv(driver_file, header=None).transpose()
+        columns = data.iloc[0].values
+        data = data[1:].reset_index(drop=True)
+        data.columns = columns
+        data = data.ffill()
+        data.to_csv(driver_file[:-4] + '-Exposure.csv', index=False)
 
     except:
         LOGGER.error('Unknown error: Contact code maintainer: ' + __maintainer__, exc_info=True)
