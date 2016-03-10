@@ -1145,7 +1145,7 @@ class Database:
                  '[IsModeled], ' \
                  '[IsOffshore] ' \
                  'FROM [AIRReference].[dbo].[tCountry]' \
-                 'WHERE IsModeled > 0 or IsOffshore > 0'
+                 '--WHERE IsModeled > 0 or IsOffshore > 0'
 
         return copy.deepcopy(pd.read_sql(script, self.connection))
 
@@ -1154,7 +1154,7 @@ class Database:
 
         return copy.deepcopy(pd.read_sql(script, self.connection))
 
-    def get_address_information(self, country_code, geo_level):
+    def get_address_information_code(self, country_code, geo_level):
 
         script = 'SELECT TOP 2 [CountryCode], ' \
                  '[CRESTACode], ' \
@@ -1167,4 +1167,243 @@ class Database:
                  'FROM [AIRGeography].[dbo].[tGeography] ' \
                  'where Latitude <> 0 and Longitude <> 0 and CountryCode = ' + \
                  "'" + country_code + "'" + ' and GeoLevelCode = ' + "'" + geo_level + "'" + ' order by NEWID()'
+        return copy.deepcopy(pd.read_sql(script, self.connection))
+    
+    def get_address_information_name(self, country_code, geo_level):
+
+        script = 'SELECT TOP 2 [CountryName], ' \
+                 '[CRESTAName], ' \
+                 '[AreaName], ' \
+                 '[SubareaName], ' \
+                 '[PostalName], ' \
+                 '[Subarea2Name], ' \
+                 '[Latitude], ' \
+                 '[Longitude] ' \
+                 'FROM [AIRGeography].[dbo].[tGeography] ' \
+                 'where Latitude <> 0 and Longitude <> 0 and CountryCode = ' + \
+                 "'" + country_code + "'" + ' and GeoLevelCode = ' + "'" + geo_level + "'" + ' order by NEWID()'
+        return copy.deepcopy(pd.read_sql(script, self.connection))
+
+    def get_areacode_length(self, geo_level, country_code):
+
+        if geo_level == 'SUB2':
+            script = 'SELECT DISTINCT LEN(Subarea2Code) FROM [AIRGeography].[dbo].[tGeography] ' \
+                     'WHERE CountryCode = ' + "'" + country_code + "'"
+
+        if geo_level == 'POST':
+            script = 'SELECT DISTINCT LEN(PostalCode) FROM [AIRGeography].[dbo].[tGeography] ' \
+                     'WHERE CountryCode = ' + "'" + country_code + "'"
+
+        if geo_level == 'SUBA':
+            script = 'SELECT DISTINCT LEN(SubareaCode) FROM [AIRGeography].[dbo].[tGeography] ' \
+                     'WHERE CountryCode = ' + "'" + country_code + "'"
+
+        if geo_level == 'CRES':
+            script = 'SELECT DISTINCT LEN(CRESTACode) FROM [AIRGeography].[dbo].[tGeography] ' \
+                     'WHERE CountryCode = ' + "'" + country_code + "'"
+
+        if geo_level == 'AREA':
+            script = 'SELECT DISTINCT LEN(AreaCode) FROM [AIRGeography].[dbo].[tGeography] ' \
+                     'WHERE CountryCode = ' + "'" + country_code + "'"
+
+        return copy.deepcopy(pd.read_sql(script, self.connection))
+    
+    def get_areaname_length(self, geo_level, country_Name):
+
+        if geo_level == 'SUB2':
+            script = 'SELECT DISTINCT LEN(Subarea2Name) FROM [AIRGeography].[dbo].[tGeography] ' \
+                     'WHERE CountryCode = ' + "'" + country_Name + "'"
+
+        if geo_level == 'POST':
+            script = 'SELECT DISTINCT LEN(PostalName) FROM [AIRGeography].[dbo].[tGeography] ' \
+                     'WHERE CountryCode = ' + "'" + country_Name + "'"
+
+        if geo_level == 'SUBA':
+            script = 'SELECT DISTINCT LEN(SubareaName) FROM [AIRGeography].[dbo].[tGeography] ' \
+                     'WHERE CountryCode = ' + "'" + country_Name + "'"
+
+        if geo_level == 'CRES':
+            script = 'SELECT DISTINCT LEN(CRESTAName) FROM [AIRGeography].[dbo].[tGeography] ' \
+                     'WHERE CountryCode = ' + "'" + country_Name + "'"
+
+        if geo_level == 'AREA':
+            script = 'SELECT DISTINCT LEN(AreaName) FROM [AIRGeography].[dbo].[tGeography] ' \
+                     'WHERE CountryCode = ' + "'" + country_Name + "'"
+
+        return copy.deepcopy(pd.read_sql(script, self.connection))
+
+    def get_areacode_length_data(self, country_code, geo_level, length, level=None):
+
+        if geo_level == 'SUB2':
+            script = 'SELECT TOP 1 CAST(AreaCode as VARCHAR(100)) as AreaCode, CAST(SubAreaCode as VARCHAR(100)) as SubAreaCode, ' \
+                     'CAST(SubArea2Code as VARCHAR(100)) as SubArea2Code, CAST(CRESTACode as VARCHAR(100)) as CRESTACode, ' \
+                     'CAST(PostalCode as VARCHAR(100)) as PostalCode, CountryCode, Latitude, Longitude ' \
+                     'FROM [AIRGeography].[dbo].[tGeography] ' \
+                     'where CountryCode = ' + "'" + country_code + "' and GeoLevelCode = " + \
+                     "'" + geo_level + "' and len(subarea2Code) = " + str(length)
+
+        elif geo_level == 'POST':
+            script = 'SELECT TOP 1 CAST(AreaCode as VARCHAR(100)) as AreaCode, CAST(SubAreaCode as VARCHAR(100)) as SubAreaCode, ' \
+                     'CAST(SubArea2Code as VARCHAR(100)) as SubArea2Code, CAST(CRESTACode as VARCHAR(100)) as CRESTACode, ' \
+                     'CAST(PostalCode as VARCHAR(100)) as PostalCode, CountryCode, Latitude, Longitude ' \
+                     'FROM [AIRGeography].[dbo].[tGeography] ' \
+                     'where CountryCode = ' + "'" + country_code + "' and GeoLevelCode = " + \
+                     "'" + geo_level + "' and len(PostalCode) = " + str(length)
+
+        elif geo_level == 'SUBA':
+
+            if not level == 3:
+
+                script = 'SELECT TOP 1 CAST(AreaCode as VARCHAR(100)) as AreaCode, CAST(SubAreaCode as VARCHAR(100)) as SubAreaCode, ' \
+                     'CAST(SubArea2Code as VARCHAR(100)) as SubArea2Code, CAST(CRESTACode as VARCHAR(100)) as CRESTACode, ' \
+                     'CAST(PostalCode as VARCHAR(100)) as PostalCode, CountryCode, Latitude, Longitude ' \
+                         'FROM [AIRGeography].[dbo].[tGeography] ' \
+                         'where CountryCode = ' + "'" + country_code + "' and GeoLevelCode = " + \
+                         "'" + geo_level + "' and len(SubareaCode) = " + str(length)
+            else:
+                script = 'SELECT TOP 1 CAST(AreaCode as VARCHAR(100)) as AreaCode, CAST(SubAreaCode as VARCHAR(100)) as SubAreaCode, ' \
+                     'CAST(CRESTACode as VARCHAR(100)) as CRESTACode, ' \
+                     'CountryCode, Latitude, Longitude ' \
+                         'FROM [AIRGeography].[dbo].[tGeography] ' \
+                         'where CountryCode = ' + "'" + country_code + "' and GeoLevelCode = " + \
+                         "'" + geo_level + "' and len(SubareaCode) = " + str(length)
+
+        elif geo_level == 'CRES':
+
+            if not level == (3 and 2):
+                script = 'SELECT TOP 1 CAST(AreaCode as VARCHAR(100)) as AreaCode, CAST(SubAreaCode as VARCHAR(100)) as SubAreaCode, ' \
+                     'CAST(SubArea2Code as VARCHAR(100)) as SubArea2Code, CAST(CRESTACode as VARCHAR(100)) as CRESTACode, ' \
+                     'CAST(PostalCode as VARCHAR(100)) as PostalCode, CountryCode, Latitude, Longitude ' \
+                         'FROM [AIRGeography].[dbo].[tGeography] ' \
+                         'where CountryCode = ' + "'" + country_code + "' and GeoLevelCode = " + \
+                         "'" + geo_level + "' and len(CrestaCode) = " + str(length)
+            elif level == 3:
+                script = 'SELECT TOP 1 CAST(AreaCode as VARCHAR(100)) as AreaCode, CAST(SubAreaCode as VARCHAR(100)) as SubAreaCode, ' \
+                     'CAST(CRESTACode as VARCHAR(100)) as CRESTACode, ' \
+                     'CountryCode, Latitude, Longitude ' \
+                         'FROM [AIRGeography].[dbo].[tGeography] ' \
+                         'where CountryCode = ' + "'" + country_code + "' and GeoLevelCode = " + \
+                         "'" + geo_level + "' and len(CrestaCode) = " + str(length)
+            elif level == 2:
+                script = 'SELECT TOP 1 CAST(AreaCode as VARCHAR(100)) as AreaCode,  ' \
+                     'CAST(CRESTACode as VARCHAR(100)) as CRESTACode, ' \
+                     'CountryCode, Latitude, Longitude ' \
+                         'FROM [AIRGeography].[dbo].[tGeography] ' \
+                         'where CountryCode = ' + "'" + country_code + "' and GeoLevelCode = " + \
+                         "'" + geo_level + "' and len(CrestaCode) = " + str(length)
+            print(script)
+
+
+        elif geo_level == 'AREA':
+            print(level)
+            if not level == (3 and 2):
+                script = 'SELECT TOP 1 CAST(AreaCode as VARCHAR(100)) as AreaCode, CAST(SubAreaCode as VARCHAR(100)) as SubAreaCode, ' \
+                     'CAST(SubArea2Code as VARCHAR(100)) as SubArea2Code, CAST(CRESTACode as VARCHAR(100)) as CRESTACode, ' \
+                     'CAST(PostalCode as VARCHAR(100)) as PostalCode, CountryCode, Latitude, Longitude ' \
+                         'FROM [AIRGeography].[dbo].[tGeography] ' \
+                         'where CountryCode = ' + "'" + country_code + "' and GeoLevelCode = " + \
+                         "'" + geo_level + "' and len(AreaCode) = " + str(length)
+            elif level == 3:
+                script = 'SELECT TOP 1 CAST(AreaCode as VARCHAR(100)), CAST(SubAreaCode as VARCHAR(100)), ' \
+                     'CAST(CRESTACode as VARCHAR(100)), ' \
+                     'CountryCode, Latitude, Longitude ' \
+                         'FROM [AIRGeography].[dbo].[tGeography] ' \
+                         'where CountryCode = ' + "'" + country_code + "' and GeoLevelCode = " + \
+                         "'" + geo_level + "' and len(AreaCode) = " + str(length)
+            elif level == 2:
+                script = 'SELECT TOP 1 CAST(AreaCode as VARCHAR(100)) as AreaCode,  ' \
+                     'CAST(CRESTACode as VARCHAR(100)) as CRESTACode, ' \
+                     'CountryCode, Latitude, Longitude ' \
+                         'FROM [AIRGeography].[dbo].[tGeography] ' \
+                         'where CountryCode = ' + "'" + country_code + "' and GeoLevelCode = " + \
+                         "'" + geo_level + "' and len(AreaCode) = " + str(length)
+
+        return copy.deepcopy(pd.read_sql(script, self.connection))
+    
+    def get_areaname_length_data(self, country_Name, geo_level, length, level=None):
+
+        if geo_level == 'SUB2':
+            script = 'SELECT TOP 1 CAST(AreaName as VARCHAR(100)) as AreaName, CAST(SubAreaName as VARCHAR(100)) as SubAreaName, ' \
+                     'CAST(SubArea2Name as VARCHAR(100)) as SubArea2Name, CAST(CRESTAName as VARCHAR(100)) as CRESTAName, ' \
+                     'CAST(PostalName as VARCHAR(100)) as PostalName, CountryName, Latitude, Longitude ' \
+                     'FROM [AIRGeography].[dbo].[tGeography] ' \
+                     'where CountryCode = ' + "'" + country_Name + "' and GeoLevelCode = " + \
+                     "'" + geo_level + "' and len(subarea2Name) = " + str(length)
+
+        elif geo_level == 'POST':
+            script = 'SELECT TOP 1 CAST(AreaName as VARCHAR(100)) as AreaName, CAST(SubAreaName as VARCHAR(100)) as SubAreaName, ' \
+                     'CAST(SubArea2Name as VARCHAR(100)) as SubArea2Name, CAST(CRESTAName as VARCHAR(100)) as CRESTAName, ' \
+                     'CAST(PostalName as VARCHAR(100)) as PostalName, CountryName, Latitude, Longitude ' \
+                     'FROM [AIRGeography].[dbo].[tGeography] ' \
+                     'where CountryCode = ' + "'" + country_Name + "' and GeoLevelCode = " + \
+                     "'" + geo_level + "' and len(PostalName) = " + str(length)
+
+        elif geo_level == 'SUBA':
+
+            if not level == 3:
+
+                script = 'SELECT TOP 1 CAST(AreaName as VARCHAR(100)) as AreaName, CAST(SubAreaName as VARCHAR(100)) as SubAreaName, ' \
+                     'CAST(SubArea2Name as VARCHAR(100)) as SubArea2Name, CAST(CRESTAName as VARCHAR(100)) as CRESTAName, ' \
+                     'CAST(PostalName as VARCHAR(100)) as PostalName, CountryName, Latitude, Longitude ' \
+                         'FROM [AIRGeography].[dbo].[tGeography] ' \
+                         'where CountryCode = ' + "'" + country_Name + "' and GeoLevelCode = " + \
+                         "'" + geo_level + "' and len(SubareaName) = " + str(length)
+            else:
+                script = 'SELECT TOP 1 CAST(AreaName as VARCHAR(100)) as AreaName, CAST(SubAreaName as VARCHAR(100)) as SubAreaName, ' \
+                     'CAST(CRESTAName as VARCHAR(100)) as CRESTAName, ' \
+                     'CountryName, Latitude, Longitude ' \
+                         'FROM [AIRGeography].[dbo].[tGeography] ' \
+                         'where CountryCode = ' + "'" + country_Name + "' and GeoLevelCode = " + \
+                         "'" + geo_level + "' and len(SubareaName) = " + str(length)
+
+        elif geo_level == 'CRES':
+
+            if not level == (3 and 2):
+                script = 'SELECT TOP 1 CAST(AreaName as VARCHAR(100)) as AreaName, CAST(SubAreaName as VARCHAR(100)) as SubAreaName, ' \
+                     'CAST(SubArea2Name as VARCHAR(100)) as SubArea2Name, CAST(CRESTAName as VARCHAR(100)) as CRESTAName, ' \
+                     'CAST(PostalName as VARCHAR(100)) as PostalName, CountryName, Latitude, Longitude ' \
+                         'FROM [AIRGeography].[dbo].[tGeography] ' \
+                         'where CountryCode = ' + "'" + country_Name + "' and GeoLevelCode = " + \
+                         "'" + geo_level + "' and len(CrestaName) = " + str(length)
+            elif level == 3:
+                script = 'SELECT TOP 1 CAST(AreaName as VARCHAR(100)) as AreaName, CAST(SubAreaName as VARCHAR(100)) as SubAreaName, ' \
+                     'CAST(CRESTAName as VARCHAR(100)) as CRESTAName, ' \
+                     'CountryName, Latitude, Longitude ' \
+                         'FROM [AIRGeography].[dbo].[tGeography] ' \
+                         'where CountryCode = ' + "'" + country_Name + "' and GeoLevelCode = " + \
+                         "'" + geo_level + "' and len(CrestaName) = " + str(length)
+            elif level == 2:
+                script = 'SELECT TOP 1 CAST(AreaName as VARCHAR(100)) as AreaName,  ' \
+                     'CAST(CRESTAName as VARCHAR(100)) as CRESTAName, ' \
+                     'CountryName, Latitude, Longitude ' \
+                         'FROM [AIRGeography].[dbo].[tGeography] ' \
+                         'where CountryCode = ' + "'" + country_Name + "' and GeoLevelCode = " + \
+                         "'" + geo_level + "' and len(CrestaName) = " + str(length)
+            print(script)
+
+
+        elif geo_level == 'AREA':
+            print(level)
+            if not level == (3 and 2):
+                script = 'SELECT TOP 1 CAST(AreaName as VARCHAR(100)) as AreaName, CAST(SubAreaName as VARCHAR(100)) as SubAreaName, ' \
+                     'CAST(SubArea2Name as VARCHAR(100)) as SubArea2Name, CAST(CRESTAName as VARCHAR(100)) as CRESTAName, ' \
+                     'CAST(PostalName as VARCHAR(100)) as PostalName, CountryName, Latitude, Longitude ' \
+                         'FROM [AIRGeography].[dbo].[tGeography] ' \
+                         'where CountryCode = ' + "'" + country_Name + "' and GeoLevelCode = " + \
+                         "'" + geo_level + "' and len(AreaName) = " + str(length)
+            elif level == 3:
+                script = 'SELECT TOP 1 CAST(AreaName as VARCHAR(100)), CAST(SubAreaName as VARCHAR(100)), ' \
+                     'CAST(CRESTAName as VARCHAR(100)), ' \
+                     'CountryName, Latitude, Longitude ' \
+                         'FROM [AIRGeography].[dbo].[tGeography] ' \
+                         'where CountryCode = ' + "'" + country_Name + "' and GeoLevelCode = " + \
+                         "'" + geo_level + "' and len(AreaName) = " + str(length)
+            elif level == 2:
+                script = 'SELECT TOP 1 CAST(AreaName as VARCHAR(100)) as AreaName,  ' \
+                     'CAST(CRESTAName as VARCHAR(100)) as CRESTAName, ' \
+                     'CountryName, Latitude, Longitude ' \
+                         'FROM [AIRGeography].[dbo].[tGeography] ' \
+                         'where CountryCode = ' + "'" + country_Name + "' and GeoLevelCode = " + \
+                         "'" + geo_level + "' and len(AreaName) = " + str(length)
+        print(script)
         return copy.deepcopy(pd.read_sql(script, self.connection))

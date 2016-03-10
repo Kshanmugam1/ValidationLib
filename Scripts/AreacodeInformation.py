@@ -20,6 +20,7 @@ def swap_data(data, target, type=None):
                 for k in range(len(swap_position)):
                     data[swap_position[k]] = target[swap_position[k]]
                 master_data = master_data.append([data])
+                data = locations.iloc[0, :].values
     print(master_data)
     return master_data
 
@@ -30,7 +31,7 @@ countries = db.get_country_list()
 master_data = pd.DataFrame()
 table = pd.DataFrame(list(itertools.product([False, True], repeat=8)))
 
-for i in range(4):
+for i in range(len(countries)):
 
     country_code = countries.iloc[i, 0]
 
@@ -41,7 +42,7 @@ for i in range(4):
             data = locations.iloc[0, :].values
             target = locations.iloc[1, :].value
             master_data = pd.concat([master_data, swap_data(data, target)])
-            data = locations.iloc[0, :].values
+
         continue
 
     if 'POST' in country_resolution:
