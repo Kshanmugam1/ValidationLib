@@ -37,7 +37,7 @@ for i in range(len(countries)):
 
     country_resolution = db.get_country_resolution(country_code).iloc[:, 0].values
     if 'SUB2' in country_resolution:
-        locations = db.get_address_information(country_code, 'SUB2')
+        locations = db.get_address_information_code(country_code, 'SUB2')
         if len(locations) >= 2:
             data = locations.iloc[0, :].values
             target = locations.iloc[1, :].value
@@ -46,7 +46,7 @@ for i in range(len(countries)):
         continue
 
     if 'POST' in country_resolution:
-        locations =  db.get_address_information(country_code, 'POST')
+        locations =  db.get_address_information_code(country_code, 'POST')
         if len(locations) >= 2:
             data = locations.iloc[0, :].values
             target = locations.iloc[1, :].values
@@ -56,7 +56,7 @@ for i in range(len(countries)):
         continue
 
     if 'SUBA' in country_resolution:
-        locations =  db.get_address_information(country_code, 'SUBA')
+        locations =  db.get_address_information_code(country_code, 'SUBA')
         if len(locations) >= 2:
             data = locations.iloc[0, :].values
             target = locations.iloc[1, :].values
@@ -65,7 +65,7 @@ for i in range(len(countries)):
         continue
 
     if 'CRES' in country_resolution:
-        locations =  db.get_address_information(country_code, 'CRES')
+        locations =  db.get_address_information_code(country_code, 'CRES')
         if len(locations) >= 2:
             data = locations.iloc[0, :].values
             target = locations.iloc[1, :].values
@@ -74,7 +74,7 @@ for i in range(len(countries)):
         continue
 
     if 'AREA' in country_resolution:
-        locations =  db.get_address_information(country_code, 'AREA')
+        locations =  db.get_address_information_code(country_code, 'AREA')
         if len(locations) >= 2:
             data = locations.iloc[0, :].values
             target = locations.iloc[1, :].values
